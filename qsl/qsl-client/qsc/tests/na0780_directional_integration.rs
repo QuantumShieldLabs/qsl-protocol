@@ -272,7 +272,7 @@ fn hs_dance(alice_cfg: &Path, bob_cfg: &Path, relay: &str, server:&common::Inbox
     assert_eq!(originals.len(),1);
     let mut changed=originals[0].clone();
     let block_len=u16::from_be_bytes([changed[7],changed[8]]) as usize;
-    assert!(changed[9..9+block_len].windows(25).any(|w|w==b"NA0780-DIR-INTEGRATION-01"));
+    assert!(changed[9..9+block_len].windows(25).any(|w|w==b"NA0780-DIR-INTEGRATION-03"));
     changed[9+block_len-1]^=1;
     server.replace_channel(ROUTE_TOKEN_BOB,vec![changed]);
     let _rejected=run_qsc(bob_cfg,&["handshake","poll","--as","bob","--peer","alice","--relay",relay,"--max","4"]);
@@ -363,7 +363,7 @@ fn recv_msg_drain(
 fn integration_state(cfg:&Path,peer:&str)->serde_json::Value {
     env::set_var("QSC_CONFIG_DIR",cfg);
     qsc::vault::protection::unlock_guarded(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
-    let raw=qsc::vault::secret_get(&format!("na0780_directional_transaction/{peer}")).unwrap().expect("candidate transaction");
+    let raw=qsc::vault::secret_get(&format!("na0780_directional_transaction_v2/{peer}")).unwrap().expect("candidate transaction");
     serde_json::from_str(&raw).unwrap()
 }
 fn delivered_count(out:&Path)->usize {
@@ -417,7 +417,7 @@ fn directional_integration_acceptance() {
         acceptance_phase(&format!("o{order}_handshake"),||hs_dance(&a,&b,&relay,&server));
         acceptance_phase(&format!("o{order}_profile_assertions"),||{
         let sa=integration_state(&a,"bob");let sb=integration_state(&b,"alice");
-        assert_eq!(sa["version"],"NA0780-DIR-INTEGRATION-01");assert_eq!(sa["core"]["sid"],sb["core"]["sid"]);
+        assert_eq!(sa["version"],"NA0780-DIR-INTEGRATION-03");assert_eq!(sa["core"]["sid"],sb["core"]["sid"]);
         assert_eq!(sa["core"]["root"],sb["core"]["root"]);
         println!("NA0780_ACCEPT group=authenticated_profile order={order} result=pass");
         });
@@ -1386,7 +1386,7 @@ fn saved_ack(cfg:&Path,peer:&str,ack:&[u8]){
 }
 fn saved_reject(cfg:&Path,peer:&str,raw:&[u8],error:&'static str){
     let before=integration_state(cfg,peer);
-    let key=format!("na0780_directional_transaction/{peer}");
+    let key=format!("na0780_directional_transaction_v2/{peer}");
     let encoded=qsc::vault::secret_get(&key).unwrap().unwrap();
     assert_eq!(qsc::na0780_test_receive_probe(peer,raw),Err(error),"exact admission refusal class");
     assert_eq!(qsc::vault::secret_get(&key).unwrap().unwrap(),encoded,"rejection changed serialized authoritative state");
@@ -1810,7 +1810,7 @@ fn directional_ci_fresh_crossed_delivery() {
         let relay = server.base_url();
         hs_dance(&a, &b, &relay, &server);
         let sa = integration_state(&a, "bob"); let sb = integration_state(&b, "alice");
-        assert_eq!(sa["version"], "NA0780-DIR-INTEGRATION-01");
+        assert_eq!(sa["version"], "NA0780-DIR-INTEGRATION-03");
         assert_eq!(sa["core"]["sid"], sb["core"]["sid"]);
         assert_eq!(sa["core"]["root"], sb["core"]["root"]);
         let af = base.join("a.body"); let bf = base.join("b.body");
@@ -1833,4 +1833,1025 @@ fn directional_ci_fresh_crossed_delivery() {
         payload_once(&ao, &fs::read(&bf).unwrap());
         println!("NA0780_CI order={order} same_operation_delivered=2 result=pass");
     }
+}
+
+/// Fresh authenticated peers; hostile AEAD-valid bodies are constructed only from
+/// a disposable sender snapshot. Every reject must leave all durable files intact.
+#[test]
+fn directional_successor_authenticated_malformed_no_mutation() {
+    if !common::directional_case_child("directional_successor_authenticated_malformed_no_mutation") { return; }
+    // Optional rendezvous belongs only to the exact parent-control invocation.
+    let mut overlap = env::var("QSC_NA0780_OBSERVER_PROBE").ok().map(|value| {
+        use std::io::{Read, Write};
+        let port: u16 = value.strip_prefix("malformed-overlap:").expect("exact overlap probe").parse().unwrap();
+        let mut stream = std::net::TcpStream::connect_timeout(
+            &std::net::SocketAddr::from(([127, 0, 0, 1], port)), Duration::from_secs(5)).unwrap();
+        stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();
+        stream.set_write_timeout(Some(Duration::from_secs(5))).unwrap();
+        stream.write_all(b"B").unwrap();
+        let mut ack = [0]; stream.read_exact(&mut ack).unwrap(); assert_eq!(ack, *b"B");
+        stream
+    });
+    let base=safe_test_root().join(format!("na0780_successor_malformed_{}",std::process::id()));
+    assert!(!base.exists());ensure_dir_700(&base);
+    let a=base.join("alice");let b=base.join("bob");let bo=base.join("bob-out");
+    for dir in [&a,&b,&bo] {ensure_dir_700(dir);}
+    common::init_mock_vault(&a);common::init_mock_vault(&b);
+    let server=common::start_inbox_server(1024*1024,64);let relay=server.base_url();
+    hs_dance(&a,&b,&relay,&server);
+    let file=base.join("first");fs::write(&file,b"honest before malformed").unwrap();
+    send_msg(&a,&relay,"bob",&file);
+    poll_candidate(&b,&relay,ROUTE_TOKEN_BOB,"alice",&bo);
+    let sender=common::directional_state(&a,"bob");
+    let snapshot=serde_json::to_string(&sender["core"]).unwrap();
+    env::set_var("QSC_CONFIG_DIR",&b);
+    qsc::vault::protection::unlock_guarded(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    fn tree(path:&Path)->std::collections::BTreeMap<PathBuf,Vec<u8>> {
+        fn walk(root:&Path,path:&Path,out:&mut std::collections::BTreeMap<PathBuf,Vec<u8>>) {
+            for entry in fs::read_dir(path).unwrap() {
+                let entry=entry.unwrap();let kind=entry.file_type().unwrap();assert!(!kind.is_symlink());
+                if kind.is_dir(){walk(root,&entry.path(),out)}else{assert!(kind.is_file());out.insert(entry.path().strip_prefix(root).unwrap().to_owned(),fs::read(entry.path()).unwrap());}
+            }
+        }
+        let mut out=std::collections::BTreeMap::new();walk(path,path,&mut out);out
+    }
+    let durable=tree(&b);let outputs=tree(&bo);
+    let pending=server.drain_channel(ROUTE_TOKEN_ALICE);
+    for mode in ["body_profile","body_kind","body_padding_profile","body_length","body_payload_length","body_padding","body_closure","body_request"] {
+        let raw=qsc::na0780_test_hostile_wire(&snapshot,mode,0).unwrap();
+        assert!(qsc::na0780_test_receive_response("alice",&raw).is_err(),"authenticated malformed body must reject");
+        assert!(tree(&b)==durable,"reject mutated durable receiver state");
+        assert!(tree(&bo)==outputs,"reject produced output");
+        assert!(server.drain_channel(ROUTE_TOKEN_ALICE).is_empty(),"reject released a receipt");
+    }
+    server.replace_channel(ROUTE_TOKEN_ALICE,pending);
+    let file=base.join("second");fs::write(&file,b"honest after malformed").unwrap();
+    send_msg(&a,&relay,"bob",&file);
+    poll_candidate(&b,&relay,ROUTE_TOKEN_BOB,"alice",&bo);
+    let contents=tree(&bo);
+    assert_eq!(contents.values().filter(|v|v.as_slice()==b"honest before malformed").count(),1);
+    assert_eq!(contents.values().filter(|v|v.as_slice()==b"honest after malformed").count(),1);
+    assert!(outputs.iter().all(|(p,bytes)|contents.get(p)==Some(bytes)),"prior outputs unchanged");
+    if let Some(stream) = overlap.as_mut() {
+        use std::io::{Read, Write};
+        stream.write_all(b"E").unwrap();
+        let mut ack = [0]; stream.read_exact(&mut ack).unwrap(); assert_eq!(ack, *b"E");
+    }
+}
+
+#[test]
+fn directional_successor_authenticated_malformed_no_mutation_parent_control() {
+    use std::io::{Read, Write};
+    let environment: std::collections::BTreeMap<_, _> = env::vars_os().collect();
+    let passphrase_present = qsc::vault::has_process_passphrase();
+    let unchanged = || {
+        assert!(environment == env::vars_os().collect(), "parent config/environment changed");
+        assert_eq!(qsc::vault::has_process_passphrase(), passphrase_present, "parent unlock state changed");
+    };
+    let listener = std::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0)).unwrap();
+    listener.set_nonblocking(true).unwrap();
+    let probe = format!("malformed-overlap:{}", listener.local_addr().unwrap().port());
+    std::thread::scope(|scope| {
+        // The existing wrapper owns, bounds and reaps this exact child, including
+        // on failure. No change to process-global environment or cleanup semantics.
+        let child = scope.spawn(|| assert!(!common::directional_case_child_bounded(
+            "directional_successor_authenticated_malformed_no_mutation",
+            Duration::from_secs(590), Some(&probe))));
+        let ready_deadline = Instant::now() + Duration::from_secs(5);
+        let mut stream = loop {
+            unchanged();
+            match listener.accept() {
+                Ok((stream, address)) => { assert!(address.ip().is_loopback()); break stream; }
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                    assert!(Instant::now() < ready_deadline, "child overlap readiness deadline");
+                    thread::sleep(Duration::from_millis(10));
+                }
+                Err(error) => panic!("child overlap accept: {error}"),
+            }
+        };
+        stream.set_read_timeout(Some(Duration::from_millis(100))).unwrap();
+        stream.set_write_timeout(Some(Duration::from_secs(5))).unwrap();
+        for (phase, budget) in [(b'B', Duration::from_secs(5)), (b'E', Duration::from_secs(580))] {
+            let deadline = Instant::now() + budget;
+            loop {
+                unchanged();
+                assert!(Instant::now() < deadline, "child overlap phase deadline");
+                let mut message = [0];
+                match stream.read(&mut message) {
+                    Ok(1) => { assert_eq!(message[0], phase); break; }
+                    Ok(_) => panic!("child exited before overlap rendezvous"),
+                    Err(error) if matches!(error.kind(), std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut) => {
+                        assert!(Instant::now() < deadline, "child overlap phase deadline");
+                    }
+                    Err(error) => panic!("child overlap read: {error}"),
+                }
+            }
+            // Child cannot leave this phase until the parent has checked and ACKed.
+            // Two ACKed phases prove observation while the child is actually live.
+            unchanged(); stream.write_all(&[phase]).unwrap();
+            println!("R06 overlap_phase={} parent_observed_live_child=true", if phase == b'B' { "begin" } else { "end" });
+        }
+        child.join().expect("bounded isolated fixture passed");
+    });
+    unchanged();
+}
+
+fn review_tree(root: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
+    fn walk(root: &Path, path: &Path, out: &mut std::collections::BTreeMap<PathBuf, Vec<u8>>) {
+        for entry in fs::read_dir(path).unwrap() {
+            let entry = entry.unwrap(); let kind = entry.file_type().unwrap();
+            assert!(!kind.is_symlink());
+            if kind.is_dir() { walk(root, &entry.path(), out); }
+            else { assert!(kind.is_file()); out.insert(entry.path().strip_prefix(root).unwrap().to_owned(), fs::read(entry.path()).unwrap()); }
+        }
+    }
+    let mut out = std::collections::BTreeMap::new(); walk(root, root, &mut out); out
+}
+
+fn review_receive(cfg: &Path, relay: &str, out: &Path, fail_write: bool) -> std::process::Output {
+    let mut command = qsc_cfg_cmd(cfg);
+    command.args(["receive", "--transport", "relay", "--relay", relay, "--mailbox", ROUTE_TOKEN_BOB,
+        "--from", "alice", "--receipt-mode", "immediate", "--max", "16", "--out", out.to_str().unwrap()]);
+    if fail_write { command.env("QSC_NA0780_RECEIVE_SAVE_FAULT", "1"); }
+    command.output().expect("actual transport receive")
+}
+
+fn review_r01_batch(fixed: bool) {
+    let base = safe_test_root().join(format!("r01_{}_{}", if fixed { "fixed" } else { "baseline" }, std::process::id()));
+    assert!(!base.exists()); ensure_dir_700(&base);
+    let a = base.join("alice"); let b = base.join("bob"); let bo = base.join("bob-out");
+    for path in [&a, &b, &bo] { ensure_dir_700(path); }
+    common::init_directional_pair(&a, "alice", ROUTE_TOKEN_ALICE, &b, "bob", ROUTE_TOKEN_BOB);
+    let server = common::start_inbox_server(1024 * 1024, 64);
+    server.enable_review_leases(); let relay = server.base_url();
+    let file = base.join("payload"); fs::write(&file, b"R01 honest A").unwrap();
+    send_msg(&a, relay, "bob", &file);
+    let honest_a = server.review_lease_snapshot(ROUTE_TOKEN_BOB).retained;
+    assert!(!honest_a.is_empty());
+    let sender = common::directional_state(&a, "bob");
+    let snapshot = serde_json::to_string(&sender["core"]).unwrap();
+    // Unlock only this exact isolated child for the existing direct receive seam.
+    // All authenticated snapshots use read-only sessions; no parent unlock occurs.
+    env::set_var("QSC_CONFIG_DIR", &b);
+    qsc::vault::protection::unlock_guarded(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    let durable = review_tree(&b); let outputs = review_tree(&bo);
+    let modes = [
+        ("body_padding_profile", "INTEGRATION_PADDING_PROFILE"),
+        ("body_padding_size", "INTEGRATION_PADDING_SIZE"),
+        ("body_padding", "INTEGRATION_PADDING_NONZERO"),
+        ("body_maintenance", "INTEGRATION_BODY"),
+        ("body_file_shape", "INTEGRATION_FILE_SHAPE"),
+        ("body_request", "INTEGRATION_FILE_REQUEST"),
+        ("body_file_gated", "INTEGRATION_FILE_GATED"),
+    ];
+    let mut rejected = Vec::new();
+    for (mode, code) in modes.into_iter().take(if fixed { 7 } else { 1 }) {
+        let raw = qsc::na0780_test_hostile_wire(&snapshot, mode, 0).unwrap();
+        assert_eq!(qsc::na0780_test_receive_response("alice", &raw).err(), Some(code), "exact authenticated producer code");
+        assert!(review_tree(&b) == durable, "rejected producer changed durable state");
+        assert!(review_tree(&bo) == outputs, "rejected producer wrote output");
+        let response = reqwest::blocking::Client::new().post(format!("{relay}/v1/push"))
+            .header("X-QSL-Route-Token", ROUTE_TOKEN_BOB).body(raw.clone()).send().unwrap();
+        assert!(response.status().is_success());
+        let response: serde_json::Value = response.json().unwrap();
+        rejected.push((response["id"].as_str().unwrap().to_owned(), raw));
+        println!("R01 authenticated producer={code} durable_unchanged=true");
+    }
+    fs::write(&file, b"R01 honest B").unwrap(); send_msg(&a, relay, "bob", &file);
+    let queued = server.review_lease_snapshot(ROUTE_TOKEN_BOB).retained;
+    let honest_b: Vec<_> = queued.iter().filter(|(id, _)| !honest_a.iter().chain(&rejected).any(|(old, _)| id == old)).cloned().collect();
+    assert!(!honest_b.is_empty());
+    assert_eq!(queued.iter().map(|(id, _)| id).collect::<Vec<_>>(), honest_a.iter().chain(&rejected).chain(&honest_b).map(|(id, _)| id).collect::<Vec<_>>(), "ordered A/rejected/B");
+    let result = review_receive(&b, relay, &bo, false); let text = output_text(&result);
+    fs::write(base.join("batch-receive.log"), &text).unwrap();
+    if fixed { assert!(result.status.success(), "fixed actual receive failed: {text}"); }
+    else {
+        assert!(!result.status.success(), "baseline must interrupt actual receive");
+        assert!(text.contains("code=INTEGRATION_PADDING_PROFILE"), "different baseline failure: {text}");
+        println!("R01 expected_baseline_interruption=INTEGRATION_PADDING_PROFILE exit={:?}", result.status.code());
+    }
+    let after = server.review_lease_snapshot(ROUTE_TOKEN_BOB);
+    assert_eq!(after.pulls[0], queued.iter().map(|(id, _)| id.clone()).collect::<Vec<_>>(), "actual ordered pull batch");
+    let acked: Vec<_> = after.acks.iter().flatten().collect();
+    for (id, raw) in &rejected {
+        assert!(after.retained.iter().any(|(kept, bytes)| kept == id && bytes == raw), "rejected bytes retained");
+        assert!(!acked.contains(&id), "rejected frame ACKed");
+    }
+    for (id, _) in &honest_a { assert!(acked.contains(&id)); }
+    let delivered = review_tree(&bo);
+    assert_eq!(delivered.values().filter(|v| v.as_slice() == b"R01 honest A").count(), 1);
+    assert_eq!(delivered.values().filter(|v| v.as_slice() == b"R01 honest B").count(), usize::from(fixed));
+    assert_eq!(delivered_count(&bo), if fixed { 2 } else { 1 }, "no rejected output");
+    for (id, raw) in &honest_b {
+        assert_eq!(acked.contains(&id), fixed);
+        assert_eq!(after.retained.iter().any(|(kept, bytes)| kept == id && bytes == raw), !fixed);
+    }
+    let receiver = common::directional_state(&b, "alice");
+    let dispositions = receiver["dispositions"].as_object().unwrap();
+    let expected = honest_a.len() + if fixed { honest_b.len() } else { 0 };
+    assert_eq!(dispositions.len(), expected, "no rejected durable disposition");
+    let receipts: Vec<_> = server.directional_pushes().into_iter().filter(|p| p.body.starts_with(b"NDR1")).collect();
+    assert_eq!(receipts.len(), expected, "no rejected NDR1");
+    for receipt in receipts {
+        assert!(receipt.status == 200 && receipt.response_written);
+        assert!(dispositions.values().any(|d| serde_json::from_value::<Vec<u8>>(d["receipt"].clone()).unwrap() == receipt.body));
+    }
+    if fixed {
+        // A fresh honest operation reaches the existing actual writer fault seam.
+        // A storage failure must still abort, retain its leased input and emit no receipt/output.
+        fs::write(&file, b"R01 local write failure").unwrap(); send_msg(&a, relay, "bob", &file);
+        let before = common::directional_state(&b, "alice");
+        let before_outputs = review_tree(&bo);
+        let before_acks = server.review_lease_snapshot(ROUTE_TOKEN_BOB).acks;
+        let before_receipts = server.directional_pushes().iter().filter(|p| p.body.starts_with(b"NDR1")).count();
+        let before_retained = server.review_lease_snapshot(ROUTE_TOKEN_BOB).retained;
+        let failed = review_receive(&b, relay, &bo, true); let text = output_text(&failed);
+        fs::write(base.join("local-write-failure.log"), &text).unwrap();
+        assert!(!failed.status.success(), "local write error swallowed");
+        assert!(text.contains("event=directional_receive_save_fault") && text.contains("stored_state_unchanged=true"), "actual writer fault not observed: {text}");
+        assert!(!text.contains("write_error=none"));
+        let after = common::directional_state(&b, "alice");
+        assert!(before["core"] == after["core"] && before["dispositions"] == after["dispositions"] && before["events"] == after["events"], "failed admission mutated receiver");
+        assert!(review_tree(&bo) == before_outputs);
+        let lease = server.review_lease_snapshot(ROUTE_TOKEN_BOB);
+        assert_eq!(lease.retained, before_retained); assert_eq!(lease.acks, before_acks);
+        assert_eq!(server.directional_pushes().iter().filter(|p| p.body.starts_with(b"NDR1")).count(), before_receipts);
+        println!("R01 fixed seven_codes=pass local_write_failure=propagated retained=true no_ack_or_receipt=true");
+    }
+}
+
+// Historical pre-correction instrument only; deliberately absent from libtest
+// discovery. Its exact original registered source, compile1 pins and passing
+// defect-demonstration result are preserved in the existing followup evidence.
+fn directional_review_r01_receive_batch_baseline() {
+    if !common::directional_case_child("directional_review_r01_receive_batch_baseline") { return; }
+    review_r01_batch(false);
+}
+
+#[test]
+fn directional_review_r01_receive_batch_fixed() {
+    if !common::directional_case_child("directional_review_r01_receive_batch_fixed") { return; }
+    review_r01_batch(true);
+}
+
+
+// R02 integration-delta witnesses only. These are code proposals, not executed
+// acceptance of the retained-control theorem or the seven-case allocation.
+fn r02_session(cfg: &Path) -> qsc::vault::VaultSession {
+    assert!(matches!(env::var("QSC_NA0780_ISOLATED_CASE").as_deref(),
+        Ok("directional_r02_fresh_and_ordinary_writers" | "directional_r02_genuine_receipt_restart" | "directional_r02_funded_release_at_saturation" | "directional_r02_serializer_maintenance" | "directional_r02_repeated_controls" | "directional_r02_queuefull_matrix" | "directional_r02_completion_cuts")));
+    env::set_var("QSC_CONFIG_DIR", cfg);
+    qsc::vault::open_session_with_passphrase(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap()
+}
+fn r02_owner(cfg: &Path) -> serde_json::Value {
+    let session = r02_session(cfg);
+    let raw = qsc::vault::session_get(&session,"na0780_directional_owner_v1").unwrap().unwrap();
+    serde_json::from_str(&raw).unwrap()
+}
+fn r02_assert_pair(cfg: &Path, peer: &str) {
+    let owner = r02_owner(cfg);
+    let state = common::directional_state(cfg,peer);
+    let reserve = &owner["peers"][peer];
+    assert_eq!(reserve["sid"],state["core"]["sid"]);
+    assert_eq!(reserve["generation"],state["generation"]);
+    assert_eq!(reserve["peer"],peer);
+    assert!(reserve["vault_future"].as_u64().unwrap()>0);
+    for entry in owner["entries"].as_object().unwrap().values() {
+        assert_eq!(entry["sid"],owner["peers"][entry["peer"].as_str().unwrap()]["sid"]);
+        assert!(entry["projection"].as_u64().unwrap() <= entry["charge"]["vault_bytes"].as_u64().unwrap());
+    }
+}
+#[test]
+fn directional_r02_fresh_and_ordinary_writers() {
+    if !common::directional_case_child("directional_r02_fresh_and_ordinary_writers") {return;}
+    let base=safe_test_root().join(format!("r02_init_{}",std::process::id()));
+    assert!(!base.exists());ensure_dir_700(&base);
+    let ordinary=base.join("ordinary");ensure_dir_700(&ordinary);
+    let pass=common::write_passphrase_file(&base,"ordinary-init",common::TEST_MOCK_VAULT_PASSPHRASE);
+    let init=std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR",&ordinary).env("QSC_DISABLE_KEYCHAIN","1")
+        .args(["vault","init","--protocol","owner-free-v1","--non-interactive",
+            "--key-source","passphrase","--passphrase-file",pass.to_str().unwrap()])
+        .output().unwrap();
+    assert!(init.status.success(),"{}",output_text(&init));
+    let mut session=r02_session(&ordinary);
+    assert!(qsc::vault::session_get(&session,"na0780_directional_owner_v1").unwrap().is_none());
+    qsc::vault::session_set(&mut session,"r02.ordinary.one","one").unwrap();
+    qsc::vault::secret_set_with_passphrase("r02.ordinary.two","two",common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    qsc::vault::protection::unlock_guarded(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    qsc::vault::secret_set("r02.ordinary.three","three").unwrap();
+    // Stale ordinary session persistence must retain unrelated intervening writes.
+    qsc::vault::persist_session(&mut session).unwrap();
+    for (key,value) in [("r02.ordinary.one","one"),("r02.ordinary.two","two"),("r02.ordinary.three","three")] {
+        assert_eq!(qsc::vault::session_get(&r02_session(&ordinary),key).unwrap().as_deref(),Some(value));
+    }
+    let unchanged=fs::read(ordinary.join("vault.qsv")).unwrap();
+    for key in ["na0780_directional_owner_v1","na0780_directional_transaction_v2/bob","na0780_directional_transaction/bob"] {
+        assert!(qsc::vault::session_set(&mut session,key,"{}").is_err());
+        assert_eq!(fs::read(ordinary.join("vault.qsv")).unwrap(),unchanged);
+    }
+    // Fixture precondition (measured in the CC direct evaluation): handshake init resolves the
+    // peer route token before perform_handshake_init_with_route runs directional_owner_load, so an
+    // ordinary vault without a pinned contact refuses with QSC_ERR_CONTACT_ROUTE_TOKEN_REQUIRED and
+    // never reaches the directional admission refusal this case asserts. Give the ordinary vault a
+    // pinned contact from a throwaway owner-free peer identity; no directional state is created.
+    let peer_src=base.join("peer-source");ensure_dir_700(&peer_src);
+    let peer_init=std::process::Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
+        .env("QSC_CONFIG_DIR",&peer_src).env("QSC_DISABLE_KEYCHAIN","1")
+        .args(["vault","init","--protocol","owner-free-v1","--non-interactive",
+            "--key-source","passphrase","--passphrase-file",pass.to_str().unwrap()])
+        .output().unwrap();
+    assert!(peer_init.status.success(),"{}",output_text(&peer_init));
+    let rotated=run_qsc(&peer_src,&["identity","rotate","--as","bob","--confirm"]);assert!(rotated.status.success(),"{}",output_text(&rotated));
+    let public=output_text(&run_qsc(&peer_src,&["identity","show","--as","bob"]));
+    let field=|prefix:&str| public.lines().find_map(|l|l.strip_prefix(prefix)).expect("identity public field").to_owned();
+    let added=run_qsc(&ordinary,&["contacts","add","--label","bob","--fp",&field("identity_fp="),
+        "--kem-pk",&field("identity_kem_pk="),"--sig-pk",&field("identity_sig_pk="),"--route-token",ROUTE_TOKEN_BOB]);
+    assert!(added.status.success(),"{}",output_text(&added));
+    let server=common::start_inbox_server(1024*1024,16);
+    let refused=run_qsc(&ordinary,&["handshake","init","--as","alice","--peer","bob","--relay",server.base_url()]);
+    assert!(!refused.status.success());
+    assert!(output_text(&refused).contains("directional_reserve_missing") || output_text(&refused).contains("directional_profile_required"));
+    assert!(server.drain_channel(ROUTE_TOKEN_BOB).is_empty());
+    let owned=base.join("owned");ensure_dir_700(&owned);common::init_mock_vault(&owned);
+    let owner=r02_owner(&owned);assert_eq!(owner["generation"],0);
+    assert!(owner["peers"].as_object().unwrap().is_empty());
+    assert!(owner["entries"].as_object().unwrap().is_empty());
+    let before=fs::read(owned.join("vault.qsv")).unwrap();
+    let mut session=r02_session(&owned);
+    assert!(qsc::vault::persist_session(&mut session).is_err());
+    assert_eq!(fs::read(owned.join("vault.qsv")).unwrap(),before);
+    assert_eq!(qsc::vault::vault_init_directional_with_passphrase(common::TEST_MOCK_VAULT_PASSPHRASE),Err("vault_exists"));
+    assert_eq!(fs::read(owned.join("vault.qsv")).unwrap(),before);
+    qsc::vault::session_set(&mut session,"r02.unrelated","preserved").unwrap();
+    assert_eq!(r02_owner(&owned),owner);
+    // Real filesystem failure before initial commit; no test-only writer or state injection.
+    let blocked=base.join("blocked");ensure_dir_700(&blocked);
+    fs::write(blocked.join("prior-data"),b"preserve existing development data").unwrap();
+    env::set_var("QSC_CONFIG_DIR",&blocked);
+    assert!(qsc::vault::vault_init_directional_with_passphrase(common::TEST_MOCK_VAULT_PASSPHRASE).is_err());
+    assert!(!blocked.join("vault.qsv").exists());
+    assert_eq!(fs::read(blocked.join("prior-data")).unwrap(),b"preserve existing development data");
+    env::set_var("QSC_CONFIG_DIR",&owned);
+    r02_real_layout_refusals(&base,&owned);
+}
+
+#[test]
+fn directional_r02_genuine_receipt_restart() {
+    if !common::directional_case_child("directional_r02_genuine_receipt_restart") {return;}
+    let base=safe_test_root().join(format!("r02_receipt_{}",std::process::id()));
+    assert!(!base.exists());ensure_dir_700(&base);
+    let a=base.join("alice");let b=base.join("bob");let ao=base.join("a-out");let bo=base.join("b-out");
+    for dir in [&a,&b,&ao,&bo] {ensure_dir_700(dir);}
+    common::init_mock_vault(&a);common::init_mock_vault(&b);
+    let server=common::start_inbox_server(1024*1024,128);let relay=server.base_url();
+    // Existing normal caller fixture also sends an old-profile handshake and
+    // requires refusal before completing the genuine successor handshake.
+    hs_dance(&a,&b,relay,&server);r02_assert_pair(&a,"bob");r02_assert_pair(&b,"alice");
+    // Activation-time state: core.root here is the establishment root that derived the epoch-0
+    // receipt context (directional_delivery.rs:435). The product replaces core.root on every
+    // epoch schedule (directional_core.rs:546/:746), so the later post-poll state cannot
+    // reproduce that key; the persisted context key itself never changes (measured, round 2).
+    let activation=common::directional_state(&a,"bob");
+    let primer=base.join("primer");fs::write(&primer,b"R02 closure prerequisite").unwrap();
+    send_msg(&a,relay,"bob",&primer);
+    poll_candidate(&b,relay,ROUTE_TOKEN_BOB,"alice",&bo);
+    poll_candidate(&a,relay,ROUTE_TOKEN_ALICE,"bob",&ao);
+    let file=base.join("first");fs::write(&file,b"R02 original payload").unwrap();
+    send_msg(&a,relay,"bob",&file);
+    let first=common::directional_state(&a,"bob");
+    let flight=first["flights"].as_object().unwrap().values().find(|f|f["id"]!="").unwrap().clone();
+    let key=format!("{}:{}",flight["epoch"].as_u64().unwrap(),flight["slot"].as_u64().unwrap());
+    poll_candidate(&b,relay,ROUTE_TOKEN_BOB,"alice",&bo);
+    let mut held=server.drain_channel(ROUTE_TOKEN_ALICE);
+    let index=held.iter().position(|raw| raw.starts_with(b"NDR1") && raw.len()>=65
+        && u64::from_be_bytes(raw[21..29].try_into().unwrap())==flight["epoch"].as_u64().unwrap()
+        && u32::from_be_bytes(raw[61..65].try_into().unwrap()) as u64==flight["slot"].as_u64().unwrap()).expect("actual authenticated peer receipt");
+    let receipt=held.remove(index);
+    use base64::Engine;
+    let proof=base64::engine::general_purpose::STANDARD.decode(flight["closure_proof"].as_str().unwrap()).unwrap();
+    assert_eq!(proof.len(),136);assert!(proof[0]>0,"carrier must carry real prior coverage");
+    r02_verify_actual_receipt_domains(&activation,&flight,&receipt);
+    // Persist a newer obligation while the real older receipt remains delayed.
+    let next=base.join("next");fs::write(&next,b"R02 newer payload").unwrap();send_msg(&a,relay,"bob",&next);
+    let before=common::directional_state(&a,"bob");
+    assert_eq!(before["send"]["0"]["context"]["key"],activation["send"]["0"]["context"]["key"],"epoch-0 context key unchanged across polls");
+    let newer:Vec<_>=before["flights"].as_object().unwrap().iter().filter(|(k,f)|*k!=&key && f["id"]!="")
+        .map(|(k,f)|(k.clone(),f.clone())).collect();assert!(!newer.is_empty());
+    assert_eq!(before["flights"][&key],flight,"immutable saved carrier until genuine NDR1");
+    // An advertisement sealed before this carrier may also have its genuine
+    // receipt held. Release those exact lower-slot receipts first so e.admit can
+    // close the gap; sealing the newer Flight advances next, never prefix.
+    let mut release=Vec::new();
+    held.retain(|raw| {
+        let preceding=raw.starts_with(b"NDR1") && raw.len()==113
+            && u64::from_be_bytes(raw[21..29].try_into().unwrap())==flight["epoch"].as_u64().unwrap()
+            && (u32::from_be_bytes(raw[61..65].try_into().unwrap()) as u64)<flight["slot"].as_u64().unwrap();
+        if preceding {release.push(raw.clone());}
+        !preceding
+    });
+    release.push(receipt.clone());
+    server.replace_channel(ROUTE_TOKEN_ALICE,release);
+    poll_candidate(&a,relay,ROUTE_TOKEN_ALICE,"bob",&ao); // separate CLI process: actual restart/load
+    let after=common::directional_state(&a,"bob");assert!(after["flights"].get(&key).is_none());
+    let mut advanced=false;
+    for c in proof[1..1+45*proof[0] as usize].chunks_exact(45) {
+        let epoch=u64::from_be_bytes(c[..8].try_into().unwrap()).to_string();
+        let count=u32::from_be_bytes(c[40..44].try_into().unwrap()) as u64;
+        assert_eq!(c[44],0,"this fixture requires nonfinal coverage, not retired-context inference");
+        let prior=before["send"][&epoch]["confirmed"].as_u64().unwrap();
+        assert_eq!(after["send"][&epoch]["confirmed"].as_u64().unwrap(),prior.max(count));
+        assert!(count<after["send"][&epoch]["prefix"].as_u64().unwrap(),
+            "actual post-receipt prefix strictly exceeds exact saved carrier coverage");
+        advanced|=count>prior;
+    }
+    assert!(advanced,"receipt must advance actual saved coverage");
+    for (k,f) in &newer {assert_eq!(after["flights"][k]["wire"],f["wire"]);assert_eq!(after["flights"][k]["closure_proof"],f["closure_proof"]);}
+    server.replace_channel(ROUTE_TOKEN_ALICE,vec![receipt]);
+    poll_candidate(&a,relay,ROUTE_TOKEN_ALICE,"bob",&ao);
+    let replay=common::directional_state(&a,"bob");
+    for (epoch,e) in after["send"].as_object().unwrap() {
+        assert_eq!(replay["send"][epoch]["confirmed"],e["confirmed"],"old receipt replay cannot confirm newer obligations");
+    }
+    for (k,f) in &newer {assert_eq!(replay["flights"][k]["wire"],f["wire"]);assert_eq!(replay["flights"][k]["closure_proof"],f["closure_proof"]);}
+    server.replace_channel(ROUTE_TOKEN_ALICE,held);
+    for _ in 0..4 {poll_candidate(&b,relay,ROUTE_TOKEN_BOB,"alice",&bo);poll_candidate(&a,relay,ROUTE_TOKEN_ALICE,"bob",&ao);}
+    payload_once(&bo,b"R02 original payload");payload_once(&bo,b"R02 newer payload");
+    r02_assert_pair(&a,"bob");r02_assert_pair(&b,"alice");
+}
+
+
+// Independent arithmetic over ACTUAL persisted serializer output and promised
+// scalar widths. It does not manufacture maximum-width protocol state or claim
+// that the still-conditional retained-control envelope has been proven.
+fn r02_observed_charge(cfg: &Path) -> u64 {
+    let raw=fs::read(cfg.join("vault.qsv")).unwrap();
+    assert_eq!(&raw[..6],b"QSCV03");
+    let ciphertext=u32::from_le_bytes(raw[21..25].try_into().unwrap()) as usize;
+    assert_eq!(raw.len(),53+ciphertext);
+    let owner=r02_owner(cfg);
+    let width=|v:&serde_json::Value| 20-v.as_u64().unwrap().to_string().len() as u64;
+    let mut promised=width(&owner["generation"]);
+    for peer in owner["peers"].as_object().unwrap().values() {
+        promised+=width(&peer["generation"])+width(&peer["peer_future"])+width(&peer["vault_future"])
+            +peer["vault_future"].as_u64().unwrap();
+    }
+    for entry in owner["entries"].as_object().unwrap().values() {
+        promised+=width(&entry["generation"])+width(&entry["projection"])+width(&entry["charge"]["vault_bytes"])
+            +entry["charge"]["vault_bytes"].as_u64().unwrap();
+    }
+    (ciphertext-16) as u64 + promised + 524288
+}
+
+#[test]
+fn directional_r02_funded_release_at_saturation() {
+    if !common::directional_case_child("directional_r02_funded_release_at_saturation") {return;}
+    // Exactly the approved evaluation fixture; not a production budget choice.
+    let base=safe_test_root().join(format!("R02-ordinary-E-X-saturation-{}",std::process::id()));
+    assert!(!base.exists());ensure_dir_700(&base);
+    let a=base.join("alice");let b=base.join("bob");let ao=base.join("a-out");let bo=base.join("b-out");
+    for dir in [&a,&b,&ao,&bo] {ensure_dir_700(dir);}
+    common::init_mock_vault(&a);common::init_mock_vault(&b);
+    let server=common::start_inbox_server(1024*1024,128);let relay=server.base_url();
+    hs_dance(&a,&b,relay,&server);
+    r02_add_other_peer(&b,&base.join("carol"));
+    let other_peer_credit=r02_owner(&b)["peers"]["carol"].clone();
+    let e=vec![b'E';16000];let ef=base.join("E");fs::write(&ef,&e).unwrap();
+    let sent=run_qsc(&a,&["send","--transport","relay","--relay",relay,"--to","bob","--file",ef.to_str().unwrap(),
+        "--pad-bucket","standard","--pad-to","16384","--bucket-max","16384"]);
+    assert!(sent.status.success(),"{}",output_text(&sent));
+    let sa=common::directional_state(&a,"bob");
+    let eflight=sa["flights"].as_object().unwrap().values().find(|f|f["id"]!="").unwrap();
+    assert_eq!(eflight["id"].as_str().unwrap().len(),32);
+    let cut=qsc_cfg_cmd(&b).env("QSC_NA0780_CUT","after_receive_commit")
+        .args(["receive","--transport","relay","--relay",relay,"--mailbox",ROUTE_TOKEN_BOB,"--from","alice",
+            "--max","8","--out",bo.to_str().unwrap()]).output().unwrap();
+    assert_eq!(cut.status.code(),Some(86),"actual post-commit cut required");
+    let pending=common::directional_state(&b,"alice");assert_eq!(pending["events"].as_object().unwrap().len(),1);
+    assert_eq!(delivered_count(&bo),0);
+    let held_e=server.drain_channel(ROUTE_TOKEN_BOB); // retained for exact replay below, not a retention proof
+    let xf=base.join("X");fs::write(&xf,b"X").unwrap();
+    let sent=run_qsc(&a,&["send","--transport","relay","--relay",relay,"--to","bob","--file",xf.to_str().unwrap(),
+        "--pad-bucket","standard","--pad-to","1024","--bucket-max","16384"]);
+    assert!(sent.status.success(),"{}",output_text(&sent));
+    let sx=common::directional_state(&a,"bob");
+    let xflight=sx["flights"].as_object().unwrap().values().find(|f|f["id"]!="" && f["id"]!=eflight["id"]).unwrap();
+    assert_eq!(xflight["id"].as_str().unwrap().len(),32);
+    let xwire:Vec<u8>=serde_json::from_value(xflight["wire"].clone()).unwrap();
+    let held_x=server.drain_channel(ROUTE_TOKEN_BOB);assert!(held_x.contains(&xwire));
+    // Reach saturation solely through ordinary authorized writes. Every refused
+    // write leaves the ciphertext and independently funded event/credit intact.
+    let mut session=r02_session(&b);let mut lo=0usize;let mut hi=16777217usize;
+    qsc::vault::session_set(&mut session,"r02.fixture.filler","").unwrap();
+    while hi-lo>1 {
+        let mid=lo+(hi-lo)/2;let before=fs::read(b.join("vault.qsv")).unwrap();
+        match qsc::vault::session_set(&mut session,"r02.fixture.filler",&"f".repeat(mid)) {
+            Ok(())=>lo=mid,
+            Err(error)=>{assert_eq!(error,"directional_aggregate_waiting");assert_eq!(fs::read(b.join("vault.qsv")).unwrap(),before);hi=mid;}
+        }
+    }
+    assert!(lo>0);let saturated=r02_observed_charge(&b);assert_eq!(saturated,16777216);
+    env::set_var("QSC_CONFIG_DIR",&b);
+    qsc::vault::protection::unlock_guarded(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    let before=fs::read(b.join("vault.qsv")).unwrap();
+    assert_eq!(qsc::na0780_test_receive_response("alice",&xwire),Err("TRANSACTION_CAPACITY"));
+    assert_eq!(fs::read(b.join("vault.qsv")).unwrap(),before);
+    assert_eq!(delivered_count(&bo),0);
+    // Empty-inbox normal receive MUST release the already-funded E independently
+    // of accepting X. No filler deletion or control-credit borrowing is allowed.
+    poll_candidate(&b,relay,ROUTE_TOKEN_BOB,"alice",&bo);
+    let after_e=r02_observed_charge(&b);let released_e=saturated.checked_sub(after_e).unwrap();
+    assert!(released_e>0);payload_once(&bo,&e);
+    let before_x=fs::read(b.join("vault.qsv")).unwrap();
+    // First successful X admission is through the real transport intake. Stop at
+    // the existing durable-commit cut to measure X before projection frees it.
+    server.replace_channel(ROUTE_TOKEN_BOB,vec![xwire.clone()]);
+    let admitted=qsc_cfg_cmd(&b).env("QSC_NA0780_CUT","after_receive_commit")
+        .args(["receive","--transport","relay","--relay",relay,"--mailbox",ROUTE_TOKEN_BOB,
+            "--from","alice","--out",bo.to_str().unwrap(),"--max","16"]).output().unwrap();
+    assert_eq!(admitted.status.code(),Some(86),"{}",output_text(&admitted));
+    assert_ne!(fs::read(b.join("vault.qsv")).unwrap(),before_x);
+    assert_eq!(delivered_count(&bo),1,"X is durable but not yet projected");
+    assert!(!r02_pending_receipts(&common::directional_state(&b,"alice")).is_empty());
+    let after_x=r02_observed_charge(&b);let required_x=after_x.checked_sub(after_e).unwrap();
+    assert!(required_x>0 && released_e>=required_x);
+    let mut replay=held_e;replay.extend(held_x);server.replace_channel(ROUTE_TOKEN_BOB,replay);
+    for _ in 0..4 {poll_candidate(&b,relay,ROUTE_TOKEN_BOB,"alice",&bo);poll_candidate(&a,relay,ROUTE_TOKEN_ALICE,"bob",&ao);}
+    payload_once(&bo,&e);payload_once(&bo,b"X");r02_assert_pair(&a,"bob");r02_assert_pair(&b,"alice");
+    assert_eq!(qsc::vault::session_get(&r02_session(&b),"r02.fixture.filler").unwrap().unwrap().len(),lo);
+    assert_eq!(r02_owner(&b)["peers"]["carol"],other_peer_credit,"E/X never borrows the other peer reserve");
+}
+
+
+// Observe a REAL peer-produced receipt. Re-derive its two possible domain inputs
+// from the authenticated epoch-zero root; never construct a replacement receipt,
+// inject a key, or force protocol state. The positive arm prevents vacuous negatives.
+fn r02_verify_actual_receipt_domains(state:&serde_json::Value,flight:&serde_json::Value,receipt:&[u8]) {
+    use quantumshield_refimpl::crypto::traits::{Aead,Hash};
+    fn lp(bytes:&[u8])->Vec<u8> {let mut out=(bytes.len() as u32).to_be_bytes().to_vec();out.extend(bytes);out}
+    assert_eq!(flight["epoch"].as_u64().unwrap(),0,"fresh epoch-zero consumer required");
+    assert_eq!(receipt.len(),113);assert_eq!(&receipt[..4],b"NDR1");
+    let sid:Vec<u8>=serde_json::from_value(state["core"]["sid"].clone()).unwrap();
+    let mut root:Vec<u8>=serde_json::from_value(state["core"]["root"].clone()).unwrap();
+    let wire:Vec<u8>=serde_json::from_value(flight["wire"].clone()).unwrap();
+    let slot=flight["slot"].as_u64().unwrap() as u32;
+    assert!(receipt[4..20]==sid);assert_eq!(receipt[20],state["core"]["role"].as_u64().unwrap() as u8);
+    let derive=|profile:&[u8]| {
+        let mut input=lp(b"NA0780-DIR-EPOCH-CORE-01");input.extend(&sid);input.extend(lp(profile));
+        input.extend(&receipt[21..29]);input.push(receipt[20]);input.extend(&receipt[29..61]);
+        StdCrypto.kmac256(&root,"NA0780.DE1/RECEIPT_KEY",&input,32)
+    };
+    let mut successor:[u8;32]=derive(b"NA0780-DIR-INTEGRATION-03").try_into().unwrap();
+    let mut predecessor:[u8;32]=derive(b"NA0780-DIR-INTEGRATION-02").try_into().unwrap();
+    let mut actual:Vec<u8>=serde_json::from_value(state["send"]["0"]["context"]["key"].clone()).unwrap();
+    assert!(actual.as_slice()==successor.as_slice() && successor!=predecessor,"actual epoch uses exact successor key domain");
+    let ad=|profile:&[u8]| {let mut out=lp(profile);out.extend(lp(b"NA0780-DIR-EPOCH-CORE-01"));out.extend(&receipt[..65]);out};
+    let mut nonce=[0u8;12];nonce[8..].copy_from_slice(&slot.to_be_bytes());
+    let expected=StdCrypto.sha512(&wire);
+    let clear=StdCrypto.open(&successor,&nonce,&ad(b"NA0780-DIR-INTEGRATION-03"),&receipt[65..]).unwrap();
+    assert!(clear==expected[..32],"real receipt authenticates exact saved wire");
+    assert!(StdCrypto.open(&predecessor,&nonce,&ad(b"NA0780-DIR-INTEGRATION-03"),&receipt[65..]).is_err());
+    assert!(StdCrypto.open(&successor,&nonce,&ad(b"NA0780-DIR-INTEGRATION-02"),&receipt[65..]).is_err());
+    assert!(StdCrypto.open(&predecessor,&nonce,&ad(b"NA0780-DIR-INTEGRATION-02"),&receipt[65..]).is_err());
+    root.fill(0);actual.fill(0);successor.fill(0);predecessor.fill(0);
+}
+
+// Public production transport entry, including projection, intake, replay and ACK
+// flushing. Unlike na0780_test_receive_response, this is normal transport admission.
+fn r02_receive(cfg:&Path, server:&common::InboxTestServer, mailbox:&str, peer:&str, out:&Path)->Result<(),String> {
+    env::set_var("QSC_CONFIG_DIR",cfg);
+    qsc::vault::protection::unlock_guarded(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    r02_receive_unlocked(server,mailbox,peer,out)
+}
+fn r02_receive_unlocked(server:&common::InboxTestServer, mailbox:&str, peer:&str, out:&Path)->Result<(),String> {
+    qsc::transport::receive_execute(qsc::ReceiveArgs {
+        transport:Some(qsc::cmd::SendTransport::Relay),relay:Some(server.base_url().to_owned()),
+        from:Some(peer.to_owned()),mailbox:Some(mailbox.to_owned()),out:Some(out.to_owned()),max:Some(16),
+        legacy_receive_mode:None,attachment_service:None,max_file_size:None,max_file_chunks:None,
+        deterministic_meta:false,interval_ms:None,poll_interval_ms:None,poll_ticks:None,
+        batch_max_count:None,poll_max_per_tick:None,bucket_max:None,meta_seed:None,
+        emit_receipts:None,receipt_mode:None,receipt_batch_window_ms:None,receipt_jitter_ms:None,
+        file_confirm_mode:None,
+    }).map_err(|e|format!("{e:?}"))
+}
+fn r02_pair_fixture(name:&str)->(PathBuf,PathBuf,PathBuf,PathBuf,PathBuf) {
+    let base=safe_test_root().join(format!("{name}-{}",std::process::id()));
+    assert!(!base.exists());ensure_dir_700(&base);
+    let a=base.join("alice");let b=base.join("bob");let ao=base.join("a-out");let bo=base.join("b-out");
+    for dir in [&a,&b,&ao,&bo] {ensure_dir_700(dir);}
+    // Separate handshake relay: the observation relay below starts genuinely empty.
+    common::init_directional_pair(&a,"alice",ROUTE_TOKEN_ALICE,&b,"bob",ROUTE_TOKEN_BOB);
+    (base,a,b,ao,bo)
+}
+fn r02_pending_receipts(state:&serde_json::Value)->Vec<Vec<u8>> {
+    state["dispositions"].as_object().unwrap().values()
+        .filter(|d|d["response_pending"]==true)
+        .map(|d|serde_json::from_value(d["receipt"].clone()).unwrap()).collect()
+}
+fn r02_one_attempt(journal:&[common::DirectionalPushAttempt]) {
+    for (i,attempt) in journal.iter().enumerate() {
+        assert!(attempt.response_written,"fault observation needs an actual response");
+        assert!(journal[..i].iter().all(|prior|prior.body!=attempt.body),"one attempt per exact response per invocation");
+    }
+}
+#[test]
+fn directional_r02_queuefull_matrix() {
+    if !common::directional_case_child("directional_r02_queuefull_matrix") {return;}
+    // Four finite sub-arms in ONE proposed allocation; no retry of a failing arm.
+    for (label,plan) in [("first-429",vec![429,200,200]),("middle-429",vec![200,429,200]),
+                         ("first-500",vec![500]),("middle-500",vec![200,500])] {
+        let (base,a,b,_ao,bo)=r02_pair_fixture(&format!("r02-batch-{label}"));
+        let server=common::start_inbox_server(1024*1024,128);
+        server.enable_review_leases();
+        for n in 0..3 {
+            let path=base.join(format!("body-{n}"));fs::write(&path,format!("{label}-{n}")).unwrap();
+            send_msg(&a,server.base_url(),"bob",&path);
+        }
+        let inputs=server.review_lease_snapshot(ROUTE_TOKEN_BOB).retained;
+        assert_eq!(inputs.len(),3);
+        server.record_directional_pushes();server.r02_push_plan(&plan);
+        let error=r02_receive(&b,&server,ROUTE_TOKEN_BOB,"alice",&bo).unwrap_err();
+        if plan.contains(&429) {assert!(error.contains("relay_inbox_queue_full"));}
+        else {assert!(error.contains("relay_inbox_push_failed"),"non-QueueFull must propagate separately: {error}");}
+        let journal=server.directional_pushes();r02_one_attempt(&journal);
+        assert_eq!(journal.iter().map(|p|p.status).collect::<Vec<_>>(),plan,
+            "QueueFull continues eligible intake; other error interrupts immediately");
+        assert!(journal.iter().all(|p|p.body.starts_with(b"NDR1")));
+        let state=common::directional_state(&b,"alice");
+        let pending=r02_pending_receipts(&state);
+        assert!(state["flights"].as_object().unwrap().is_empty(),
+            "backpressure/error cannot prepare a fresh control Flight in this initially send-free fixture");
+        let failed:Vec<_>=journal.iter().filter(|p|p.status!=200).map(|p|p.body.clone()).collect();
+        assert_eq!(pending,failed,"only the exact rejected genuine response remains pending");
+        let snapshot=server.review_lease_snapshot(ROUTE_TOKEN_BOB);
+        let acked:Vec<_>=snapshot.acks.iter().flatten().cloned().collect();
+        let expected:Vec<_>=plan.iter().enumerate().filter(|(_,status)|**status==200)
+            .map(|(i,_)|inputs[i].0.clone()).collect();
+        assert_eq!(acked,expected,"eligible ACKs flush even when the call returns an error");
+        for (id,raw) in &inputs {
+            assert_eq!(snapshot.retained.iter().any(|(r,bytes)|r==id && bytes==raw),!acked.contains(id));
+        }
+        server.record_directional_pushes();
+        // Original rejected input is still leased, not destructively re-delivered.
+        // Recovery retries the durable response, without claiming lease-expiry coverage.
+        r02_receive(&b,&server,ROUTE_TOKEN_BOB,"alice",&bo).unwrap();
+        let replay=server.directional_pushes();r02_one_attempt(&replay);
+        for bytes in failed {assert_eq!(replay.iter().filter(|p|p.body==bytes && p.status==200).count(),1);}
+        assert!(r02_pending_receipts(&common::directional_state(&b,"alice")).is_empty());
+    }
+}
+
+// Block only write_atomic's own create_new sibling, in this synthetic fixture.
+// No protocol state, queue contents, permissions or process clocks are altered.
+struct R02WriteBlock(PathBuf);
+impl R02WriteBlock {
+    fn new(target:&Path)->Self {
+        let p=target.with_file_name(format!("{}.tmp.{}",target.file_name().unwrap().to_str().unwrap(),std::process::id()));
+        assert!(!p.exists());fs::create_dir(&p).unwrap();Self(p)
+    }
+}
+impl Drop for R02WriteBlock {fn drop(&mut self){fs::remove_dir(&self.0).expect("remove owned empty write blocker");}}
+fn r02_record_path(cfg:&Path,id:&str)->PathBuf {
+    let mut matches=Vec::new();
+    for contact in fs::read_dir(cfg.join("msgqueue_v1")).unwrap() {
+        let contact=contact.unwrap();if !contact.file_type().unwrap().is_dir(){continue;}
+        for item in fs::read_dir(contact.path()).unwrap() {
+            let p=item.unwrap().path();if p.file_name().unwrap().to_str().unwrap().ends_with(&format!("_{id}.rec")){matches.push(p);}
+        }
+    }
+    assert_eq!(matches.len(),1);matches.remove(0)
+}
+#[test]
+fn directional_r02_completion_cuts() {
+    if !common::directional_case_child("directional_r02_completion_cuts") {return;}
+    let (base,a,b,ao,bo)=r02_pair_fixture("r02-completion");
+    let server=common::start_inbox_server(1024*1024,128);
+    let body=base.join("first");fs::write(&body,b"durable completion").unwrap();send_msg(&a,server.base_url(),"bob",&body);
+    let sent=common::directional_state(&a,"bob");
+    let (first_key,first)=sent["flights"].as_object().unwrap().iter().find(|(_,f)|f["id"]!="").unwrap();
+    let id=first["id"].as_str().unwrap().to_owned();
+    poll_candidate(&b,server.base_url(),ROUTE_TOKEN_BOB,"alice",&bo);
+    let replies=server.drain_channel(ROUTE_TOKEN_ALICE);
+    let receipt=replies.into_iter().find(|r|r.starts_with(b"NDR1") &&
+        u64::from_be_bytes(r[21..29].try_into().unwrap())==first["epoch"].as_u64().unwrap() &&
+        u32::from_be_bytes(r[61..65].try_into().unwrap()) as u64==first["slot"].as_u64().unwrap()).unwrap();
+    let other=base.join("other");fs::write(&other,b"unrelated pending flight").unwrap();send_msg(&a,server.base_url(),"bob",&other);
+    let pending=common::directional_state(&a,"bob");
+    let (other_key,other_flight)=pending["flights"].as_object().unwrap().iter()
+        .find(|(k,f)|*k!=first_key && f["id"]!="").unwrap();
+    server.replace_channel(ROUTE_TOKEN_ALICE,vec![receipt]);
+    let cut=qsc_cfg_cmd(&a).env("QSC_NA0780_CUT","after_receive_commit")
+        .args(["receive","--transport","relay","--relay",server.base_url(),"--mailbox",ROUTE_TOKEN_ALICE,
+            "--from","bob","--out",ao.to_str().unwrap(),"--max","16"]).output().unwrap();
+    assert_eq!(cut.status.code(),Some(86),"{}",output_text(&cut));
+    let durable=common::directional_state(&a,"bob");assert!(durable["completed"].get(&id).is_some());
+    assert!(server.drain_channel(ROUTE_TOKEN_ALICE).is_empty(),"restart has empty inbox");
+    env::set_var("QSC_CONFIG_DIR",&a);qsc::vault::protection::unlock_guarded(common::TEST_MOCK_VAULT_PASSPHRASE).unwrap();
+    let queue_path=r02_record_path(&a,&id);let queue_before=fs::read(&queue_path).unwrap();
+    server.record_directional_pushes();
+    {
+        let _block=R02WriteBlock::new(&queue_path);
+        let error=r02_receive_unlocked(&server,ROUTE_TOKEN_ALICE,"bob",&ao).unwrap_err();
+        assert!(error.contains("msgqueue_write_failed"),"{error}");
+        assert_eq!(fs::read(&queue_path).unwrap(),queue_before);
+        assert!(common::directional_state(&a,"bob")["completed"].get(&id).is_some());
+        assert!(server.directional_pushes().is_empty(),"local failure before remote replay");
+    }
+    // Timeline delivery was persisted before the queue failure. Its idempotent
+    // retry now performs no vault write; the following blocker hits the pair save.
+    let vault_before=fs::read(a.join("vault.qsv")).unwrap();
+    {
+        let _block=R02WriteBlock::new(&a.join("vault.qsv"));
+        let error=r02_receive_unlocked(&server,ROUTE_TOKEN_ALICE,"bob",&ao).unwrap_err();
+        assert!(error.contains("vault_write_failed"),"pair-save Local failure: {error}");
+        assert_eq!(fs::read(a.join("vault.qsv")).unwrap(),vault_before);
+        let records=common::directional_queue_records(&a,"bob");
+        assert_eq!(records.iter().find(|r|r.msg_id==id).unwrap().state,qsc::msgqueue::MsgState::Delivered);
+        assert!(common::directional_state(&a,"bob")["completed"].get(&id).is_some());
+        assert!(server.directional_pushes().is_empty());
+    }
+    let charged=r02_observed_charge(&a);
+    server.r02_push_plan(&[429]);
+    let error=r02_receive(&a,&server,ROUTE_TOKEN_ALICE,"bob",&ao).unwrap_err();
+    assert!(error.contains("relay_inbox_queue_full"));
+    let retired=common::directional_state(&a,"bob");assert!(retired["completed"].get(&id).is_none());
+    assert_eq!(retired["flights"][other_key],*other_flight,"unrelated immutable retry survives recovery");
+    let after=r02_observed_charge(&a);assert!(after<charged,"completion frees its own funded liability");
+    let entries=r02_owner(&a)["entries"].clone();
+    assert!(entries.as_object().unwrap().values().filter(|e|e["operation"]==id).all(|e|e["projection"]==0),
+        "completed projection is no longer owed; retained closure liabilities stay funded");
+    server.record_directional_pushes();server.r02_push_plan(&[429]);
+    let restarted=run_qsc(&a,&["receive","--transport","relay","--relay",server.base_url(),
+        "--mailbox",ROUTE_TOKEN_ALICE,"--from","bob","--out",ao.to_str().unwrap(),"--max","16"]);
+    assert!(!restarted.status.success());assert!(output_text(&restarted).contains("relay_inbox_queue_full"));
+    assert_eq!(r02_observed_charge(&a),after,"same recovery has no double debit, including reserved generation widths");
+    assert_eq!(r02_owner(&a)["entries"],entries);
+    let attempts=server.directional_pushes();assert_eq!(attempts.len(),1);
+    assert_eq!(attempts[0].body,serde_json::from_value::<Vec<u8>>(other_flight["wire"].clone()).unwrap());
+    r02_assert_pair(&a,"bob");payload_once(&bo,b"durable completion");
+}
+
+fn r02_real_layout_refusals(base:&Path,valid:&Path) {
+    use rand_core::RngCore;
+    let original=fs::read(valid.join("vault.qsv")).unwrap();
+    assert_eq!(&original[..6],b"QSCV03");
+    let params=Params::new(u32::from_le_bytes(original[9..13].try_into().unwrap()),
+        u32::from_le_bytes(original[13..17].try_into().unwrap()),
+        u32::from_le_bytes(original[17..21].try_into().unwrap()),Some(32)).unwrap();
+    let mut key=[0u8;32];
+    Argon2::new(Algorithm::Argon2id,Version::V0x13,params)
+        .hash_password_into(common::TEST_MOCK_VAULT_PASSPHRASE.as_bytes(),&original[25..41],&mut key).unwrap();
+    let cipher=ChaCha20Poly1305::new(Key::from_slice(&key));
+    let plain=cipher.decrypt(Nonce::from_slice(&original[41..53]),Payload{msg:&original[53..],aad:&original[..53]}).unwrap();
+    let valid_payload:serde_json::Value=serde_json::from_slice(&plain).unwrap();
+    assert!(qsc::vault::open_session_with_passphrase(common::TEST_MOCK_VAULT_PASSPHRASE).is_ok());
+    let server=common::start_inbox_server(1024*1024,16);server.record_directional_pushes();
+    // Authenticated negative FILE fixtures, not modified protocol counters, keys
+    // or receipts. Each gets a fresh AEAD nonce; source fixture remains untouched.
+    for case in ["old-version","old-profile","unknown-profile","missing-owner","corrupt-owner","ordinary-with-owner","orphan-peer"] {
+        let cfg=base.join(format!("layout-{case}"));assert!(!cfg.exists());ensure_dir_700(&cfg);
+        let mut payload=valid_payload.clone();
+        match case {
+            "old-version"=>payload["version"]=serde_json::json!(3),
+            "old-profile"=>payload["protocol"]=serde_json::json!("NA0780-DIR-INTEGRATION-02"),
+            "unknown-profile"=>payload["protocol"]=serde_json::json!("invalid-test-profile"),
+            "missing-owner"=>{payload["secrets"].as_object_mut().unwrap().remove("na0780_directional_owner_v1");},
+            "corrupt-owner"=>payload["secrets"]["na0780_directional_owner_v1"]=serde_json::json!("{"),
+            "ordinary-with-owner"=>payload["protocol"]=serde_json::json!("NA0780-OWNER-FREE-01"),
+            "orphan-peer"=>payload["secrets"]["na0780_directional_transaction_v2/bob"]=serde_json::json!("{}"),
+            _=>unreachable!(),
+        }
+        let bytes=serde_json::to_vec(&payload).unwrap();let mut header=original[..53].to_vec();
+        header[21..25].copy_from_slice(&u32::try_from(bytes.len()+16).unwrap().to_le_bytes());
+        rand_core::OsRng.fill_bytes(&mut header[41..53]);
+        let encrypted=cipher.encrypt(Nonce::from_slice(&header[41..53]),Payload{msg:&bytes,aad:&header}).unwrap();
+        let mut raw=header;raw.extend(encrypted);fs::write(cfg.join("vault.qsv"),&raw).unwrap();
+        #[cfg(unix)] {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(cfg.join("vault.qsv"),fs::Permissions::from_mode(0o600)).unwrap();
+        }
+        env::set_var("QSC_CONFIG_DIR",&cfg);
+        let expected=match case {
+            "old-version"|"old-profile"|"unknown-profile"=>"vault_version_unsupported",
+            "missing-owner"|"orphan-peer"=>"directional_reserve_missing",
+            "corrupt-owner"=>"directional_owner_tampered",
+            "ordinary-with-owner"=>"directional_owner_binding",_=>unreachable!(),
+        };
+        let opened=qsc::vault::open_session_with_passphrase(common::TEST_MOCK_VAULT_PASSPHRASE);
+        assert_eq!(opened.err(),Some(expected),"real authenticated open: {case}");
+        let denied=run_qsc(&cfg,&["receive","--transport","relay","--relay",server.base_url(),
+            "--mailbox",ROUTE_TOKEN_ALICE,"--from","bob","--out",base.to_str().unwrap(),"--max","1"]);
+        assert!(!denied.status.success(),"normal admission accepted {case}");
+        assert!(output_text(&denied).contains(expected),"wrong admission rejection for {case}: {}",output_text(&denied));
+        assert_eq!(fs::read(cfg.join("vault.qsv")).unwrap(),raw,"refusal must not repair {case}");
+        assert!(server.directional_pushes().is_empty());
+    }
+    key.fill(0);assert_eq!(fs::read(valid.join("vault.qsv")).unwrap(),original);
+}
+
+fn r02_add_other_peer(shared:&Path,other:&Path) {
+    const ROUTE:&str="route_token_carol_abcdefghijklmnop";
+    fn ok(cfg:&Path,args:&[&str])->String {let out=run_qsc(cfg,args);assert!(out.status.success(),"{}",output_text(&out));output_text(&out)}
+    fn field(s:&str,prefix:&str)->String {
+        let value=s.lines().find_map(|l|l.strip_prefix(prefix)).expect("identity public field");
+        assert_ne!(value,common::REDACTION_SENTINEL,"public identity field redacted");
+        value.to_owned()
+    }
+    ensure_dir_700(other);common::init_mock_vault(other);
+    ok(other,&["identity","rotate","--as","carol","--confirm"]);
+    ok(other,&["relay","inbox-set","--token",ROUTE]);
+    let bp=ok(shared,&["identity","show","--as","bob"]);let cp=ok(other,&["identity","show","--as","carol"]);
+    for (cfg,name,route,public) in [(shared,"carol",ROUTE,cp.as_str()),(other,"bob",ROUTE_TOKEN_BOB,bp.as_str())] {
+        ok(cfg,&["contacts","add","--label",name,"--fp",&field(public,"identity_fp="),
+            "--kem-pk",&field(public,"identity_kem_pk="),"--sig-pk",&field(public,"identity_sig_pk="),"--route-token",route]);
+        let devices=ok(cfg,&["contacts","device","list","--label",name]);
+        let dev=devices.lines().find_map(|l|l.strip_prefix("device=")).unwrap().split_whitespace().next().unwrap();
+        assert_ne!(dev,common::REDACTION_SENTINEL,"public device field redacted");
+        ok(cfg,&["contacts","device","trust","--label",name,"--device",dev,"--confirm"]);
+    }
+    let server=common::start_inbox_server(1024*1024,16);
+    ok(shared,&["handshake","init","--as","bob","--peer","carol","--relay",server.base_url(),"--suite-mode","suite-required"]);
+    for (cfg,me,peer) in [(other,"carol","bob"),(shared,"bob","carol"),(other,"carol","bob")] {
+        ok(cfg,&["handshake","poll","--as",me,"--peer",peer,"--relay",server.base_url(),"--max","4","--suite-mode","suite-required"]);
+    }
+    r02_assert_pair(shared,"carol");
+}
+fn r02_fill_evaluation_vault(cfg:&Path) {
+    // Named fresh evaluation fixture only. Positive writes use the ordinary writer;
+    // no direct payload mutation or limit override. Binary search is finite (25 writes).
+    let mut lo=0usize;let mut hi=16_777_216usize;
+    while lo<hi {
+        let mid=(lo+hi+1)/2;let before=fs::read(cfg.join("vault.qsv")).unwrap();
+        let mut session=r02_session(cfg);
+        match qsc::vault::session_set(&mut session,"r02.fixture.filler",&"F".repeat(mid)) {
+            Ok(())=>lo=mid,
+            Err(code)=>{assert_eq!(code,"directional_aggregate_waiting");assert_eq!(fs::read(cfg.join("vault.qsv")).unwrap(),before);hi=mid-1;}
+        }
+    }
+    assert!(lo>0);assert_eq!(r02_observed_charge(cfg),16_777_216);
+}
+fn r02_control_refs(owner:&serde_json::Value,peer:&str)->Vec<(u8,u64,u32)> {
+    use base64::Engine;
+    let raw=base64::engine::general_purpose::STANDARD.decode(owner["peers"][peer]["control"]["control_refs"].as_str().unwrap()).unwrap();
+    assert_eq!(raw.len(),1620);
+    raw.chunks_exact(45).filter(|r|r[0]!=0).map(|r|(r[0],u64::from_be_bytes(r[1..9].try_into().unwrap()),u32::from_be_bytes(r[9..13].try_into().unwrap()))).collect()
+}
+fn r02_nested_measurement(cfg:&Path,peer:&str)->(usize,usize) {
+    let session=r02_session(cfg);let owner=r02_owner(cfg);let state=common::directional_state(cfg,peer);
+    let raw=qsc::vault::session_get(&session,&format!("na0780_directional_transaction_v2/{peer}")).unwrap().unwrap();
+    // Actual producer's serialized text, then its actual JSON-string layer.
+    let nested=serde_json::to_vec(&raw).unwrap();assert!(nested.len()>raw.len());
+    let outer=|v:&serde_json::Value|serde_json::to_vec(&serde_json::to_string(v).unwrap()).unwrap().len() as u64;
+    let refs=r02_control_refs(&owner,peer);
+    assert!(refs.len()<=36);
+    for epoch in state["recv"].as_object().unwrap().keys() {
+        assert!(refs.iter().filter(|(_,g,_)|g.to_string()==*epoch).count()<=18);
+    }
+    let mut residual=state.clone();
+    residual.as_object_mut().unwrap().retain(|k,_|matches!(k.as_str(),"flights"|"dispositions"|"events"|"completed"|"recv"));
+    residual["flights"].as_object_mut().unwrap().retain(|_,f|f["id"]!="");
+    residual["dispositions"].as_object_mut().unwrap().retain(|k,_|!refs.iter().any(|(_,g,n)|*k==format!("{g}:{n}")));
+    let mut holes=serde_json::Map::new();
+    for (epoch,e) in state["recv"].as_object().unwrap() {
+        let ordinary:Vec<_>=e["holes"].as_array().unwrap().iter().filter(|n|!refs.iter().any(|(_,g,s)|g.to_string()==*epoch && *s as u64==n.as_u64().unwrap())).cloned().collect();
+        if !ordinary.is_empty(){holes.insert(epoch.clone(),serde_json::json!({"holes":ordinary}));}
+    }
+    residual["recv"]=serde_json::Value::Object(holes);
+    let p=&owner["peers"][peer];let mut without=p.clone();without.as_object_mut().unwrap().remove("control");
+    let retained=outer(&state)-outer(&residual)+outer(p)-outer(&without);
+    assert_eq!(retained+p["vault_future"].as_u64().unwrap(),2*(288920+36775)+2*524288,
+        "actual nested retained bytes plus future are conserved");
+    // Inner serialized retained controls include the actual fixed witness codec,
+    // map punctuation, control Flights/dispositions and current send-hole widths.
+    let singleton=|key:&str,value:&serde_json::Value| {
+        let map=std::collections::BTreeMap::from([(key,value)]);
+        serde_json::to_vec(&map).unwrap().len() as u64-1
+    };
+    let mut inner=serde_json::to_vec(&p["control"]).unwrap().len() as u64+11;
+    for (_,g,n) in &refs {inner+=singleton(&format!("{g}:{n}"),&state["dispositions"][format!("{g}:{n}")])+11;}
+    for (key,f) in state["flights"].as_object().unwrap() {if f["id"]=="" {inner+=singleton(key,f);}}
+    for e in state["send"].as_object().unwrap().values(){inner+=11*e["holes"].as_array().unwrap().len() as u64;}
+    assert!(inner<=36775,"actual retained control serializer exceeds candidate bound");
+    let mut context=state.clone();
+    for name in ["flights","dispositions","events","completed"] {context[name]=serde_json::json!({});}
+    for name in ["send","recv"] {for e in context[name].as_object_mut().unwrap().values_mut(){e["holes"]=serde_json::json!([]);}}
+    assert!(serde_json::to_vec(&context).unwrap().len()<=288920,"actual reachable context exceeds conditional envelope");
+    assert_eq!(p["peer_future"].as_u64().unwrap()+inner+serde_json::to_vec(&context).unwrap().len() as u64,
+        36775+288920,"actual inner retained plus remaining conservation");
+    // Independent scalar width oracle only; never write a maximum protocol counter.
+    assert_eq!(serde_json::to_vec(&u64::MAX).unwrap().len(),20);
+    let partition=(state["send"].as_object().unwrap().len(),state["recv"].as_object().unwrap().len());
+    assert!(partition.0+partition.1<=3);
+    partition
+}
+#[test]
+fn directional_r02_serializer_maintenance() {
+    if !common::directional_case_child("directional_r02_serializer_maintenance") {return;}
+    let (base,a,b,ao,bo)=r02_pair_fixture("R02-two-peer-utility");
+    let c=base.join("carol");r02_add_other_peer(&b,&c);
+    let server=common::start_inbox_server(1024*1024,128);
+    poll_candidate(&a,server.base_url(),ROUTE_TOKEN_ALICE,"bob",&ao); // genuine advertisement
+    poll_candidate(&b,server.base_url(),ROUTE_TOKEN_BOB,"alice",&bo); // owner's genuine grant
+    let before_send=common::directional_state(&b,"alice");
+    let (key,maintenance)=before_send["flights"].as_object().unwrap().iter().find(|(_,f)|f["id"]=="").unwrap();
+    let wire:Vec<u8>=serde_json::from_value(maintenance["wire"].clone()).unwrap();
+    assert_eq!(&wire[..4],b"NDE1");assert_eq!(wire[4],1,"typed owner grant, not an advertisement receipt");
+    let unrelated=base.join("retry");fs::write(&unrelated,b"unrelated immutable retry").unwrap();send_msg(&b,server.base_url(),"alice",&unrelated);
+    // Only the real grant goes to Alice. Holding synthetic relay traffic is not
+    // used as retention evidence; case5 supplies the lease-backed retention proof.
+    let _held=server.drain_channel(ROUTE_TOKEN_ALICE);server.replace_channel(ROUTE_TOKEN_ALICE,vec![wire]);
+    poll_candidate(&a,server.base_url(),ROUTE_TOKEN_ALICE,"bob",&ao);
+    let receipts=server.drain_channel(ROUTE_TOKEN_BOB);
+    let receipt=receipts.into_iter().find(|r|r.starts_with(b"NDR1") &&
+        u64::from_be_bytes(r[21..29].try_into().unwrap())==maintenance["epoch"].as_u64().unwrap() &&
+        u32::from_be_bytes(r[61..65].try_into().unwrap()) as u64==maintenance["slot"].as_u64().unwrap()).unwrap();
+    r02_fill_evaluation_vault(&b);
+    let before=common::directional_state(&b,"alice");let owner_before=r02_owner(&b);
+    let charge_before=r02_observed_charge(&b);r02_nested_measurement(&b,"alice");
+    let historical=|charge:u64,owner:&serde_json::Value| -> i128 {
+        let p=&owner["peers"]["alice"];
+        charge as i128-p["vault_future"].as_u64().unwrap() as i128+2*(p["peer_future"].as_u64().unwrap() as i128+524288)
+    };
+    server.replace_channel(ROUTE_TOKEN_BOB,vec![receipt]);
+    let result=qsc_cfg_cmd(&b).env("QSC_NA0780_CUT","after_receive_commit")
+        .args(["receive","--transport","relay","--relay",server.base_url(),"--mailbox",ROUTE_TOKEN_BOB,
+            "--from","alice","--out",bo.to_str().unwrap(),"--max","16"]).output().unwrap();
+    assert_eq!(result.status.code(),Some(86),"genuine funded retirement must fit: {}",output_text(&result));
+    let after=common::directional_state(&b,"alice");let owner_after=r02_owner(&b);let charge_after=r02_observed_charge(&b);
+    assert!(after["flights"].get(key).is_none());assert!(charge_after<=charge_before);
+    assert!(historical(charge_after,&owner_after)>historical(charge_before,&owner_before),
+        "historical 2*(inner future+margin) falsely increases liability on this real retirement");
+    assert_eq!(owner_after["peers"]["carol"],owner_before["peers"]["carol"],"no other-peer credit borrowing");
+    let mut ordinary=0;
+    for (k,f) in before["flights"].as_object().unwrap() {if f["id"]!="" {ordinary+=1;assert_eq!(after["flights"][k],*f);}}
+    assert!(ordinary>0);r02_nested_measurement(&b,"alice");r02_assert_pair(&b,"carol");
+}
+
+fn r02_witnesses(owner:&serde_json::Value,peer:&str)->std::collections::BTreeMap<u64,Vec<u8>> {
+    use base64::Engine;
+    let raw=base64::engine::general_purpose::STANDARD.decode(owner["peers"][peer]["control"]["recv_epoch_state"].as_str().unwrap()).unwrap();
+    assert_eq!(raw.len(),154);
+    raw.chunks_exact(77).filter(|e|e[44]&1!=0).map(|e|(u64::from_be_bytes(e[..8].try_into().unwrap()),e.to_vec())).collect()
+}
+#[test]
+fn directional_r02_repeated_controls() {
+    if !common::directional_case_child("directional_r02_repeated_controls") {return;}
+    let (base,a,b,ao,bo)=r02_pair_fixture("r02-control-causes");
+    let server=common::start_inbox_server(1024*1024,128);
+    let mut partitions=std::collections::BTreeSet::new();
+    let mut classes=std::collections::BTreeMap::<u8,std::collections::BTreeSet<(u64,u32,u64)>>::new();
+    let mut previous=std::collections::BTreeMap::<String,(serde_json::Value,serde_json::Value)>::new();
+    let mut pruned=false;let mut surviving=false;let mut retired=false;let mut replenished=false;
+    // Normal sends supply the existing four-message boundary cause. No clock,
+    // owner, epoch, prefix or request bit is forced. This is a finite scenario,
+    // not a retry loop or a proof that every reachable maximum was enumerated.
+    for round in 0..12 {
+        let (sender,peer,recipient,mailbox,out)=if round%2==0 {(&a,"bob",&b,ROUTE_TOKEN_BOB,&bo)}else{(&b,"alice",&a,ROUTE_TOKEN_ALICE,&ao)};
+        // Drive normal empty-inbox control preparation before each burst: four alternating polls,
+        // this round's recipient first (after round 0 that is the previous sender; in round 0 it is
+        // Bob), so an advertisement sealed by the next requester is receipted and consumed before
+        // its control turn comes again and an in-flight control does not pre-empt the request path.
+        for (cfg,mailbox,peer,out) in [(recipient,mailbox,if peer=="bob" {"alice"} else {"bob"},out),(sender,if peer=="bob" {ROUTE_TOKEN_ALICE} else {ROUTE_TOKEN_BOB},peer,if peer=="bob" {&ao} else {&bo})].iter().cycle().take(4) {
+            poll_candidate(cfg,server.base_url(),mailbox,peer,out);
+        }
+        // Burst sizes 4 (even rounds) / 3 (odd rounds). since_boundary is cumulative until a side's own
+        // boundary, so three messages do not keep the odd-round sender permanently below the four-message
+        // cause; in the measured run they leave it not-due at the even-round sender's request point, so
+        // the owner does not grant first and the four-message sender reaches the request path.
+        for item in 0..(if round%2==0 {4} else {3}) {
+            let body=format!("authenticated-control-cause-{round}-{item}");let file=base.join(format!("cause-{round}-{item}"));fs::write(&file,body.as_bytes()).unwrap();
+            send_msg(sender,server.base_url(),peer,&file);
+            for (cfg,p) in [(&a,"bob"),(&b,"alice")] {partitions.insert(r02_nested_measurement(cfg,p));}
+            poll_candidate(recipient,server.base_url(),mailbox,if peer=="bob" {"alice"}else{"bob"},out);
+            payload_once(out,body.as_bytes());
+            for (cfg,p) in [(&a,"bob"),(&b,"alice")] {
+                partitions.insert(r02_nested_measurement(cfg,p));
+                let state=common::directional_state(cfg,p);let owner=r02_owner(cfg);
+                let refs=r02_control_refs(&owner,p);let witnesses=r02_witnesses(&owner,p);
+                for (class,g,n) in &refs {classes.entry(*class).or_default().insert((*g,*n,state["core"]["role"].as_u64().unwrap()));}
+                if let Some((old_state,old_owner))=previous.get(p) {
+                    let old_refs=r02_control_refs(old_owner,p);let old_witnesses=r02_witnesses(old_owner,p);
+                    let removed:Vec<_>=old_refs.iter().filter(|r|!refs.contains(r)).collect();
+                    pruned|=!removed.is_empty();
+                    if !removed.is_empty() {replenished|=owner["peers"][p]["peer_future"].as_u64().unwrap()>old_owner["peers"][p]["peer_future"].as_u64().unwrap();}
+                    for (epoch,w) in old_witnesses {
+                        if state["recv"].get(epoch.to_string()).is_some() {
+                            let now=witnesses.get(&epoch).expect("live epoch witness survives receipt pruning");
+                            assert_eq!(&now[8..40],&w[8..40]);assert!(now[44]>>2>=w[44]>>2);
+                            if w[44]&2!=0 {assert_ne!(now[44]&2,0);assert_eq!(&now[40..44],&w[40..44]);assert_eq!(&now[45..],&w[45..]);}
+                            surviving|=removed.iter().any(|(_,g,_)|*g==epoch);
+                        } else {
+                            assert!(!witnesses.contains_key(&epoch));retired=true;
+                            assert!(old_state["recv"].get(epoch.to_string()).is_some());
+                        }
+                    }
+                }
+                previous.insert(p.to_owned(),(state,owner));
+            }
+        }
+    }
+    assert!(partitions.contains(&(2,1)) && partitions.contains(&(1,2)),"both actual context partitions required");
+    for class in 1..=4 {assert!(classes.get(&class).is_some_and(|v|v.len()>=2),"repeated authenticated cause class {class} was not reached");}
+    assert!(pruned && surviving && retired && replenished,"prune/replenish and surviving/retired witnesses must be observed, never inferred from eventual success");
+    r02_assert_pair(&a,"bob");r02_assert_pair(&b,"alice");
 }

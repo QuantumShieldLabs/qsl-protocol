@@ -6,7 +6,8 @@ Goals: G4 (primary), drives G1–G3 delivery
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0782 | HIGHEST_NA=0782 | HIGHEST_D=1424 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0783 | HIGHEST_NA=0783 | HIGHEST_D=1425 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+<!-- prior: STATE: READY=NA-0782 | HIGHEST_NA=0782 | HIGHEST_D=1424 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0783 READY for **D-1425** -- **PLAN F01: successor contracts and requirement inventory, C01 first**; THE PLAN (docs/ops/PLAN_QSL_successor_rev3.md, sha256 d9016e53...) adopted as the design authority with amendments A1-A3; RULING_PLAN_F00_2026-09-23 R1-R6: F00 ACCEPTED, A1 = WEDGES, K-01..K-14 disposed. Ids derived at this edit on DECLARING forms with positive controls NA-0782 / D-1424 (2 / 1) and negative controls NA-0999 / D-1999 (0 / 0); NA-0783 / D-1425 0 / 0 on main, the three open protocol PRs, the operator tree and the work tree (state/operator/NA-0783/TASK.md classified a non-declaration, park ruling R2). NA-0782 DONE: landed #1835 2112bba5; records pushed df550df1. NA-0780 SUPERSEDED.) -->
 <!-- prior: STATE: READY=NA-0781 | HIGHEST_NA=0781 | HIGHEST_D=1423 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0782 READY for **D-1424** -- **qsl-protocol main-red fix: rustls advisory bump (F1) + cargo-fuzz install step (F2)**; RULING_NA0782_formalization_2026-09-22 R1-R11; F1 bumps the ROOT Cargo.lock only (rustls 0.23.36->0.23.45, rustls-webpki 0.103.13->0.103.15, sealed X1 5d923b53...), the fuzz lockfile carried OWED; F2 is the OPERATOR's edit of .github/workflows/qsc-adversarial.yml from the sealed proposal diff (X3 1187cb85...), the impl seat runs update/audit/build only (R7); acceptance A-D restated in the draft sec 7 with A's transitive suites named. NA-0781 DONE: landed qsl-protocol #1832 d9101fe8 + qsl-ops #4 34eb6c32; records pushed, qsl-record tip aa7f5368.) -->
 <!-- prior: STATE: READY=NA-0780 | HIGHEST_NA=0780 | HIGHEST_D=1422 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0781 READY for **D-1423** -- **THE CC-SIZED USAGE MIGRATION LANE**: the Missions section in the tree CLAUDE.md and the nine-arm guardrails-hook test, on qsl-ops; RULING_NA0781_formalization_2026-09-21 R1-R9; the SR-04 two-PR shape (R4): this promotion first, the qsl-ops impl PR after qwork. Both maxima advance, 0781 > 0780 and 1423 > 1422, derived at this edit on DECLARING forms with positive controls NA-0780 / D-1422 (1 / 1) and negative controls NA-0782 / D-1899 (0 / 0); the open-PR arm measured: three open protocol PRs, all NA-0780's heads, none declaring NA-0781; qsl-ops and qsl-desktop empty. NA-0780 is NOT DONE: its token moves READY -> MERGING so the queue helper's exactly-one-READY rule holds; its open work is untouched.) -->
 <!-- prior: STATE: READY=none (NA-0778 DONE 2026-09-05; the successor -- the ladder program's first lane, the debug log -- is promoted by its own kickoff, RULING_NA0778_016 R103) | HIGHEST_NA=0778 | HIGHEST_D=1421 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0779 READY for **D-1422** -- **THE DEBUG LOG LANE**, the ladder program's first: an extensive, opt-in, redacted-by-construction diagnostic log for the operator, the Director and outside experts, formalized and promoted in one stop; the apparatus fix (qsl-ops PR #1, RULING_NA0778_017 R116) done first; the three audits landed as filings ENG-0300..ENG-0329 with the Director's proposed severities the operator ratifies by merging; ENG-0269 CLOSED by transcription; WF-0086's disposition measured and proposed; row 485 and two datapoints; the cadence's C2' recorded as an operator decision. Ids re-derived at the edit on declaring forms across all three input sets, WF-0068, both controls; the NA-9999 sentinel classified, not counted; the open-PR arm vacuous and said so.) -->
@@ -37780,7 +37781,7 @@ Acceptance is satisfied under RBANK_NA0779_final_build_acceptance_20260909.md; t
 
 ### NA-0780 — Invitation reliability
 
-Status: MERGING (not DONE; the token moved from READY by the NA-0781 promotion, RULING_NA0781_formalization_2026-09-21 R4, because the queue helper requires exactly one bare READY (WF-0090); NA-0780's work is open at this edit: protocol PRs #1825, #1828 and #1831, Stage B owed per AMENDMENT_NA0780_R02_CLOSE_A1 "Owed next" item 2; nothing else in this block is touched)
+Status: SUPERSEDED (superseded by THE PLAN per D-1425; #1831 preserved as the option-A candidate, #1825/#1828 are F10 inputs; all three stay open as Drafts)
 
 Operator-approved successor immediately after NA-0779, promoted by this governance PR after verified closeout. The approved scope and safeguards below are retained. This PR changes the queue and publishes the implementation boundary; it contains no implementation. The first milestone is bounded below; other invitation repairs remain subject to the design gate.
 - Goals: G4
@@ -37888,7 +37889,7 @@ THE PREDECESSOR (SR-04, "predecessor finalized DONE"): NA-0780 is NOT done and i
 
 ### NA-0782 — qsl-protocol main-red fix: rustls advisory bump (F1) + cargo-fuzz install step (F2)
 
-Status: READY
+Status: DONE (landed #1835 2112bba; records pushed df550df1)
 Owner: Executor seat (Claude Code, Light: sonnet/medium) . Goals: G4
 
 THE RECORD OF AUTHORITY. `RULING_NA0782_formalization_2026-09-22.md` sha256 `1dc1d695f19b11985b4944ff0521c92696d7a631df21851e957c3ec7975a5a7d`, delivered in a bundle whose sha256 `e9868824d4ceca156f7787b13ef97dd712c07f1138713e036cd686d914642ae4` was verified BEFORE extraction, its bundled `SHA256SUMS` checked (`sha256sum -c`, OK), the ruling banked 444 under `state/operator/NA-0782/` and its sha re-measured at the destination BEFORE it was read. It ACCEPTS the formalization draft `DIRECTIVE_DRAFT.md` sha256 `c0511229e1c11700ebcd9c0e45cc1c9ea21e0c6343df1b11e735e747a75f5e41` (627 lines) with two repairs (R7: sec 3.6(d) struck, the impl seat runs update/audit/build ONLY; sec 3.4's stale single-invocation fragment noted and ignored) and rulings on E-1..E-7.
@@ -37910,6 +37911,27 @@ GENUINE STOPS, NOT AUTHORIZED, and the hazard are carried unchanged from the dra
 E-6 (the archive-history escalation, carried forward from NA-0781's own E-1) remains OWED, not resolved, in `D-1424`; E-5 (SR-15) is WEIGHED WITH THE FIGURE and SR-15 remains NOT ordered, Director discretion stated (R5); E-7's local-instrument boundary (cargo-audit 0.22.1 / stable 1.95.0 here vs. CI's pinned 0.22.0 / 1.85.1) is carried as a bounded equivalent, ACCEPTED (R6).
 
 THE PREDECESSOR (SR-04): NA-0781 is DONE, landed and records-pushed (see its block above). Nothing else on this queue is touched by this block's birth.
+
+### NA-0783 — PLAN F01: successor contracts and requirement inventory (C01 first)
+
+Status: READY
+Owner: Executor seat (Claude Code; C01 at opus/high) . Goals: G4
+
+THE STATUS TOKEN IS BARE AND UNBOLDED ON PURPOSE (`WF-0090`): `scripts/ci/qsl_evidence_helper.py queue` requires EXACTLY ONE bare `READY` under an NA heading (the `### NA-nnnn` form with its em-dash separator, the one non-ASCII character this block carries). Measured at this edit: `READY_COUNT 1` on main at `2112bba5` (NA-0782) and `READY_COUNT 1` with this block, because NA-0782 flips `READY` -> `DONE` and NA-0780 `MERGING` -> `SUPERSEDED` in the same act. The `STATE` line reads `READY=NA-0783`.
+
+THE RECORD OF AUTHORITY. THE PLAN: `docs/ops/PLAN_QSL_successor_rev3.md` (QSL-solution-plan, execution revision 3, 522 lines, sha256 `d9016e53d2ab46c32b7a7cb060ea70dc79421617e9b054848b464ba7a5518275`, byte-identical to the operator bank `state/operator/PLAN/QSL-solution-plan_rev3.md`), adopted as the design authority with amendments A1-A3 by `RULING_ADOPT_QSL_solution_plan_rev3_2026-09-23.md` sha256 `3861e287615b2132df487a4abf0c25635a9ab62132987b59cfaec05c945ab12e`; card F00 ACCEPTED, A1 = WEDGES and K-01..K-14 disposed by `RULING_PLAN_F00_2026-09-23.md` sha256 `a60f4dd29e3af24666282a7e58ad6b2c055b3073b821f5b09c036fb8da11f003`; both banked 444 under `state/operator/PLAN/`. Recorded in `D-1425`.
+
+SCOPE -- THE PLAN card F01, VERBATIM BY REFERENCE: `docs/ops/PLAN_QSL_successor_rev3.md` sections "F01" (under "Work cards and dependency order") and "Contract decisions" ("Contract decisions that must be resolved before dependent code", rows C01-C07). THE PLAN's text governs; nothing here restates or narrows it. Card states, the evidence-row format and the active-assignment entry follow THE PLAN's "Evidence, completion and bounded recovery".
+
+FIRST SUB-ASSIGNMENT: C01 -- versions and boundaries (THE PLAN, "Contract decisions", row C01). Absorbed per `RULING_PLAN_F00_2026-09-23.md` R3: K-08 (the KDF raise and the label split are absorbed into C01, the one successor profile/schema; no second successor profile) and K-07 (ROADMAP item 5's handshake hardening -- ephemeral ML-KEM in A1, SuiteRequired, engine label check, decoder cap -- is absorbed into C02; one successor handshake wire change, not two). Later F01 sub-assignments (C02-C05, the C06 boundary) are named in the lane record as each is opened; one lane in flight (K-13).
+
+REVIEW: independent sensitive design review (`SR-15`), as THE PLAN's F01 acceptance requires. A contract-design assignment may resolve its own OPEN decision; it performs no dependent production edit until that decision is ACCEPTED, and no production placeholder format is created (THE PLAN).
+
+RECORDS (K-04): `state/operator/PLAN/TASK.md` is the one plan-level restart record; this lane keeps `state/operator/NA-0783/TASK.md` for lane detail. That file already holds one entry from the WITHDRAWN NA-0783 design (a non-declaration; `RULING_NA0780_PARK_1831_2026-09-23.md` R2 -- the id was not consumed); it is history, not scope, and the F01 lane appends below it.
+
+ENTRY GATE: the operator merges this promotion PR by merge commit, then runs `qwork NA-0783 qsl-protocol`. Every directive in this lane begins "PLAN: QSL-solution-plan rev3 d9016e53..., card F01" (adoption ruling R6(c)). A mission's wall-clock end is a checkpoint, never a pass (K-12). This PR authorizes no implementation, merge or acceptance declaration.
+
+THE PREDECESSORS (SR-04): NA-0782 is DONE (landed #1835 `2112bba5`; records pushed `df550df1`). NA-0780 is SUPERSEDED by THE PLAN per `D-1425`; its three Draft PRs stay open as evidence.
 
 ### NA-0778 — THE INVITATIONS LANE (the operator's "Lane C"): THE USER GETS A PLACE TO SEE AND MANAGE INVITATIONS, TWO QUESTIONS THE DESIGN DEPENDS ON ARE MEASURED BEFORE EITHER IS BUILT INTO A SCREEN, AND THE RECORDS ACT FOUR LANES LEFT OWED LANDS TOGETHER WITH THE FIRST PUSH OF THE RECORD UNDER A CADENCE (Director's kickoff `KICKOFF_invitations_lane_20260903.md` sha256 `8b0f1eb52899fa88167032a8e24acba642766ddf85609f0130355d7d52f65fdd`, 25965 B, sha-VERIFIED against the Director's value BEFORE being read and banked 444 under `state/operator/NA-0778/` as the kickoff's first act D; formalized at `STOP_NA0778_001_20260903T200355Z.md` sha256 `5a9b7ebc6b6ae4fce588bcc960269d3e0a662567dfd02b570a052bf1ed40e908`; ruled at `RULING_NA0778_001_20260903.md` sha256 `0e04e22135c682f105dbe18203b93d5bbe3bda2560f682a555e3d3ac862459d1`, R1-R10)
 

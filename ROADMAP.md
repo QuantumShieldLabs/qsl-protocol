@@ -9,6 +9,8 @@ QuantumShield remains a research-stage protocol and demo system. Production read
 
 ## Order of work
 
+Superseded where it differs by D-1425 / docs/ops/PLAN_QSL_successor_rev3.md (THE PLAN, the adopted design authority; RULING_PLAN_F00 K-01 maps each subject below to its PLAN card).
+
 1. Finish the debug-log lane's records. Its implementation is merged and final-build acceptance is satisfied; the records PR and post-merge closeout gates remain pending. Audit publication and the source documentation deferral are explicitly tracked.
 2. Ratchet work and the relay capability split are the next parallel subjects in the roadmap of record, with a ceiling of two implementation seats. Ratchet work begins with experiments A–D under StdCrypto, then a two-party interleaving simulator demonstrated red on the baseline and green after approved repairs. The relay split separates the vault-held read secret from the derived deposit address; pull/ack present the preimage. The split precedes invitations involving outside users.
 3. Write the lean background design from actual code: rungs, transitions, persistence, retries, idempotency, close/lock/crash survival, reset/recovery and the relay lease law. The operator approves that design; it must establish the handshake-poll class and one fetch per mailbox per beat.

@@ -445,22 +445,65 @@ pub(crate) fn timeline_project_message(
     id: &str,
 ) -> Result<TimelineEntry, &'static str> {
     use sha2::Digest;
-    let state = match direction {
-        "in" => MessageState::Received,
-        "out" => MessageState::Sent,
-        _ => return Err("timeline_direction_invalid"),
+    let _lock=timeline_lock()?;
+    let mut snapshot=timeline_store_load()?;
+    let owner=crate::protocol_state::directional_owner_load()?;
+    // Resolve direction without swallowing any load/auth/storage failure.
+    let peer_state=crate::protocol_state::directional_load(peer)?.ok_or("directional_profile_required")?;
+    let dir=match direction {"in"=>1-peer_state.core.role,"out"=>peer_state.core.role,
+        _=>return Err("timeline_direction_invalid")};
+    let mut matching=owner.entries.values().filter(|e|e.peer==peer && e.sid==peer_state.core.sid
+        && e.operation==id && e.direction==dir);
+    let owned=matching.next().ok_or("directional_projection_credit")?;
+    let commitment: [u8;32]=sha2::Sha256::digest(body).into();
+    if matching.next().is_some() || owned.content!=crate::directional_core::h(body) {
+        return Err("directional_owner_binding");
+    }
+    let final_state=match direction {
+        "in"=>MessageState::Received,
+        "out" if owned.state&2!=0=>MessageState::Delivered,
+        "out"=>MessageState::Sent,
+        _=>return Err("timeline_direction_invalid"),
     };
-    let commitment: [u8; 32] = sha2::Sha256::digest(body).into();
-    timeline_append_bound_entry(
-        peer,
-        direction,
-        body.len(),
-        "msg",
-        state,
-        Some(id),
-        None,
-        Some(commitment),
-    )
+    let mut transitions=Vec::new();
+    let mut matches=snapshot.peers.values_mut().flatten().filter(|e|e.id==id);
+    let entry=if let Some(e)=matches.next() {
+        if matches.next().is_some() || e.peer!=peer || e.direction!=direction || e.kind!="msg"
+            || e.byte_len!=body.len() || e.target_device_id.is_some() || e.content_commitment!=Some(commitment) {
+            return Err("timeline_id_conflict");
+        }
+        let old=MessageState::parse(&e.state).ok_or("state_unknown")?;
+        if final_state==MessageState::Delivered && old==MessageState::Sent {
+            message_state_transition_allowed(old,final_state,direction)?;
+            transitions.push((old,final_state));
+            e.state=final_state.as_str().to_owned();e.status=final_state.as_status().to_owned();
+        }
+        // Preserve advanced/failed states on replay as before.
+        e.clone()
+    } else {
+        if !channel_label_ok(peer) || id.trim().is_empty() {return Err("state_id_invalid");}
+        let initial=if direction=="out" {MessageState::Sent}else{MessageState::Received};
+        message_state_transition_allowed(MessageState::Created,initial,direction)?;
+        transitions.push((MessageState::Created,initial));
+        if final_state!=initial {
+            message_state_transition_allowed(initial,final_state,direction)?;
+            transitions.push((initial,final_state));
+        }
+        let ts=snapshot.next_ts;
+        snapshot.next_ts=ts.checked_add(1).ok_or("timeline_capacity")?;
+        let e=TimelineEntry{id:id.to_owned(),peer:peer.to_owned(),direction:direction.to_owned(),
+            byte_len:body.len(),kind:"msg".to_owned(),ts,target_device_id:None,
+            content_commitment:Some(commitment),state:final_state.as_str().to_owned(),
+            status:final_state.as_status().to_owned()};
+        snapshot.peers.entry(peer.to_owned()).or_default().push(e.clone());e
+    };
+    let json=serde_json::to_string(&snapshot.store).map_err(|_|"timeline_unavailable")?;
+    if snapshot.original.as_deref()!=Some(json.as_str()) {
+        crate::vault::project_owned_secret(&owned.ticket,owner.generation,owned.generation,
+            snapshot.original.as_deref(),&json)?;
+    }
+    for (from,to) in transitions {emit_message_state_transition(from,to);}
+    Ok(entry)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -963,4 +1006,27 @@ pub(crate) fn timeline_validate_projection(peer:&str,body:&[u8],id:&str)->Result
         }
     }
     Ok(())
+}
+
+// Conditional encoded credit for one owned ordinary projection. Include a complete
+// singleton store (so an absent timeline/new peer is covered), widest timestamp,
+// content commitment, and both outgoing publication states. The outer JSON string
+// expansion is bounded by serializing it, not assuming body bytes equal disk bytes.
+pub(crate) fn directional_projection_bound(peer:&str,id:&str,len:usize)->Result<usize,&'static str> {
+    let mut maximum=0usize;
+    for (direction,state) in [("in",MessageState::Received),("out",MessageState::Sent),
+        ("out",MessageState::Delivered)] {
+        let entry=TimelineEntry{id:id.to_owned(),peer:peer.to_owned(),direction:direction.to_owned(),
+            byte_len:len,kind:"msg".to_owned(),ts:u64::MAX,target_device_id:None,
+            content_commitment:Some([255;32]),state:state.as_str().to_owned(),status:state.as_status().to_owned()};
+        let store=TimelineStore{next_ts:u64::MAX,peers:std::collections::BTreeMap::from([
+            (peer.to_owned(),vec![entry])]),file_transfers:std::collections::BTreeMap::new()};
+        let inner=serde_json::to_string(&store).map_err(|_|"timeline_unavailable")?;
+        let outer=serde_json::to_vec(&std::collections::BTreeMap::from([(TIMELINE_SECRET_KEY,inner)]))
+            .map_err(|_|"timeline_unavailable")?.len();
+        maximum=maximum.max(outer);
+    }
+    // Two writes (Sent then Delivered) may materialize independently. Charging
+    // two full singleton records is conservative and includes separators/counters.
+    maximum.checked_mul(2).ok_or("timeline_capacity")
 }

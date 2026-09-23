@@ -1,5 +1,5 @@
 // NA-0649 (D585): library-level coverage for the qsc GUI-surface lane — B1
-// `vault_init_with_passphrase`, B2 widened identity data accessors, B3
+// `vault_init_directional_with_passphrase`, B2 widened identity data accessors, B3
 // `identity_ensure`. This file is the external-crate-shaped consumer D585 test 3 asks
 // for: an integration test linking qsc as an external crate and touching ONLY the pub
 // library surface (no compiled-binary invocation here; the CLI byte-identity
@@ -18,7 +18,7 @@ use qsc::model::ErrorCode;
 use qsc::output::{marker_queue, set_marker_routing, MarkerRouting};
 use qsc::vault::{
     has_process_passphrase, secret_get, set_process_passphrase, unlock_with_passphrase,
-    vault_init_with_passphrase,
+    vault_init_directional_with_passphrase,
 };
 use qsc::{identity_show, set_vault_unlocked, vault_unlocked};
 use std::fs;
@@ -101,18 +101,18 @@ fn marker_value<'a>(lines: &'a [String], event: &str, key: &str) -> Option<&'a s
 }
 
 // ---------------------------------------------------------------------------
-// D585 test group 1 — vault_init_with_passphrase
+// D585 test group 1 — vault_init_directional_with_passphrase
 // ---------------------------------------------------------------------------
 
 #[test]
-fn vault_init_with_passphrase_roundtrip_no_unlock_side_effect() {
+fn vault_init_directional_with_passphrase_roundtrip_no_unlock_side_effect() {
     let _g = env_lock();
     let cfg = fresh_test_env("roundtrip");
 
     assert!(!has_process_passphrase());
     assert!(!vault_unlocked());
 
-    vault_init_with_passphrase(PASS_A).expect("in-process vault init");
+    vault_init_directional_with_passphrase(PASS_A).expect("in-process vault init");
     assert!(cfg.join("vault.qsv").is_file(), "vault envelope on disk");
 
     // NO unlock side effect: init alone must leave both unlock-state globals unset.
@@ -149,13 +149,13 @@ fn vault_init_with_passphrase_roundtrip_no_unlock_side_effect() {
 }
 
 #[test]
-fn vault_init_with_passphrase_second_call_vault_exists() {
+fn vault_init_directional_with_passphrase_second_call_vault_exists() {
     let _g = env_lock();
     fresh_test_env("exists");
 
-    vault_init_with_passphrase(PASS_A).expect("first init");
+    vault_init_directional_with_passphrase(PASS_A).expect("first init");
     assert_eq!(
-        vault_init_with_passphrase(PASS_A),
+        vault_init_directional_with_passphrase(PASS_A),
         Err("vault_exists"),
         "second init must fail closed with the existing error code as a value"
     );
@@ -164,12 +164,12 @@ fn vault_init_with_passphrase_second_call_vault_exists() {
 }
 
 #[test]
-fn vault_init_with_passphrase_empty_passphrase_rejected() {
+fn vault_init_directional_with_passphrase_empty_passphrase_rejected() {
     let _g = env_lock();
     let cfg = fresh_test_env("empty");
 
     assert_eq!(
-        vault_init_with_passphrase(""),
+        vault_init_directional_with_passphrase(""),
         Err("vault_passphrase_required")
     );
     assert!(!cfg.exists(), "no mutation on reject");
@@ -184,7 +184,7 @@ fn identity_ensure_creates_then_is_idempotent() {
     let _g = env_lock();
     let cfg = fresh_test_env("ensure");
 
-    vault_init_with_passphrase(PASS_A).expect("init");
+    vault_init_directional_with_passphrase(PASS_A).expect("init");
     unlock_with_passphrase(PASS_A).expect("unlock");
     drain_markers();
 
@@ -225,7 +225,7 @@ fn identity_ensure_locked_store_keeps_existing_vault_locked_behavior() {
     let _g = env_lock();
     let cfg = fresh_test_env("locked");
 
-    vault_init_with_passphrase(PASS_A).expect("init");
+    vault_init_directional_with_passphrase(PASS_A).expect("init");
     // Deliberately NOT unlocked: the underlying lazy path must fail exactly as today.
     drain_markers();
 
@@ -259,7 +259,7 @@ fn identity_ensure_preserves_second_identity_guard() {
     let _g = env_lock();
     fresh_test_env("guard");
 
-    vault_init_with_passphrase(PASS_A).expect("init");
+    vault_init_directional_with_passphrase(PASS_A).expect("init");
     unlock_with_passphrase(PASS_A).expect("unlock");
     identity_ensure("default").expect("first identity");
     drain_markers();
@@ -305,7 +305,7 @@ fn routed_trust_mode_line_lands_in_queue_under_inapp() {
     let _g = env_lock();
     fresh_test_env("na0700_trust_mode_queue");
 
-    vault_init_with_passphrase(PASS_A).expect("init");
+    vault_init_directional_with_passphrase(PASS_A).expect("init");
     unlock_with_passphrase(PASS_A).expect("unlock");
     // `require_unlocked` gates on the process-wide unlocked FLAG (lib.rs:199),
     // which the bin's unlock adapter sets after a guarded unlock — mirrored
@@ -339,7 +339,7 @@ fn widened_accessors_expose_identity_as_data() {
     let _g = env_lock();
     fresh_test_env("accessors");
 
-    vault_init_with_passphrase(PASS_A).expect("init");
+    vault_init_directional_with_passphrase(PASS_A).expect("init");
     unlock_with_passphrase(PASS_A).expect("unlock");
     let created = identity_ensure("default").expect("identity present");
 

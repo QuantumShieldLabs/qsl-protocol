@@ -10,9 +10,9 @@ pub fn send_execute(args: SendExecuteArgs) -> CliResult {
         relay,
         to,
         file,
-        pad_to: _,
-        pad_bucket: _,
-        bucket_max: _,
+        pad_to,
+        pad_bucket,
+        bucket_max,
         meta_seed: _,
         receipt: _,
     } = args;
@@ -44,7 +44,7 @@ pub fn send_execute(args: SendExecuteArgs) -> CliResult {
             if let Err(reason) = protocol_active_or_reason_for_send_peer(to.as_str()) {
                 return Err(protocol_inactive_error(reason.as_str()));
             }
-            relay_send(&to, &file, &relay, None)?;
+            relay_send_padded(&to, &file, &relay, pad_to, pad_bucket, bucket_max)?;
             // ⚠ NA-0688: the send just established our chain if it was unseeded, so anything we
             // owed this peer can go out now. See `flush_owed_receipts` for why this lives here.
             crate::flush_owed_receipts(&to, &relay);
@@ -458,11 +458,16 @@ fn receive_pull_rounds(
     pending_acks: &mut Vec<String>,
     seen_ids: &mut Option<dedup::RelaySeenIds>,
 ) -> CliResult<()> {
-    let maintenance_deferred=directional_flush(ctx.from,ctx.relay).map_err(CliError::code)?;
-    let mut capacity_input_committed=false;
     let route=directional_routing_target(ctx.from).map_err(CliError::code)?;
-    let projected=crate::protocol_state::directional_update(&route.channel,None,|state|state.project_received(ctx.from,ctx.out,ctx.source)).map_err(CliError::code)?;
+    // Already-funded local recovery precedes intake/replay, even with an empty
+    // inbox or a later remote QueueFull. The update reloads the owner after both
+    // projections and retires their obligations in the fresh atomic pair save.
+    let projected=crate::protocol_state::directional_update(&route.channel,None,|state| {
+        state.project(ctx.from)?;
+        state.project_received(ctx.from,ctx.out,ctx.source)
+    }).map_err(CliError::code)?;
     stats.count=stats.count.saturating_add(projected);
+    let mut outgoing = DirectionalReceiveOutgoing::default();
     let mut rounds = 0usize;
     // NA-0741 (D-1376): counts every frame skipped by class across ALL rounds, for the
     // end-of-batch summary. OUTSIDE the loop, unlike `skipped` below.
@@ -493,19 +498,22 @@ fn receive_pull_rounds(
                 }
                 if let Some((channel,response))=admitted {
                     // Authenticated ordinary frames can retire contexts through closure too.
-                    capacity_input_committed=true;
                     crate::directional_cut("after_receive_commit");
                     // The receipt/event/core disposition is durable before output or relay ACK.
-                    if let Some(response)=response {
+                    let response_accepted = if let Some(response)=response {
                         let route=directional_routing_target(ctx.from).map_err(CliError::code)?;
-                        relay_inbox_push(ctx.relay,&route.route_token,&response).map_err(CliError::code)?;
-                        crate::protocol_state::directional_update(&channel,None,|state|state.accepted(&response)).map_err(CliError::code)?;
-                    }
+                        outgoing.push(&channel,ctx.relay,&route.route_token,&response)
+                            .map_err(CliError::code)?
+                    } else { true };
                     let projected=crate::protocol_state::directional_update(&channel,None,|state| {
                         state.project(ctx.from)?; state.project_received(ctx.from,ctx.out,ctx.source)
                     }).map_err(CliError::code)?;
                     stats.count=stats.count.saturating_add(projected);
-                    record_seen_and_queue_ack(seen_ids,pending_acks,&item.id)?;
+                    // Preserve the existing response-success prerequisite for this
+                    // item's ACK. QueueFull leaves both response and relay item pending.
+                    if response_accepted {
+                        record_seen_and_queue_ack(seen_ids,pending_acks,&item.id)?;
+                    }
                     controls=controls.saturating_add(1);
                     continue;
                 }
@@ -532,15 +540,19 @@ fn receive_pull_rounds(
     // NA-0741 (D-1376): the operator's only window onto skipped frames. ⚠ On a terminal
     // early exit this does not fire, and that is correct — the run failed, and its error
     // marker is the report.
-    // One retry after bounded authenticated receipt intake, never a retry loop.
-    // No receipt means the durable scheduler intent simply waits for a later call.
-    if maintenance_deferred && capacity_input_committed {
-        directional_flush(ctx.from,ctx.relay).map_err(CliError::code)?;
+    // Bounded intake completes before any pending outgoing replay. Exact bytes
+    // attempted during intake are excluded, including failed QueueFull responses.
+    directional_replay(ctx.from,ctx.relay,&mut outgoing).map_err(CliError::code)?;
+    // No new-control preparation after a remote QueueFull in this call. Report it
+    // below; the wrapper still flushes ACKs already earned by other admitted items.
+    if outgoing.queue_full.is_none() {
+        directional_flush(ctx.from,ctx.relay,&mut outgoing).map_err(CliError::code)?;
     }
     if skipped_total > 0 {
         let n = skipped_total.to_string();
         emit_marker("recv_skip_summary", None, &[("count", n.as_str())]);
     }
+    if let Some(code)=outgoing.queue_full { return Err(CliError::code(code)); }
     Ok(())
 }
 
@@ -1050,7 +1062,12 @@ pub fn relay_send(
     relay: &str,
     bucket_max: Option<usize>,
 ) -> CliResult {
-    directional_send_options(None, None, bucket_max, None, None).map_err(CliError::code)?;
+    relay_send_padded(to, file, relay, None, None, bucket_max)
+}
+
+fn relay_send_padded(to: &str, file: &Path, relay: &str, exact: Option<usize>,
+    profile: Option<MetaPadBucket>, bucket_max: Option<usize>) -> CliResult {
+    directional_send_options(exact, profile, bucket_max, None, None).map_err(CliError::code)?;
     directional_receipt_account_preflight()?;
     if let Err(code) = enforce_cli_send_contact_trust(to) {
         return Err(CliError::code(code));
@@ -1083,7 +1100,11 @@ pub fn relay_send(
         Err(e) => return Err(cli_err(e)),
     };
     let now = msgqueue::now_unix_s();
-    let rec = msgqueue::enqueue_at(&dir, source, to, payload, now).map_err(CliError::code)?;
+    let rec = if exact.is_none() && profile.is_none() && bucket_max.is_none() {
+        msgqueue::enqueue_at(&dir, source, to, payload, now)
+    } else {
+        msgqueue::enqueue_padded_at(&dir, source, to, payload, now, DirectionalPaddingRequest {exact,profile,maximum:bucket_max})
+    }.map_err(CliError::code)?;
     let queued_len = rec.body.len().to_string();
     emit_marker(
         "msgqueue_enqueued",
@@ -3616,7 +3637,9 @@ impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
         };
         let prepared = crate::protocol_state::directional_update(&routing.channel, None, |state| {
             state.project(&rec.peer)?;
-            state.prepare(&rec.msg_id, &rec.body, qsp_now_unix_secs(), false, false)
+            let intent = crate::directional_delivery::QueuedIntent::decode(
+                rec.directional_intent.as_deref().ok_or("INTEGRATION_QUEUE_PROFILE")?, &rec.msg_id, &rec.body)?;
+            state.prepare_padded(&rec.msg_id, &rec.body, qsp_now_unix_secs(), false, false, &intent.padding)
         });
         if prepared.is_ok() {crate::directional_cut("after_prepare_commit");}
         prepared.map(|raw| (raw, crate::msgqueue::directional_packed_record(), routing.channel))
@@ -3624,6 +3647,9 @@ impl<'a> msgqueue::MessageSender for RelayMessageSender<'a> {
     }
 
     fn push(&mut self, rec: &msgqueue::QueuedMessage) -> Result<(), msgqueue::AttemptResult> {
+        crate::msgqueue::directional_packed_validate(rec).map_err(|code| {
+            self.last_code = Some(code); msgqueue::AttemptResult::Fail
+        })?;
         let Some(ciphertext) = rec.ciphertext.as_ref() else {
             // Unreachable by construction: the drain only pushes what it packed.
             return Err(msgqueue::AttemptResult::Retry);
@@ -4105,17 +4131,63 @@ mod control_class_capture_tests {
     }
 }
 
-fn directional_flush(peer:&str,relay:&str)->Result<bool,&'static str>{
+// Ephemeral per-receive-call attempt journal, bounded by existing intake/state
+// limits. Exact bytes (not a new persistent ID) prevent duplicate network attempts
+// across intake, saved replay and optional freshly prepared control replay.
+#[derive(Default)]
+struct DirectionalReceiveOutgoing {
+    attempted: Vec<(Vec<u8>, bool)>,
+    queue_full: Option<&'static str>,
+}
+impl DirectionalReceiveOutgoing {
+    fn push(&mut self,channel:&str,relay:&str,route_token:&str,raw:&[u8])
+        ->Result<bool,&'static str> {
+        if let Some((_,accepted))=self.attempted.iter().find(|(bytes,_)|bytes.as_slice()==raw) {
+            return Ok(*accepted);
+        }
+        match relay_inbox_push_classified(relay,route_token,raw) {
+            Ok(()) => {
+                // A local acceptance-save error propagates immediately. It is never
+                // reclassified as remote backpressure and earns no ACK here.
+                crate::protocol_state::directional_update(channel,None,|state|state.accepted(raw))?;
+                self.attempted.push((raw.to_vec(),true));
+                Ok(true)
+            }
+            Err(failure) if failure.class==PushFailClass::QueueFull => {
+                self.queue_full.get_or_insert(failure.code);
+                self.attempted.push((raw.to_vec(),false));
+                // No accepted() call: the already committed response remains pending.
+                Ok(false)
+            }
+            Err(failure) => Err(failure.code),
+        }
+    }
+}
+
+fn directional_flush(peer:&str,relay:&str,outgoing:&mut DirectionalReceiveOutgoing)
+    ->Result<bool,&'static str> {
     let route=directional_routing_target(peer)?;
-    let (pending,deferred)=crate::protocol_state::directional_update(&route.channel,None,|state| {
-        state.project(peer)?;
-        let deferred=state.control_before_receive(qsp_now_unix_secs())?;
-        Ok((state.pending(),deferred))
+    // Startup and admitted-item phases already project funded work. Fresh
+    // control preparation must not be the only route to local completion.
+    let deferred=crate::protocol_state::directional_update(&route.channel,None,|state| {
+        state.control_before_receive(qsp_now_unix_secs())
     })?;
     if let Some(reason)=deferred { emit_marker("directional_maintenance_waiting",None,&[("reason",reason)]); }
-    for raw in pending {
-        relay_inbox_push(relay,&route.route_token,&raw)?;
-        crate::protocol_state::directional_update(&route.channel,None,|state|state.accepted(&raw))?;
-    }
+    // Existing pending bytes were attempted after intake. The shared journal
+    // permits only newly prepared bytes here, never a second send of old traffic.
+    directional_replay(peer,relay,outgoing)?;
     Ok(deferred.is_some())
+}
+
+// Already durable traffic only, after bounded receipt intake. A failed remote
+// QueueFull is retained for the final command result; all other errors propagate.
+fn directional_replay(peer:&str,relay:&str,outgoing:&mut DirectionalReceiveOutgoing)
+    ->Result<(), &'static str> {
+    let route=directional_routing_target(peer)?;
+    let state=crate::protocol_state::directional_load(&route.channel)?
+        .ok_or("directional_profile_required")?;
+    for raw in state.pending() {
+        outgoing.push(&route.channel,relay,&route.route_token,&raw)?;
+    }
+    Ok(())
 }

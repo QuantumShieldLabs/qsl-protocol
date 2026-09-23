@@ -95,6 +95,8 @@ fn vault_init_with_stdin(
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--key-source",
             "passphrase",
@@ -174,7 +176,7 @@ fn relay_inbox_set(iso: &common::TestIsolation, cfg: &Path, token: &str) {
 
 fn derive_vault_key_with_passphrase(bytes: &[u8], passphrase: &str) -> ([u8; 32], usize, usize) {
     assert!(bytes.len() > 25, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV02");
+    assert_eq!(&bytes[0..6], b"QSCV03");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;

@@ -86,7 +86,6 @@ const RECEIPT_JITTER_MS_MAX: u64 = 5_000;
 const ATTACHMENT_DESCRIPTOR_VERSION: u8 = 1;
 const ATTACHMENT_DESCRIPTOR_TYPE: &str = "attachment_descriptor";
 const ATTACHMENT_CONFIRM_KIND: &str = "attachment_confirmed";
-#[cfg(test)]
 const ATTACHMENT_LOCATOR_KIND_V1: &str = "service_ref_v1";
 const ATTACHMENT_INTEGRITY_ALG_V1: &str = "sha512_merkle_v1";
 const ATTACHMENT_ENC_CTX_ALG_V1: &str = "chacha20poly1305_part_v1";
@@ -2061,10 +2060,11 @@ pub fn na0780_test_hostile_wire(snapshot:&str,mode:&str,id:u32)->Result<Vec<u8>,
             if mode=="gap" {
                 for _ in 0..=MAX_SKIP {core.send.as_mut().ok_or("SEND_UNSET")?.step(&core.sid)?;}
             }
-            // Existing NDI1 closure-only body, with no promises.
-            let mut body=b"NDI1".to_vec();body.push(1);body.extend(lp(b""));body.push(0);body.extend(lp(&[2]));
+            // Successor closure-only body with fixed padding and no promises.
+            let body=directional_delivery::test_body("maintenance")?;
             core.ordinary(0,&body)
         }
+        mode if mode.starts_with("body_") => core.ordinary(0, &directional_delivery::test_body(mode)?),
         _=>Err("test_mode"),
     }
 }
@@ -2119,9 +2119,49 @@ mod directional_channel_tests {
     }
 }
 
-// The first-release directional profile has fixed framing and mandatory receipts.
-// Validate explicit requests before reading payloads, creating directories or
-// mutating queues. Absence selects the profile, never the old padding defaults.
+#[derive(Clone, Copy, Default)]
+pub(crate) struct DirectionalPaddingRequest {
+    exact: Option<usize>,
+    profile: Option<MetaPadBucket>,
+    maximum: Option<usize>,
+}
+
+// Read the existing account key without collapsing malformed/unknown into absent.
+// Called under the enqueue store lock; no new account setting is introduced.
+fn directional_padding_profile(dir: &Path, explicit: Option<MetaPadBucket>) -> Result<u8, &'static str> {
+    let file = dir.join(CONFIG_FILE_NAME);
+    match fs::symlink_metadata(&file) {
+        Ok(meta) if !meta.is_file() || meta.file_type().is_symlink() => return Err("directional_configuration_error"),
+        Ok(_) => {},
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {},
+        Err(_) => return Err("directional_configuration_error"),
+    }
+    let text = match fs::read_to_string(&file) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(_) => return Err("directional_configuration_error"),
+    };
+    let mut saved = None;
+    for line in text.lines().map(str::trim).filter(|s| !s.is_empty()) {
+        let (key, value) = line.split_once('=').ok_or("directional_configuration_error")?;
+        if key.trim().is_empty() { return Err("directional_configuration_error"); }
+        if key.trim() == POLICY_KEY {
+            if saved.is_some() { return Err("directional_configuration_error"); }
+            saved = Some(match value.trim() {
+                "baseline" => 1,
+                "strict" => 3,
+                _ => return Err("directional_configuration_error"),
+            });
+        }
+    }
+    Ok(match explicit {
+        Some(MetaPadBucket::Standard) => 1,
+        Some(MetaPadBucket::Enhanced) => 2,
+        Some(MetaPadBucket::Private) => 3,
+        None | Some(MetaPadBucket::Auto) => saved.unwrap_or(1),
+    })
+}
+
 fn directional_send_options(
     pad_to: Option<usize>,
     pad_bucket: Option<MetaPadBucket>,
@@ -2129,10 +2169,12 @@ fn directional_send_options(
     meta_seed: Option<u64>,
     receipt: Option<ReceiptRequest>,
 ) -> Result<(), &'static str> {
-    if pad_to.is_some() || pad_bucket.is_some() {
-        return Err("directional_padding_unsupported");
+    if pad_to.is_some_and(|n| n == 0 || n > 60000)
+        || bucket_max.is_some_and(|n| n == 0 || n > 65536) {
+        return Err("INTEGRATION_PADDING_SIZE");
     }
-    if bucket_max.is_some() || meta_seed.is_some() {
+    let _ = pad_bucket; // Concrete selection is resolved once, under the enqueue lock.
+    if meta_seed.is_some() {
         return Err("directional_send_metadata_unsupported");
     }
     if matches!(receipt, Some(ReceiptRequest::Off)) {
@@ -2216,14 +2258,15 @@ mod na0780_semantic_option_tests {
     }
 
     #[test]
-    fn every_explicit_padding_request_refuses_including_old_standard_default() {
-        for len in [0, 1, 65536, usize::MAX] {
-            assert_eq!(directional_send_options(Some(len), None, None, None, None), Err("directional_padding_unsupported"));
+    fn explicit_padding_syntax_preserves_valid_requests_and_rejects_limits() {
+        for len in [0, 60001, usize::MAX] {
+            assert_eq!(directional_send_options(Some(len), None, None, None, None), Err("INTEGRATION_PADDING_SIZE"));
         }
         for profile in [MetaPadBucket::Standard, MetaPadBucket::Enhanced, MetaPadBucket::Private, MetaPadBucket::Auto] {
-            assert_eq!(directional_send_options(None, Some(profile), None, None, None), Err("directional_padding_unsupported"));
+            assert_eq!(directional_send_options(None, Some(profile), None, None, None), Ok(()));
         }
-        assert_eq!(directional_send_options(None, None, Some(4096), None, None), Err("directional_send_metadata_unsupported"));
+        assert_eq!(directional_send_options(Some(4096), Some(MetaPadBucket::Private), Some(4096), None, None), Ok(()));
+        assert_eq!(directional_send_options(None, None, Some(65537), None, None), Err("INTEGRATION_PADDING_SIZE"));
         assert_eq!(directional_send_options(None, None, None, Some(0), None), Err("directional_send_metadata_unsupported"));
     }
 
@@ -2285,5 +2328,31 @@ mod na0780_semantic_option_tests {
         calls = 0;
         assert_eq!(bounded_retry(3, || { calls += 1; Err(()) }), Err(RetryExhausted));
         assert_eq!(calls, 3);
+    }
+}
+
+#[cfg(test)]
+mod directional_padding_policy_tests {
+    use super::*;
+    #[test]
+    fn account_mapping_override_absence_and_malformed_refusal() {
+        let tmp = tempfile::tempdir().unwrap();
+        let path = tmp.path().join(CONFIG_FILE_NAME);
+        assert_eq!(directional_padding_profile(tmp.path(), Some(MetaPadBucket::Auto)), Ok(1));
+        for (policy, expected) in [("baseline",1),("strict",3)] {
+            fs::write(&path,format!("policy_profile={policy}\n")).unwrap();
+            assert_eq!(directional_padding_profile(tmp.path(),None),Ok(expected));
+            assert_eq!(directional_padding_profile(tmp.path(),Some(MetaPadBucket::Auto)),Ok(expected));
+            for (profile,number) in [(MetaPadBucket::Standard,1),(MetaPadBucket::Enhanced,2),(MetaPadBucket::Private,3)] {
+                assert_eq!(directional_padding_profile(tmp.path(),Some(profile)),Ok(number));
+            }
+        }
+        for malformed in ["policy_profile=unknown\n","policy_profile=\n","policy_profile\n","=strict\n","policy_profile=baseline\npolicy_profile=strict\n"] {
+            fs::write(&path,malformed).unwrap();
+            assert_eq!(directional_padding_profile(tmp.path(),None),Err("directional_configuration_error"));
+            assert_eq!(directional_padding_profile(tmp.path(),Some(MetaPadBucket::Enhanced)),Err("directional_configuration_error"));
+        }
+        fs::write(&path,"unrelated=value\n").unwrap();
+        assert_eq!(directional_padding_profile(tmp.path(),None),Ok(1));
     }
 }

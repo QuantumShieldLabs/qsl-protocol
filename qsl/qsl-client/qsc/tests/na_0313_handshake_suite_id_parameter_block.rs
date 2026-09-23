@@ -183,7 +183,7 @@ fn session_path(cfg: &Path, peer: &str) -> PathBuf {
 fn read_mock_vault_json(cfg: &Path) -> Value {
     let bytes = fs::read(cfg.join("vault.qsv")).expect("vault read");
     assert!(bytes.len() > 39, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV02");
+    assert_eq!(&bytes[0..6], b"QSCV03");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;

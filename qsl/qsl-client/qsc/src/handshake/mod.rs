@@ -1447,6 +1447,7 @@ pub(crate) fn perform_handshake_init_with_route(
     suite_mode: HandshakeSuiteMode,
     delivery: A1Delivery<'_>,
 ) -> Result<(), &'static str> {
+    crate::protocol_state::directional_owner_load()?;
     enforce_peer_not_blocked(peer)?;
     let peer_fp = match identity_read_pin(peer) {
         Ok(Some(peer_fp)) => peer_fp,
@@ -1886,6 +1887,7 @@ pub(crate) fn perform_handshake_poll_with_tokens(
     source: HsPollSource<'_>,
     reply_wrap: Option<HsReplyWrap<'_>>,
 ) -> Result<PollOutcome, &'static str> {
+    crate::protocol_state::directional_owner_load()?;
     enforce_peer_not_blocked(peer)?;
     // NA-0711 (D647 A4 Δ36/Δ37, R238 §5.1): PRE-PULL, and it RETURNS Err.
     //
@@ -3193,6 +3195,9 @@ mod directional_profile_tests {
         assert_eq!(hs_parse_parameter_block(block).unwrap(), context);
         assert_eq!(hs_parse_parameter_block(&HS_SUITE_CONTEXT_BLOCK), Err("REJECT_QSC_HS_INTEGRATION_REQUIRED"));
         let profile_offset = HS_SUITE_CONTEXT_BLOCK.len();
+        let mut old = block.to_vec();
+        *old.last_mut().unwrap() = b'1';
+        assert_eq!(hs_parse_parameter_block(&old), Err("REJECT_QSC_HS_INTEGRATION_PROFILE"));
         let mut changed = block.to_vec();
         *changed.last_mut().unwrap() ^= 1;
         assert_eq!(hs_parse_parameter_block(&changed), Err("REJECT_QSC_HS_INTEGRATION_PROFILE"));

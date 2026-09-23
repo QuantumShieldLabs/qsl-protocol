@@ -70,16 +70,16 @@ pub enum Cmd {
         /// Path to payload file.
         #[arg(long, value_name = "PATH")]
         file: Option<PathBuf>,
-        /// Unsupported directional padding option; explicit requests refuse before effects.
+        /// Exact total padded body bytes, including reserved closure overhead (maximum 60000).
         #[arg(long, value_name = "BYTES")]
         pad_to: Option<usize>,
-        /// Unsupported directional padding option; explicit requests refuse before effects.
+        /// Padding profile; Auto resolves saved baseline/strict to Standard/Private at enqueue.
         #[arg(long, value_enum)]
         pad_bucket: Option<MetaPadBucket>,
         /// Unsupported directional seed option; explicit requests refuse.
         #[arg(long)]
         meta_seed: Option<u64>,
-        /// Metadata bucket ceiling in bytes (marker-only).
+        /// Saved padding ceiling (default 4096, maximum 65536); impossible requests refuse.
         #[arg(long)]
         bucket_max: Option<usize>,
         /// Directional delivery receipts are mandatory: omit or select delivered.
@@ -723,7 +723,7 @@ pub enum RelayCmd {
         /// Relay address (host:port).
         #[arg(long)]
         relay: String,
-        /// Metadata bucket ceiling in bytes (marker-only).
+        /// Saved padding ceiling (default 4096, maximum 65536); impossible requests refuse.
         #[arg(long)]
         bucket_max: Option<usize>,
     },

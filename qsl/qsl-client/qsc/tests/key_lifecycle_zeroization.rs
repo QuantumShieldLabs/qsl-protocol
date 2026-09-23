@@ -210,7 +210,7 @@ fn path_bytes(path: &Path) -> Option<Vec<u8>> {
 
 fn derive_mock_vault_key(bytes: &[u8]) -> ([u8; 32], usize, usize) {
     assert!(bytes.len() > 25, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV02");
+    assert_eq!(&bytes[0..6], b"QSCV03");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;
@@ -330,7 +330,7 @@ fn assert_session_blob_encrypted_boundary(bytes: &[u8], context: &str) {
 
 fn assert_vault_encrypted_boundary(cfg: &Path, context: &str) -> Vec<u8> {
     let bytes = fs::read(cfg.join("vault.qsv")).expect("vault read");
-    assert!(bytes.starts_with(b"QSCV02"), "vault envelope magic missing");
+    assert!(bytes.starts_with(b"QSCV03"), "vault envelope magic missing");
     for needle in [
         ROUTE_TOKEN_ALICE.as_bytes(),
         ROUTE_TOKEN_BOB.as_bytes(),
@@ -527,6 +527,8 @@ fn key_lifecycle_output_redaction_sentinel_scan() {
         &[
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--key-source",
             "bogus",
             "--passphrase-file",
@@ -648,6 +650,8 @@ fn vault_passphrase_redaction_and_no_plaintext_boundary() {
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--key-source",
             "passphrase",
@@ -672,7 +676,7 @@ fn vault_passphrase_redaction_and_no_plaintext_boundary() {
     assert!(text.contains("event=vault_init"), "{text}");
     assert_output_redacted(&text, &[VAULT_PASSPHRASE_SENTINEL]);
     let vault_bytes = fs::read(cfg.join("vault.qsv")).expect("vault read");
-    assert!(vault_bytes.starts_with(b"QSCV02"));
+    assert!(vault_bytes.starts_with(b"QSCV03"));
     assert_bytes_do_not_contain(
         &vault_bytes,
         VAULT_PASSPHRASE_SENTINEL.as_bytes(),

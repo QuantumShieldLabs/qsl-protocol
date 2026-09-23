@@ -211,6 +211,9 @@ pub struct QueuedMessage {
     // Exact candidate ciphertext identity survives projection/clear_inflight.
     #[serde(default)]
     pub directional_wire_hash: Option<[u8;32]>,
+    /// Opaque authenticated successor intent; concrete policy is fixed at enqueue.
+    #[serde(default)]
+    pub directional_intent: Option<Vec<u8>>,
 }
 
 impl QueuedMessage {
@@ -560,10 +563,25 @@ pub(crate) fn enqueue_at(
     body: Vec<u8>,
     now: u64,
 ) -> Result<QueuedMessage, &'static str> {
+    enqueue_padded_at(cfg_dir, source, peer, body, now, crate::DirectionalPaddingRequest::default())
+}
+
+pub(crate) fn enqueue_padded_at(
+    cfg_dir: &Path, source: ConfigSource, peer: &str, body: Vec<u8>, now: u64,
+    request: crate::DirectionalPaddingRequest,
+) -> Result<QueuedMessage, &'static str> {
+    let crate::DirectionalPaddingRequest {exact,profile,maximum}=request;
+    let _lock = lock_store_exclusive(cfg_dir, source).map_err(crate::vault::store_err_marker)?;
+    crate::enforce_safe_parents(&cfg_dir.join(crate::CONFIG_FILE_NAME), source)
+        .map_err(|_| "directional_configuration_error")?;
+    let profile = crate::directional_padding_profile(cfg_dir, profile)?;
+    let id = mint_msg_id();
+    let padding = crate::directional_delivery::Padding::resolve(id.len(), body.len(), profile, maximum, exact)?;
+    let intent = crate::directional_delivery::QueuedIntent::message(&id, &body, padding)?.encode()?;
     let seq = next_seq(cfg_dir, peer)?;
     let rec = QueuedMessage {
         v: RECORD_VERSION,
-        msg_id: mint_msg_id(),
+        msg_id: id,
         peer: peer.to_string(),
         seq,
         state: MsgState::Queued,
@@ -582,6 +600,7 @@ pub(crate) fn enqueue_at(
         next_state: None,
         channel: None,
         directional_wire_hash: None,
+        directional_intent: Some(intent),
     };
     write_record(cfg_dir, source, &rec)?;
     Ok(rec)
@@ -599,7 +618,7 @@ pub(crate) fn save(
     let _lock=lock_store_exclusive(cfg_dir,source).map_err(crate::vault::store_err_marker)?;
     let mut merged=rec.clone();
     if let Some(prior)=load_contact(cfg_dir,&rec.peer)?.into_iter().find(|r|r.msg_id==rec.msg_id) {
-        if prior.body!=rec.body || prior.peer!=rec.peer { return Err("directional_queue_conflict"); }
+        if prior.body!=rec.body || prior.peer!=rec.peer || prior.directional_intent!=rec.directional_intent { return Err("directional_queue_conflict"); }
         if let Some(hash)=prior.directional_wire_hash {
             if rec.directional_wire_hash.is_some_and(|h|h!=hash) || rec.ciphertext.as_ref().is_some_and(|raw|crate::directional_core::h(raw)!=hash) {return Err("directional_queue_conflict");}
             merged.directional_wire_hash=Some(hash);
@@ -1195,6 +1214,7 @@ mod tests {
             next_state: None,
             channel: None,
         directional_wire_hash: None,
+        directional_intent: None,
         }
     }
 
@@ -2098,7 +2118,7 @@ pub(crate) fn directional_project_delivered(peer:&str,id:&str,hash:&[u8;32])->Re
 pub(crate) fn directional_completed_commit(rec:&QueuedMessage)->Result<bool,&'static str>{
     let (dir,_)=config_dir().map_err(|_|"directional_queue_store")?;
     let Some(current)=load_contact(&dir,&rec.peer)?.into_iter().find(|r|r.msg_id==rec.msg_id) else{return Err("directional_queue_missing");};
-    if current.peer!=rec.peer || current.body!=rec.body || current.seq!=rec.seq {return Err("directional_queue_conflict");}
+    if current.peer!=rec.peer || current.body!=rec.body || current.seq!=rec.seq || current.directional_intent!=rec.directional_intent {return Err("directional_queue_conflict");}
     if current.state!=MsgState::Delivered{return Ok(false);}
     let raw=rec.ciphertext.as_deref().ok_or("directional_flight_missing")?;
     if current.directional_wire_hash!=Some(crate::directional_core::h(raw)){return Err("directional_queue_conflict");}
@@ -2125,6 +2145,8 @@ fn directional_packed_decode(raw: &[u8]) -> Result<(), &'static str> {
     Ok(())
 }
 pub(crate) fn directional_packed_validate(rec: &QueuedMessage) -> Result<(), &'static str> {
+    crate::directional_delivery::QueuedIntent::decode(
+        rec.directional_intent.as_deref().ok_or("INTEGRATION_QUEUE_PROFILE")?, &rec.msg_id, &rec.body)?;
     directional_packed_decode(rec.next_state.as_deref().ok_or("directional_packed_invalid")?)?;
     let raw = rec.ciphertext.as_deref().ok_or("directional_flight_missing")?;
     if rec.directional_wire_hash != Some(crate::directional_core::h(raw)) {

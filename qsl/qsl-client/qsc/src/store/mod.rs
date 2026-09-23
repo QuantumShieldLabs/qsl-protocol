@@ -294,3 +294,137 @@ pub(crate) struct TimelineStore {
     pub(crate) file_transfers: BTreeMap<String, FileTransferRecord>,
 }
 
+
+// NDI2 file payloads have a fixed-width initiating reference outside the canonical
+// JSON descriptor. Stage A validates the complete shape but never executes files.
+// SID[16], direction:u8, initiating-id-length:u8, ASCII initiating-id,
+// initiating-epoch:u64, initiating-slot:u32, request:u8, digest[32],
+// descriptor-length:u32, canonical typed descriptor JSON. Integers are big-endian.
+// The 12 reference bytes are reserved unresolved at enqueue and filled once at seal.
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DirectionalConfirmation {
+    handle: String,
+    content_len: u64,
+}
+
+pub(crate) fn directional_file_shape(kind: u8, raw: &[u8]) -> Result<(), &'static str> {
+    const ERROR: &str = "INTEGRATION_FILE_SHAPE";
+    if !(1..=4).contains(&kind) || raw.len() > 60000 || raw.len() < 18 { return Err(ERROR); }
+    let id_len = raw[17] as usize;
+    let header = 18usize.checked_add(id_len).and_then(|n| n.checked_add(12 + 1 + 32 + 4)).ok_or(ERROR)?;
+    if raw[16] > 1 || id_len == 0 || id_len > 64 || raw.len() < header || !raw[18..18 + id_len].is_ascii() { return Err(ERROR); }
+    let request = raw[18 + id_len + 12];
+    if request > 1 || (kind == 4 && request != 1) { return Err("INTEGRATION_FILE_REQUEST"); }
+    let length = u32::from_be_bytes(raw[header - 4..header].try_into().unwrap()) as usize;
+    if length != raw.len() - header { return Err(ERROR); }
+    let data = &raw[header..];
+    // Exact canonical reserialization rejects duplicate/unknown fields, omitted
+    // defaulted fields and permissive legacy parser behavior without changing it.
+    fn strict<T: for<'a> Deserialize<'a> + Serialize>(raw: &[u8]) -> Result<T, &'static str> {
+        let value: T = serde_json::from_slice(raw).map_err(|_| "INTEGRATION_FILE_SHAPE")?;
+        if serde_json::to_vec(&value).map_err(|_| "INTEGRATION_FILE_SHAPE")? != raw { return Err("INTEGRATION_FILE_SHAPE"); }
+        Ok(value)
+    }
+    fn filename(name: &str) -> bool {
+        !name.is_empty() && name != "." && name != ".." && !name.contains(['/', '\\', '\0'])
+    }
+    fn digest(value: &str) -> bool { value.len() == 32 && value.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()) }
+    match kind {
+        1 => {
+            let v: AttachmentDescriptorPayload = strict(data)?;
+            use base64::Engine;
+            let context = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(&v.enc_ctx_b64u).map_err(|_| ERROR)?;
+            let part_size = match v.part_size_class.as_str() { "p64k"=>65536u64, "p256k"=>262144, "p1024k"=>1048576, _=>return Err(ERROR) };
+            let expected_parts = v.plaintext_len.checked_add(part_size - 17).ok_or(ERROR)? / (part_size - 16);
+            if v.integrity_alg != crate::ATTACHMENT_INTEGRITY_ALG_V1 || v.locator_kind != crate::ATTACHMENT_LOCATOR_KIND_V1
+                || v.enc_ctx_alg != crate::ATTACHMENT_ENC_CTX_ALG_V1 || context.len() != 41 || context[0] != 1
+                || v.enc_ctx_b64u.len() != 55 || expected_parts != u64::from(v.part_count)
+                || v.locator_ref.trim().is_empty() || v.locator_ref.len()>128 || !(32..=255).contains(&v.fetch_capability.len())
+                || !matches!(v.retention_class.as_str(), "short"|"standard"|"extended")
+                || v.expires_at_unix_s == 0 || v.confirm_requested != v.confirm_handle.is_some()
+                || v.confirm_handle.as_ref().is_some_and(|h| h.len()!=24 || !h.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase()))
+                || v.v != 1 || v.t != "attachment_descriptor" || v.attachment_id.len()!=64
+                || !v.attachment_id.bytes().all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+                || v.content_len == 0 || v.content_len > v.plaintext_len || v.plaintext_len > 100 * 1024 * 1024
+                || v.part_count == 0 || v.part_count > 4096
+                || v.ciphertext_len != v.plaintext_len.checked_add(16 * u64::from(v.part_count)).ok_or(ERROR)?
+                || v.confirm_requested != (request == 1) || (request == 1 && v.confirm_handle.as_ref().is_none_or(|h| h.is_empty()))
+                || v.filename_hint.as_ref().is_some_and(|n| !filename(n)) { return Err(ERROR); }
+        }
+        2 => {
+            let v: FileTransferChunkPayload = strict(data)?;
+            if v.v != FILE_XFER_VERSION || v.t != "file_chunk" || !filename(&v.filename) || v.file_id.is_empty()
+                || v.total_size == 0 || v.total_size > 4 * 1024 * 1024 || v.chunk_count == 0 || v.chunk_count > 256
+                || v.chunk_index >= v.chunk_count || v.chunk.is_empty() || v.chunk.len() > v.total_size
+                || !digest(&v.chunk_hash) || !digest(&v.manifest_hash) { return Err(ERROR); }
+        }
+        3 => {
+            let v: FileTransferManifestPayload = strict(data)?;
+            if v.v != FILE_XFER_VERSION || v.t != "file_manifest" || !filename(&v.filename) || v.file_id.is_empty()
+                || v.total_size == 0 || v.total_size > 4 * 1024 * 1024 || v.chunk_count == 0 || v.chunk_count > 256
+                || v.chunk_hashes.len() != v.chunk_count || !v.chunk_hashes.iter().all(|h| digest(h))
+                || !digest(&v.manifest_hash) || v.confirm_requested != (request == 1)
+                || (request == 1 && v.confirm_id.is_empty()) { return Err(ERROR); }
+        }
+        4 => {
+            let v: DirectionalConfirmation = strict(data)?;
+            if v.handle.is_empty() || v.content_len == 0 || v.content_len > 100 * 1024 * 1024 { return Err(ERROR); }
+        }
+        _ => return Err(ERROR),
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod directional_file_tests {
+    use super::*;
+    fn wrap(json: Vec<u8>, request:u8)->Vec<u8> {
+        let mut out=vec![0;16];out.extend([0,1,b'i']);out.extend(0u64.to_be_bytes());out.extend(0u32.to_be_bytes());
+        out.push(request);out.extend([0;32]);out.extend((json.len() as u32).to_be_bytes());out.extend(json);out
+    }
+    pub(crate) fn fixture(kind:u8)->Vec<u8> {
+        let data=match kind {
+            1=>serde_json::to_vec(&AttachmentDescriptorPayload {
+                v:1,t:"attachment_descriptor".into(),attachment_id:"a".repeat(64),content_len:1,plaintext_len:4096,
+                ciphertext_len:4112,part_size_class:"p64k".into(),part_count:1,integrity_alg:"sha512_merkle_v1".into(),
+                integrity_root:"0".repeat(128),locator_kind:"service_ref_v1".into(),locator_ref:"synthetic".into(),
+                fetch_capability:"x".repeat(32),enc_ctx_alg:"chacha20poly1305_part_v1".into(),enc_ctx_b64u:{ use base64::Engine; let mut raw=[0u8;41];raw[0]=1;base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(raw) },
+                retention_class:"standard".into(),expires_at_unix_s:u64::MAX,confirm_requested:true,
+                confirm_handle:Some("a".repeat(24)),filename_hint:Some("file.bin".into()),media_type:None,
+            }).unwrap(),
+            2=>serde_json::to_vec(&FileTransferChunkPayload {
+                v:1,t:"file_chunk".into(),file_id:"file".into(),filename:"file.bin".into(),total_size:1,
+                chunk_index:0,chunk_count:1,chunk_hash:"0".repeat(32),manifest_hash:"0".repeat(32),chunk:vec![1],
+            }).unwrap(),
+            3=>serde_json::to_vec(&FileTransferManifestPayload {
+                v:1,t:"file_manifest".into(),file_id:"file".into(),filename:"file.bin".into(),total_size:1,
+                chunk_count:1,chunk_hashes:vec!["0".repeat(32)],manifest_hash:"0".repeat(32),confirm_requested:true,confirm_id:"confirm".into(),
+            }).unwrap(),
+            4=>serde_json::to_vec(&DirectionalConfirmation {handle:"confirm".into(),content_len:1}).unwrap(),
+            _=>panic!("invalid test kind"),
+        };
+        wrap(data,1)
+    }
+    #[test]
+    fn strict_file_kinds_requests_and_lengths() {
+        for kind in 1..=4 {
+            let raw=fixture(kind);assert_eq!(directional_file_shape(kind,&raw),Ok(()));
+            let mut wrong=raw.clone();wrong[31]=2;
+            assert_eq!(directional_file_shape(kind,&wrong),Err("INTEGRATION_FILE_REQUEST"));
+            let mut trailing=raw.clone();trailing.push(0);assert!(directional_file_shape(kind,&trailing).is_err());
+            assert!(directional_file_shape(kind,&raw[..raw.len()-1]).is_err());
+            let mut wrong_dir=raw.clone();wrong_dir[16]=2;assert!(directional_file_shape(kind,&wrong_dir).is_err());
+            // All file codecs are typed: another file kind cannot be guessed.
+            assert!(directional_file_shape(if kind==4{1}else{kind+1},&raw).is_err());
+        }
+        assert!(directional_file_shape(0,&fixture(1)).is_err());
+        let mut bad=fixture(4);bad[31]=0;assert!(directional_file_shape(4,&bad).is_err());
+        let missing=wrap(br#"{"handle":"confirm"}"#.to_vec(),1);assert!(directional_file_shape(4,&missing).is_err());
+        let unknown=wrap(br#"{"handle":"confirm","content_len":1,"unknown":0}"#.to_vec(),1);assert!(directional_file_shape(4,&unknown).is_err());
+    }
+    #[test]
+    fn file_execution_stays_gated_after_codec_validation() {
+        for kind in 1..=4 { crate::directional_delivery::test_file_body(kind,&fixture(kind)); }
+    }
+}

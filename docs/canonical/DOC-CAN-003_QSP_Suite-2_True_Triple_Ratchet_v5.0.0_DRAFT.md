@@ -647,4 +647,73 @@ Implementations MUST provide:
 - goal-lint compliance for documentation changes (Goals line + governance updates)
 
 ---
+
+## 12. Successor identifier allocation (normative table)
+
+Goals: G4
+
+This section is the canonical allocation table for the successor profile, as ruled for PLAN card F01 contract C01
+(versions and boundaries): `docs/ops/contracts/C01_versions_and_boundaries.md`, ACCEPTED WITH NAMED FIXES and recorded
+by D-1426. Allocation takes effect when this section merges; until then nothing here is allocated. The contract is the
+rationale; this table is the allocation.
+
+Status vocabulary: EXISTING (allocated elsewhere, cited); ALLOCATED (exact value fixed by this table); OPEN (the
+dimension is allocated, the value is not; named by the contract's open cell); RESERVED (no bytes and no names
+allocated; allocation belongs to the named contract); RETIRED (refused, never reused). O-numbers are the contract's
+open cells (O2 profile string and TAG, O5 contact-id and namespace strings, O9 distinct error codes, O11 QHSM bump,
+O12 candidate-record reconciliation, O13 C07 lineage fields); F-numbers are THE PLAN's cards
+(`docs/ops/PLAN_QSL_successor_rev3.md`). "C" is the NA-0780 candidate (PR #1831 head ffc8fc52), cited as evidence only.
+Refusal spellings not already registered in DOC-SCL-002 are registered there by the implementing PR (O9); this
+section allocates identifiers, not error codes.
+
+### 12.1 Allocation table
+
+| Row | Namespace | Exact allocation | Refusal when absent / different | Status |
+|---|---|---|---|---|
+| A01 | Suite tuple | (protocol_version 0x0500, suite_id 0x0002), sec 1.1 | REJECT_QSC_HS_SUITE_UNSUPPORTED / _DOWNGRADE (sec 1.2) | EXISTING (sec 1.1), cited |
+| A02 | Successor profile | ONE ASCII string, bytes 0x21-0x7E except 0x3D '=' (no whitespace: 0x20 and control bytes lie outside the range), length 1..50; not equal to NA0780-DIR-INTEGRATION-01, -02, -03 or NA0780-OWNER-FREE-01. VALUE: OPEN (O2). Consumers: A03 value; A13 `protocol`; delivery Transaction.version; QueuedIntent.profile; A17 packed marker; A18 marker; receipt-key KDF binding and receipt AD (CRYPTO INPUT) | per consumer: REJECT_QSC_HS_INTEGRATION_PROFILE; vault_version_unsupported; TRANSACTION_PROFILE; intent code (O9); successor_dir_foreign | ALLOCATED (rule, charset, length, consumers); VALUE OPEN (O2) |
+| A03 | Handshake critical parameter | id 0x7f80, flag 0x01, value length = len(A02), value = A02; exactly once; in canonical order with 0x0001 | missing -> REJECT_QSC_HS_INTEGRATION_REQUIRED; value/flag -> REJECT_QSC_HS_INTEGRATION_PROFILE; repeated -> REJECT_QSC_HS_DUPLICATE_PARAMETER; order -> REJECT_QSC_HS_NONCANONICAL_ORDER; length -> REJECT_QSC_HS_MALFORMED_LENGTH | ALLOCATED |
+| A04 | QHSM version | 2; version 1 refused. Bump question OPEN (O11, C02). C02 owns invite/handshake labels QSL.invite.payload.v1, QSL.invite.identity-commitment.v1, QSC.HS.SID, QSC.HS.ROOT.COMBINE.v1 | v1 -> REJECT_QSC_HS_INTEGRATION_REQUIRED | ALLOCATED; bump question OPEN (O11) |
+| A05 | Core KDF profile | NA0780-DIR-EPOCH-CORE-01 (unchanged bytes) | n/a (label) | ALLOCATED (existing bytes kept) |
+| A06 | KMAC customization prefix | NA0780.DE1/ (unchanged bytes) | n/a (label) | ALLOCATED (existing bytes kept) |
+| A07 | Directional epoch frame | NDE1; kind 0 ordinary, 1 boundary | magic -> MAGIC; kind > 1 -> TYPE | ALLOCATED (existing bytes kept) |
+| A08 | Core typed kind | 0 body, 1 reserved, 2 target advertisement | > 2 -> TYPED; 1 -> INTEGRATION_KIND | ALLOCATED (existing bytes kept) |
+| A09 | Exact-wire receipt | NDR1, 113 bytes | per receipt parser | ALLOCATED (existing bytes kept) |
+| A10 | Inner typed body | NDI2; kind 0 application, 1-4 reserved file kinds, 5 maintenance, 6-255 unassigned | 1-4 -> INTEGRATION_FILE_GATED (on the kind byte); 6-255 -> INTEGRATION_KIND; magic -> code OPEN (O9) | ALLOCATED; magic refusal code OPEN (O9) |
+| A11 | Vault envelope magic | QSCV04; recognised-old QSCV01, QSCV02, QSCV03 | old -> vault_version_unsupported; other -> vault_parse_failed | ALLOCATED |
+| A12 | Vault KDF | Argon2id, version 0x13, m = 262144 KiB, t = 3, p = 1, output 32 bytes, salt 16 bytes; exact match before derivation. Conditional on a held derived key (O4c, F05). Value per RULING round2 E5+E6; applies at all three Argon2 call sites (init, unlock, provider) | mismatch -> vault_parse_failed today; distinct code OPEN (O9) | ALLOCATED (measured; conditional on a held derived key, F05) |
+| A13 | Vault payload | version 5; fields {version, protocol, mode, secrets} plus the RESERVED C07 lineage fields (O13); the field list is RESERVED, NOT FROZEN until F02 settles them, and no successor vault is written outside tests before then; protocol = A02; duplicate keys refused at every map level | vault_version_unsupported; parse -> vault_parse_failed | ALLOCATED (version 5); FIELD LIST RESERVED (O13) |
+| A14 | Vault mode | field `mode`: "messaging" or "storage-only"; fixed at init; local only, never on the wire. RESERVED beside it: field name protection_mode, a separate discriminator for the C07 protection profile (O13) | vault_mode_unsupported; storage-only with owner/peer keys -> directional_owner_binding; storage-only establishing a session -> directional_mode_storage_only | ALLOCATED; protection_mode RESERVED (O13) |
+| A15 | Vault owner/peer namespaces | owner key and peer prefix strings OPEN (O5); peer suffix = contact id | directional_schema_incompatible | ALLOCATED (rule); strings OPEN (O5) |
+| A16 | Init selector | --mode messaging / --mode storage-only; the second axis (C07 protection profile at fresh-identity creation) RESERVED, no spelling (O13) | absent/unknown -> refuse before any write | ALLOCATED; second axis RESERVED (O13) |
+| A17 | Queue family | directory msgqueue_v2; per-contact subdirectory = contact id; record version 2 (checked); record AAD label qsc.msgqueue.v2; store-key secret msgqueue_store_key_v2; packed marker protocol = A02 | record version -> refuse (code OPEN, O9); AEAD -> msgqueue_record_tampered | ALLOCATED; record-version refusal code OPEN (O9) |
+| A18 | Store marker | store.meta lines store_version=2 and profile=<A02>; read at open | successor_dir_foreign | ALLOCATED; profile value rides A02 (O2) |
+| A19 | Store directory leaf | "qsc-" + TAG; TAG = [a-z0-9]{1,16}, allocated with A02 (O2); never "qsc" | n/a (location) | ALLOCATED (rule); TAG OPEN (O2) |
+| A20 | Store location override | environment variable "QSC_" + uppercase(TAG) + "_CONFIG_DIR"; QSC_CONFIG_DIR is not honoured by a successor build | legacy_config_override_ignored (marker, not a refusal) | ALLOCATED (rule); TAG OPEN (O2) |
+| A21 | RETIRED (refused, never reused) | profiles NA0780-DIR-INTEGRATION-01, -02, -03, NA0780-OWNER-FREE-01; NDI1; QSCV01, QSCV02, QSCV03; payload versions 1-4; selector and marker spelling directional-v1, owner-free-v1; QSE envelope 0x0100 and the legacy Suite-2 message path; QSSV01 session store; legacy payload versions FILE_XFER_VERSION 1, ATTACHMENT_DESCRIPTOR_VERSION 1, CTRL_VERSION_MAX 2; the C appended reservation rows (C :663-671) | as A02-A13 | RETIRED |
+| A22 | Reserved file formats | NDI2 kinds 1-4 (reserved, refused); binary file queue row tag (name reserved, no byte); NIF format (not allocated); allocation by C06 only | INTEGRATION_FILE_GATED | RESERVED |
+| A23 | Protection-file format line | vault_security.txt and vault_unlock_failures.txt (CENSUS D7, D8): the FIRST line is exactly protection_version=2, split once at the first '='; the key=value lines after it keep today's exact key set (attempt_limit; failed_unlocks, last_failure_unix_s). An absent (today's unversioned) or any other format line -> refuse | refuse, fail closed, nothing counted, delayed or written (O7); today's unreadable shape is vault_attempt_limit_io (protection.rs:150); distinct code OPEN (O9) | ALLOCATED |
+| A24 | C07 reserved dimensions | RESERVED, no bytes and no names allocated: the prepared-successor vault slot; the freshness checkpoint location (outside the store directory); the per-lineage lock; the C07 lineage fields of A13, protection_mode (A14) and the selector's second axis (A16). Allocation by C07 / F02 only (O13) | n/a | RESERVED |
+
+### 12.2 The candidate's appended reservation, carried as RETIRED rows
+
+The NA-0780 candidate branch (C) appended a section "NA-0780 first-release directional profile reservation" to this
+document (C :653-685) that describes itself as "not an external registry allocation" and disagrees with the
+candidate's own code in four places (:663, :665, :669, :670). That section was never merged to main. This table
+SUPERSEDES it: each of its rows is carried here as RETIRED, and a value this table keeps is allocated only by its own
+row above. Whether the candidate section's TEXT is carried anywhere stays OPEN (O12); this section does not carry it.
+
+| Candidate row (C :line) | Candidate value | Status in this table | Successor row |
+|---|---|---|---|
+| :663 Handshake critical parameter | 0x7f80, flag 1, length 25, ASCII NA0780-DIR-INTEGRATION-01 | RETIRED value (A21); the parameter id 0x7f80 continues, with length = len(A02) | A02, A03 |
+| :664 Directional frame | NDE1 | reservation row RETIRED; the value is allocated by A07 | A07 |
+| :665 Inner delivery body | NDI1 | RETIRED value (A21); refused | A10 (NDI2) |
+| :666 Exact-wire receipt | NDR1 | reservation row RETIRED; the value is allocated by A09 | A09 |
+| :667 Core profile | NA0780-DIR-EPOCH-CORE-01 | reservation row RETIRED; the value is allocated by A05 | A05 |
+| :668 KMAC customization prefix | NA0780.DE1/ | reservation row RETIRED; the value is allocated by A06 | A06 |
+| :669 Encrypted transaction key | na0780_directional_transaction/{peer} (the candidate's code uses na0780_directional_transaction_v2/) | RETIRED (the record's spelling); the code's spelling is not the successor's either (A15: a fresh pair); the record-vs-code disagreement is O12 | A15 (strings OPEN, O5) |
+| :670 Development vault envelope | QSCV03, schema 3 (the candidate's code: payload version 4) | RETIRED value (A21); recognised-old under A11, refused | A11, A13 |
+| :671 Packed queue record | schema 1, protocol directional-v1 | RETIRED value (A21) | A17 |
+
+---
 End of DOC-CAN-003

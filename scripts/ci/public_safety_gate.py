@@ -61,6 +61,11 @@ SELF_REPAIR_BOOTSTRAP_TESTPLAN_RE = re.compile(
 ACCEPTED_CHECK_CONCLUSIONS = {"success", "neutral", "skipped"}
 REQUIRED_CONTEXT_NEUTRAL_ALLOWED = {"CodeQL"}
 TRANSIENT_WAIT_HTTP_CODES = {502, 503, 504}
+# Bounded retry for the one-shot GitHub API reads (github_request, repo_path_exists): a 5xx or a
+# connection error is retried after each delay below, then reported with the attempt count; a 4xx
+# is never retried. PR #1836's advisories job died on one "HTTP 500 ... Unexpected error" from
+# /pulls/<n> that a re-run cleared.
+GITHUB_API_RETRY_DELAYS_SECONDS = (2, 5, 10)
 RED_MAIN_REPAIR_PROFILES = {
     "send_commit_vault_mock_provider_retired": {
         "failure_check": "macos-qsc-sharded-suite",
@@ -312,6 +317,53 @@ def looks_like_html(body: bytes, content_type: str) -> bool:
     return prefix.startswith(b"<!doctype html") or prefix.startswith(b"<html")
 
 
+def github_open_with_retry(
+    req: urllib.request.Request, url: str
+) -> tuple[bytes, urllib.response.addinfourl]:
+    """Open and read req; retry a 5xx or a connection error, never a 4xx.
+
+    At most len(GITHUB_API_RETRY_DELAYS_SECONDS) retries. Every retry prints its number and cause;
+    the final failure prints the attempt count before the HTTPError is re-raised to the caller
+    (which keeps its own message) or a connection error exits.
+    """
+    attempts = len(GITHUB_API_RETRY_DELAYS_SECONDS) + 1
+    for attempt in range(1, attempts + 1):
+        try:
+            resp = urllib.request.urlopen(req, timeout=30)
+            body = resp.read()
+        except urllib.error.HTTPError as exc:
+            if exc.code < 500 or attempt == attempts:
+                if attempt > 1:
+                    print(
+                        f"NOTE: GitHub API {exc.code} for {url}: final after {attempt} attempt(s)",
+                        file=sys.stderr,
+                    )
+                raise
+            cause = f"HTTP {exc.code}"
+        except (
+            urllib.error.URLError,
+            ConnectionError,
+            TimeoutError,
+            http.client.HTTPException,
+        ) as exc:
+            cause = f"connection error {type(exc).__name__}: {exc}"
+            if attempt == attempts:
+                raise SystemExit(
+                    f"ERROR: GitHub API {cause} for {url}: final after {attempt} attempt(s)"
+                ) from exc
+        else:
+            if attempt > 1:
+                print(f"NOTE: GitHub API ok for {url} on attempt {attempt}", file=sys.stderr)
+            return body, resp
+        delay = GITHUB_API_RETRY_DELAYS_SECONDS[attempt - 1]
+        print(
+            f"NOTE: GitHub API {cause} for {url}; retry {attempt}/{attempts - 1} in {delay}s",
+            file=sys.stderr,
+        )
+        time.sleep(delay)
+    raise AssertionError("unreachable")
+
+
 def github_request(
     url: str,
     *,
@@ -328,8 +380,7 @@ def github_request(
         },
     )
     try:
-        resp = urllib.request.urlopen(req)
-        return resp.read(), resp
+        return github_open_with_retry(req, url)
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         raise SystemExit(f"ERROR: GitHub API {exc.code} for {url}\n{body}") from exc
@@ -485,8 +536,8 @@ def repo_path_exists(repo: str, ref: str, path: str) -> bool:
         },
     )
     try:
-        with urllib.request.urlopen(req):
-            return True
+        github_open_with_retry(req, url)
+        return True
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
             return False

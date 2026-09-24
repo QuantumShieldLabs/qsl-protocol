@@ -421,3 +421,15 @@ are at M = qsl-protocol main 87aec475 unless "C" (#1831 ffc8fc52) is named.
 | AM-3 (C02 E4) | Row 12 and APPENDIX A04: the label list | "QSC.HS.SID" (handshake:1500-1502 via :754-767; C :1504-1506) is reclassified as a TEST-SEAM label: the label of the RNG-failure test seam, ignored outside that seam's cfg; the session id is 16 OsRng bytes. It is NOT a domain separator. Of row 12's four labels C02 owns three as domain labels (DS_COMMIT, DS_SIG, QSC.HS.ROOT.COMBINE.v1) and classifies the fourth as a test-seam label (C02 T1d). No crypto effect |
 
 END OF C01 AMENDMENTS
+
+==============================================================================================================
+AMENDMENT AM-4 (appended by D-1429; the text above, C01 FINAL and AM-1..AM-3, is NOT rewritten)
+==============================================================================================================
+Ruled by RULING_NA0783_F01_audit_2026-09-24 (sha256 642a9ff82d42936e16c93136fd230dcc11327a7d3d7fc3c0e65c179f4e09e61d), finding
+S7.4 of AUDIT_F01_C01_C03_FINDINGS (sha256 512d42751d7a7dc3b26fa68fb100a7bf5c812f646e44fad47adc80bb142001c2). Where the amendment
+and the text above disagree, the amendment governs.
+| Id | Amends | Amendment |
+|---|---|---|
+| AM-4 (audit S7.4) | DISCRIMINATING CHECKS row "D (no effects)" | After "under the relay source, the item un-ACKed" read the parenthetical "(today's relay source; the successor disposition is C05's)" |
+
+END OF C01 AMENDMENT AM-4

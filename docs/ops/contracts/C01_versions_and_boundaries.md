@@ -406,3 +406,18 @@ records the allocation (ruling O1). Goals line and governance updates per DOC-CA
 | A24 | C07 reserved dimensions | RESERVED, no bytes and no names allocated: the prepared-successor vault slot; the freshness checkpoint location (outside the store directory); the per-lineage lock; the C07 lineage fields of A13, protection_mode (A14) and the selector's second axis (A16). Allocation by C07 / F02 only (O13) | n/a | RESERVED |
 
 END OF C01 FINAL
+
+==============================================================================================================
+AMENDMENTS (appended by D-1427; the text above is C01 FINAL as merged by D-1426 and is NOT rewritten)
+==============================================================================================================
+Ruled by RULING_NA0783_C02_ACCEPT_2026-09-23 (sha256 d3f37903f8bacbcb167afe8bd167a74f303a06b45a658023cbe95661f5d5d795),
+items E2, E3 and E4 of the C02 acceptance (docs/ops/contracts/C02_invitation_authentication.md). Each amendment names
+the cell it amends; where an amendment and the text above disagree, the amendment governs. Citations in this section
+are at M = qsl-protocol main 87aec475 unless "C" (#1831 ffc8fc52) is named.
+| Id | Amends | Amendment |
+|---|---|---|
+| AM-1 (C02 E2) | T2 rows D and E: the refusal-code cells | After C02's layout change an old peer refuses EARLIER than rows D/E state; the codes, per old-peer path. An old peer (M, or C) RECEIVING successor frames: on the invite path the QSLH v2 envelope reaches its QSLH-1 decoder, whose first-byte check (0x51 != ENVELOPE_VER 0x01) returns handshake_envelope_version_newer (invite:503-507 for the A1 envelope, :774-777 for the B1 response; the same lines at C); on a bare path a QHSM v3 frame returns handshake_version (handshake:500; C :501) before any parameter-block parse. The successor RECEIVING an old peer: a QSLH-1 envelope -> handshake_envelope_version_retired (C02 T2 step 2a); a bare QHSM v1 or v2 frame -> REJECT_QSC_HS_INTEGRATION_REQUIRED (C02 T1c). No successor frame reaches the parameter parse of M or C, so rows D/E's UNKNOWN_CRITICAL and INTEGRATION_PROFILE cells no longer describe successor traffic. Refusal before effects is unchanged (M: decode_envelope invite:1530 precedes the provisioning :1536); an OLD inviter leaves the undecodable frame un-acked on its slot (ENG-0346's shape, pre-existing) |
+| AM-2 (C02 E3) | Row 4, APPENDIX A04 and T6 O11 | O11 RESOLVED: QHSM version 3; versions 1 and 2 are refused on the successor path (REJECT_QSC_HS_INTEGRATION_REQUIRED); any other version -> handshake_version. Reason, measured: hs_decode_header checks the exact frame length (handshake:485-486) BEFORE it parses the parameter block (:488-490), so a v3-layout frame labelled version 2 would be refused by an old peer with the misleading REJECT_QSC_HS_MALFORMED_LENGTH; labelled 3 it is refused with handshake_version (:500). The v3 frame layouts are C02 T1c. DOC-CAN-003 sec 12.3 carries the amendment row A04-AM1 (value 3) |
+| AM-3 (C02 E4) | Row 12 and APPENDIX A04: the label list | "QSC.HS.SID" (handshake:1500-1502 via :754-767; C :1504-1506) is reclassified as a TEST-SEAM label: the label of the RNG-failure test seam, ignored outside that seam's cfg; the session id is 16 OsRng bytes. It is NOT a domain separator. Of row 12's four labels C02 owns three as domain labels (DS_COMMIT, DS_SIG, QSC.HS.ROOT.COMBINE.v1) and classifies the fourth as a test-seam label (C02 T1d). No crypto effect |
+
+END OF C01 AMENDMENTS

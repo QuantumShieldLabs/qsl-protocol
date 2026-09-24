@@ -790,5 +790,27 @@ as C03 AMENDMENTS AM-18 records.
 | C04-03 | Queue family application (APPLIES row A17; A17 unchanged) | the counted pool = QUEUED plus PREPARED-not-yet-relay-accepted rows across all contacts; admission by slots Q_S, per-peer share Q_P and bytes Q_B with MAXPACK charged at enqueue, under one hold of the store lock, before any directory, file or temporary; record version 2 checked at reopen | msgqueue_queue_full, msgqueue_queue_bytes_full, history_full (PROPOSED spellings, NEW; DOC-SCL-002) | OPEN: values HYPOTHESIS (Q_S 64, Q_B 4194304, Q_P OPEN; C4-O1); spellings PROPOSED |
 | C03-04-AM2 | Relay capability advertisement (AMENDS C03-04-AM1; C03 AMENDMENTS AM-18) | the successor client requires v2.max_body_bytes >= 65536 (= MAX_WIRE, the largest NDE1 wire), replacing the 12288 floor of C03-04-AM1; the pull_max_items and lease_secs floors of C03-04-AM1 are unchanged | a value below 65536 -> relay_v2_unsupported (client), before any v2 call | ALLOCATED (amendment; its max_body_bytes floor replaces C03-04-AM1's, which is not allocated) |
 
+### 12.7 C05 allocations (dispatcher and GUI)
+
+Added for PLAN card F01 contract C05 (dispatcher and GUI contract): `docs/ops/contracts/C05_dispatcher_and_gui.md`,
+ACCEPTED WITH NAMED FIXES subject to the operator's final approval, and recorded by D-1433. The contract is the rationale
+(T1-T9 and T1a are its sections). Sections 12.1-12.6 are not edited (as 12.3-12.6 state for their predecessors); rows
+are appended here only. C05 allocates NO wire or local-schema identifier: its rows fix dispositions, budgets and
+meanings. Every spelling it marks NEW (the disposition names; the MessageState, ConversationNotice and ContactTrust
+spellings; text_empty, text_too_long, text_invalid_utf8, action_id_conflict, redeem_alias_conflict) is PROPOSED and is
+registered in DOC-SCL-002 by the implementing PR (C01 O9; C05 C5-O16); this subsection allocates identifiers, not
+error codes. Values the contract leaves to measurement stay HYPOTHESIS (C05 C5-O1, C5-O4, C5-O5, C5-O7). Row
+C03-04-AM3 amends row C03-04-AM2 as C03 AMENDMENTS AM-25 and AM-26 record; row C04-01-AM1 amends row C04-01 as C04
+AMENDMENTS AM-1 records.
+
+| Row | Namespace | Exact allocation | Refusal when absent / different | Status |
+|---|---|---|---|---|
+| C05-01 | Dispatcher dispositions | ACK, ACK-DUP, DISPOSE, DEFER-P, DEFER-C, FAULT, HOLD, RESP-REFUSED (contract T1), with the code-to-disposition table T1a and the deferral reasons P1-P7 and C1-C5 (T2); an item is ACKed only after the durable commit that admits it or after full dispatch concludes DISPOSE (D-R1) | n/a (dispositions, not codes) | OPEN: meanings fixed, spellings PROPOSED; no identifier allocated |
+| C05-02 | Facade DTO and status meanings | MessageState M1-M6, ConversationNotice C1-C8, ContactTrust, ChatRow, ConversationPage, Notify, Lock, HistoryUsage (contract T4), drawn per AMENDMENT A5 to THE PLAN (Queued and Prepared no tick; relay accepted an outline tick; delivered a solid tick; never a read mark) | n/a | OPEN: meanings fixed, spellings PROPOSED; no identifier allocated |
+| C05-03 | IPC action id | action_id = 16 bytes CSPRNG per user gesture for submit_text and invite_create, stored with H(canonical body) in the commit that creates the record (contract T5) | action_id_conflict (PROPOSED spelling, NEW; DOC-SCL-002) | OPEN: field placement and spelling decided by the implementing PR; not allocated |
+| C05-04 | Dispatcher budgets and the text limit | the per-pass budgets BU1-BU12 (N from B_PULL and v2.max_body_bytes; PUSH_MAX, PUSH_PEER, SLOT_PULLS, OPEN_MAX, SETTLE_MAX, T_PASS, LEASE_MARGIN, DEFER_MAX, BACKOFF_REPORT, REPUSH_AFTER) and TEXT_MAX 3913 bytes at the default padding ceiling | text_empty, text_too_long, text_invalid_utf8 (PROPOSED spellings, NEW) | HYPOTHESIS (C05 C5-O1, C5-O4, C5-O5); not allocated |
+| C04-01-AM1 | Reservation dimensions and owners (AMENDS C04-01; C04 AMENDMENTS AM-1) | R07 gains the per-peer history share H_P (H_P < H_N), charged in the same paired commit as the R07 unit | history_full (PROPOSED spelling) on a submit; DEFER-C on an arrival | OPEN: the dimension fixed, its value HYPOTHESIS (C05 C5-O7); no identifier allocated |
+| C03-04-AM3 | Relay capability advertisement (AMENDS C03-04-AM2; C03 AMENDMENTS AM-25, AM-26) | the successor client also requires v2.lease_secs >= T_PASS + the ack deadline (15 s) + LEASE_MARGIN, which supersedes C03-04-AM1's lease_secs >= 1 floor, and v2.max_body_bytes <= 1048576 beside C03-04-AM2's floor of 65536 | a value outside its bound -> relay_v2_unsupported (client), before any v2 call | ALLOCATED (amendment) for the max_body_bytes ceiling; the lease floor's form is allocated, its value HYPOTHESIS (C05 C5-O1) |
+
 ---
 End of DOC-CAN-003

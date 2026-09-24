@@ -8275,3 +8275,71 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   MAX_WIRE and C04 Q11 stays the seal-time guard.
 - Successor: the directional structures are absent at main (C04 source note); the candidate is evidence only
   (D-1425). The repair lands with F07's queue rewrite.
+
+### ENG-0358 -- #1831/#1828 CANDIDATES: THE RECEIVE PATH LEAVES EXPECTED NON-ADMISSIONS UN-ACKED (REDELIVERED EVERY LEASE), NEVER CONSULTS ITS SEEN STORE, LETS KNOWN-FOREIGN FRAMES FALL THROUGH, AND ONE OVERSIZE ITEM ABORTS A WHOLE P28 POLL (NA-0783 C05 E8) -- MEDIUM
+
+- Type: defect (the NA-0780 candidates, qsl-protocol PR #1831 head ffc8fc52 and PR #1828 head e29a07df; NOT on main).
+  Status: open (filed; repair NOT done; named for PLAN card F11).
+- Originating lane: NA-0783. Last lane: NA-0783. Last-updated: 2026-09-24. Ruled: RULING_NA0783_C05_ACCEPT_2026-09-24
+  E8 ("FILE ENG entries ... repair named, NOT repaired here"); recorded by D-1433.
+- Finding (source reading, client qsl/qsl-client/qsc/src; the C05 drafting seat's E8 and the SR-15 C05 read's E8
+  verdict AGREE, every arm re-read at the source; NOT RUN): at #1831 (i) an expected non-admission continues at
+  transport/mod.rs:495 and is counted skipped at :520-522 with no ACK; (ii) RECEIPT_NOT_OUTSTANDING
+  (directional_delivery.rs:730) and CLOSED_REPLAY (:759-766) are members of that set (protocol_state/mod.rs:1287), so a
+  redelivered NDR1 after a lost ACK and a retired duplicate are skipped un-ACKed every lease; (iii) the seen store is
+  loaded (:401-407) and written (:642) but never read in the loop; (iv) known-foreign frames skip the whole body at
+  :489 with no ACK, marker or count; the same one bool (protocol_state/mod.rs:1272-1302) folds the deferrable capacity
+  codes together with the permanently invalid ones (SR-15 C05 X2). At #1828 (v) hs_receipt returns Err over
+  FIRST_FRAME_BYTES (handshake/mod.rs:696-701) and the poll propagates it with ? (:2862-2867), so one oversize item
+  aborts the whole poll.
+- Reachability: every arm is live at #1831 / #1828 on any relay that redelivers after the lease (the qsl-server shipped
+  default pull lease is 60 s); a lost ACK is reachable (the flush sits after the rounds).
+- Consequences: each such item is redelivered every lease until the relay's retention TTL and re-processed by every
+  receive (bounded per pass, unbounded in time); the mailbox does not drain toward its depth ceiling; one oversize item
+  blocks every later handshake frame of that poll.
+- Named repair (for F11; NOT repaired here): the successor dispatcher of the C05 contract
+  (docs/ops/contracts/C05_dispatcher_and_gui.md) -- T1 D-R1 (ACK only after the admitting commit or after full dispatch
+  concludes DISPOSE), D-R4 (full dispatch, committed AND pending lookups, before DISPOSE), K6 (an NDR1 matching no
+  outstanding Flight is DISPOSED, i.e. ACKed, never DELIVERED), K10 (over-cap items DISPOSED on length before any parse;
+  one never aborts the batch) and T1a (exactly one disposition per receive-path code); vectors V1101, V1102, V1106,
+  V1109, V1126.
+- Successor: the candidates are evidence only (D-1425). The repair lands with F11's dispatcher.
+
+### ENG-0359 -- MAIN: LOCK DOES NOT STOP THE ENGINE -- THE QUEUE AND QUARANTINE STORE KEYS STAY CACHED, secret_get CHECKS NO UNLOCKED FLAG, AND NO CANCELLATION IS TIED TO LOCK (NA-0783 C05 E10) -- MEDIUM (THE KEYCHAIN ARM LOW IN THE SHIPPED DESKTOP)
+
+- Type: defect (qsl-protocol main 4e9dfd0e, the qsc engine). Status: open (filed; repair NOT done; named for PLAN cards
+  F05/F13).
+- Originating lane: NA-0783. Last lane: NA-0783. Last-updated: 2026-09-24. Ruled: RULING_NA0783_C05_ACCEPT_2026-09-24
+  E10; recorded by D-1433.
+- Finding (source reading at main, client qsl/qsl-client/qsc/src; SR-15 C05 read E10 AGREE; NOT RUN):
+  vault::protection::lock (vault/protection.rs:255-259) clears the process passphrase and the unlocked flag and drops
+  the session, nothing else; the msgqueue STORE_KEY_CACHE (msgqueue/mod.rs:295) and the quarantine STORE_KEY_CACHE
+  (quarantine/mod.rs:206) are static process-lifetime caches that lock() never touches; secret_get
+  (vault/mod.rs:275-283) reads the vault with no unlocked check, so a keychain vault stays readable by engine code; no
+  cancellation or generation is tied to lock.
+- Reachability: the cached queue and quarantine keys survive lock in every build, the shipped desktop included (memory
+  only, process lifetime); the keychain arm needs the keychain feature, which the desktop does not enable, so it reaches
+  CLI builds with that feature.
+- Named repair (for F05/F13; NOT repaired here): C05 T6 LK7 -- the engine lock clears the store-key caches, no engine
+  read path proceeds for a keychain vault while locked, the gateway admits the lock ahead of queued non-lock calls and
+  queued calls with a stale generation return Cancelled -- with LK1-LK6 (the generation, hide first, engine checks,
+  in-flight abandonment, commit completion, stale results never repaint); vector V1317 (RED at main).
+
+### ENG-0360 -- MAIN: TRUTHFUL-STATUS DEFECTS -- qsc send RETURNS Ok WHEN ANY CONTACT'S MESSAGE WENT OUT, A REACHABLE RELAY ANSWERING 403 IS REPORTED AS "WILL SEND WHEN THE RELAY IS REACHABLE", PausedCause::VaultLocked HAS NO PRODUCER, accepted_by_relay IS EMITTED BEFORE THE LOCAL COMMIT (NA-0783 C05 E11) -- LOW-MEDIUM
+
+- Type: defect (qsl-protocol main 4e9dfd0e, the qsc engine). Status: open (filed; repair NOT done; named for PLAN card
+  F13, with F07's queue rewrite for the relay-acceptance marker).
+- Originating lane: NA-0783. Last lane: NA-0783. Last-updated: 2026-09-24. Ruled: RULING_NA0783_C05_ACCEPT_2026-09-24
+  E11; recorded by D-1433.
+- Finding (source reading at main, client qsl/qsl-client/qsc/src; SR-15 C05 read E11 AGREE; NOT RUN): (i) the send
+  success test is outcome.sent == 0 on the drain's count (transport/mod.rs:1965), so qsc send returns Ok when any
+  contact's queued message went out (the cross-contact scope is the C05 drafting seat's reading; the read confirmed the
+  site and did not re-derive the scope); (ii) PushFailClass::Forbidden maps to AttemptResult::Retry (:4484-4486), so
+  paused is None and honest_line (msgqueue/mod.rs:1098-1109) says the queue "will send when the relay is reachable"
+  for a reachable relay answering 403 or another 4xx; (iii) PausedCause::VaultLocked's only producers are inside
+  #[cfg(test)] (msgqueue/mod.rs from :1144); (iv) the accepted_by_relay marker is emitted on HTTP 200 inside push
+  (transport/mod.rs:4686-4691), before the local commit.
+- Consequences: the status the user sees says more than, or other than, what happened (THE PLAN D07, I12; distinct
+  causes need distinct names).
+- Named repair (for F13; NOT repaired here): C05 T4 M1-M6 (each message state set only by its backing durable fact) and
+  C1-C3 (distinct notices for distinct relay causes); vectors V1304, V1306.

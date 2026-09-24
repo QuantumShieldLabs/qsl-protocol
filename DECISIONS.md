@@ -45653,3 +45653,80 @@ ratchet acceptance remain separate work.
 **PREDICTION LEDGER.** The Director SR-16 row the design proposed ("the Director claimed it checks main's post-merge runs before calling a landing verified", MISS) is ALREADY ledger row 522 (`docs/ops/PREDICTION_LEDGER.md`, recorded at D-1429, the fifth Director SR-16 row); cited here, not duplicated.
 
 **CLAIM BOUNDARY.** Records only in qsl-protocol: this record changes nothing in qsl-ops. The tool's proofs are synthetic (a shim gh on a synthetic tree) and establish nothing about GitHub's production behaviour; the one live use is #1841 above. Not measured: whether any allow-listed base requires a merge queue (TMP-qmerge-fixup F-1) or reviews (E-7) beyond #1841's; the Director's read access to `state/notify/` (E-6); a resumed watch in phase `merging` on the head-moved path (F-4). The residual head race is closed by the head pin only to the extent GitHub enforces `--match-head-commit`.
+
+## D-1433 -- NA-0783 / PLAN F01 / C05 (DISPATCHER AND GUI) ACCEPTED WITH NAMED FIXES, SUBJECT TO THE OPERATOR'S FINAL APPROVAL; AMENDMENT A5 (WHAT THE GUI DRAWS FOR MESSAGE STATUS); C03 AMENDED (AM-25, AM-26: THE LEASE FLOOR AND THE BODY CEILING); C04 AMENDED (AM-1, AM-2: THE PER-PEER HISTORY SHARE AND RETENTION); C05 ROWS IN DOC-CAN-003 SEC 12.7; ENG-0358..ENG-0360 FILED
+
+- Date: 2026-09-24. Lane: `NA-0783` (PLAN card F01, sub-assignment C05). Result class for C05: `CONTRACT_ACCEPTED_WITH_NAMED_FIXES_OPERATOR_APPROVAL_PENDING` (Director). F01 stays ACTIVE (the C06 boundary next, then F01 close); the lane's block stays READY. Goals G4
+- Governing ruling (operator record, cited by name and sha256): `RULING_NA0783_C05_ACCEPT_2026-09-24.md` `c135b67538405af40cab8410c3970b2bbf97d7e8b7dd6757dcb2aaa916ae02ea`, quoted in full below.
+- Review: SR-15 read (fable/xhigh) `SR15_C05_FINDINGS.md` `cc5c69d77ee0be110126cca1d77ae69197494f403690f5fb1f035ef218bd5174` (ACCEPT WITH NAMED FIXES F1-F10; X1 and X2 MAJOR; no BLOCKER). No third read (Director discretion, stated in the ruling): every edit is text the read proposed or an operator answer; the Director verifies the draft -> final diff.
+- Operator answers (banked verbatim before consumption): `RBANK_C05_operator_answers_2026-09-24.md` `6e5e8bd43ae8f3f83ff207b87a5e660da3930c7fdeabde2fe67f75baa6bd219c` and its addendum `RBANK_C05_operator_answers_A1_2026-09-24.md` `848a1c9ebda18c6beb8a8db83c286825f40687a4049201fa440072886625b256`. Plan amendment: `AMENDMENT_PLAN_A5_status_display_2026-09-24.md` `6d7b9d17ca839436a52343146637e1821f248b9014129c3326721eaab72803c1` (approved by the operator in substance, A1 Q1).
+- OPERATOR APPROVAL PENDING (Q8): the operator gives final approval of how the app looks and functions; this change is not merged until the operator approves (then by qmerge).
+- Base: qsl-protocol main `4e9dfd0e8c194c5de9a1c83134f1a27af0a61560` (#1842's merge), resolved by bare ls-remote at this edit.
+- Standing: records and docs only. Zero product bytes, zero test bytes, zero `.github` bytes. Nothing merged.
+
+**THE RULING (verbatim).**
+
+```text
+C05 (dispatcher and GUI contract) ACCEPTED WITH NAMED FIXES, SUBJECT TO THE OPERATOR'S FINAL APPROVAL (Q8: the operator
+approves how the app looks and functions; the PR is not merged until he says so). SR-15 read cc5c69d7... (fable/xhigh):
+ACCEPT WITH NAMED FIXES F1-F10; X1, X2 MAJOR; no BLOCKER.
+ F1-F10 TAKEN as the read words them. F1 includes a C03 C1 amendment: v2.lease_secs >= T_PASS + the ack deadline + a
+   stated margin AND v2.max_body_bytes <= 1,048,576 (E9), else relay_v2_unsupported before any v2 call; per-mailbox ACK
+   flush right after its items; per-mailbox processing <= lease_secs / 2. F5 takes its FIRST option (mark STALE; no item
+   bytes held in memory).
+ OPERATOR ANSWERS (banked verbatim in the two RBANK files) GOVERN the user-visible rows:
+   Q1: AMENDMENT A5 -- engine keeps four states; GUI: Queued/Prepared no tick, outline tick = on its way (relay
+       accepted), solid tick = delivered; NEVER a read mark. T4 M-rows and DECISION 1 rows updated accordingly.
+   Q2: option (a) -- "New message" only while unlocked and the window is not focused; nothing while locked. Option (d)
+       (a read-only has-mail capability) recorded OPEN, not taken.
+   Q3: on lock, wipe the main window of all information at once (not waiting on the engine: LK1-LK2 outside the gate)
+       and show a small unlock window on top of it.
+   Q4: a per-message failure mark in AMBER (accent; red stays reserved) with a retry action; the exact look is the
+       operator's at F13. Conversation-level notices remain for causes that are not one message's.
+   Q5: a user setting "keep messages for": 1 week / 1 month / 1 year / Forever, default 1 month; expired history is
+       deleted automatically; an entry whose message is still undelivered (M1-M3) or closed_undelivered (M6) is never
+       retired by expiry. PLUS a per-peer history share H_P (a C04 amendment, value HYPOTHESIS) so one contact cannot
+       fill the global quota R07. What "delete a conversation" does to still-pending messages is OPEN for F13 (operator).
+   Q6: blocked = full stop: a blocked contact's frames are DISPOSED (ACKed away, not decrypted into history, no receipt,
+       no tick), nothing is sent to them, a "Blocked" notice shows in the conversation header. Stated: the blocked peer
+       cannot tell blocked from offline; their re-pushes continue at the BU8 cadence (bounded); a relay-level block
+       needs per-peer mailboxes (C3-O13, OPEN).
+   Q7: option (a) -- keep the typed text, do not queue, say so once.
+   Q8: the operator gives final approval of how the app looks and functions (C05 now; F13 acceptance later).
+ E1 RESOLVED by A5. E2 by Q2. E3 by Q3 (MAJOR stands until F13 builds it). E4 by Q4. E5 by Q7. E6 by Q8. E7 UV3
+ ACCEPTED (C02 identity_changed governs). E8, E10, E11: FILE ENG entries (receive-path candidate defects at #1831/P28;
+ lock does not stop the engine at main; truthful-status defects at main), repair named, NOT repaired here. E9 by F1.
+ No third read (Director discretion, stated): every edit is text the read proposed or an operator answer; the Director
+ verifies the draft -> final diff. Result class for C05: CONTRACT_ACCEPTED_WITH_NAMED_FIXES_OPERATOR_APPROVAL_PENDING.
+ F01 continues: the C06 boundary, then F01 close.
+```
+
+**AMENDMENT A5 TO THE PLAN (the amendment text, quoted).** It amends THE PLAN sec 4, the table "State shown to user" (Queued / Prepared / Sent-awaiting confirmation / Delivered) and the sentence that the UI says "awaiting peer confirmation"; THE PLAN file is not edited (the amendment is recorded here, as A4 is):
+
+```text
+1. The four states remain ENGINE and DTO meanings, unchanged (D07 holds: queued, prepared, relay acceptance and
+   authenticated delivery stay distinct states, each backed by its durable fact).
+2. The GUI draws them as follows: Queued and Prepared -- no tick (the no-relay notice of packet DECISION 6 covers the
+   offline case); Sent (relay accepted) -- an OUTLINE tick, "on its way"; Delivered (the other client's authenticated
+   receipt) -- a SOLID tick. The text "awaiting peer confirmation" is not required on the bubble.
+3. There is NEVER a read mark (no read receipts, in the engine or the GUI).
+4. This supersedes the UI packet's DECISION 1 ("one tick, delivered") at the operator's word.
+5. Nothing else in THE PLAN changes. Changes to this amendment need the operator's approval.
+```
+
+**THE OPERATOR'S ANSWERS, SUMMARIZED (the RBANK files above are the verbatim record).** Q1: the engine keeps its four states; the GUI draws Queued and Prepared with no tick, an outline tick "on its way" once the relay accepted the message, a solid tick once it was delivered; never a read mark (A5). Q2: "New message" only while the app is unlocked and its window is not focused; nothing while locked; a read-only has-mail capability recorded OPEN, not taken. Q3: on lock, the main window is wiped of all information at once and a small unlock window is shown on top of it. Q4: a failed message gets an amber mark with a retry action (red stays reserved); the exact look is the operator's at F13. Q5: a user setting "keep messages for" 1 week / 1 month / 1 year / Forever, default 1 month, expired history deleted automatically (never an undelivered or closed-undelivered message), plus a per-peer history share. Q6: blocking a contact stops everything -- nothing from them is kept, no receipt or tick goes back, nothing is sent to them, and the conversation header says "Blocked". Q7: when the offline queue is full the typed text stays in the composer, nothing is queued, and the app says so once. Q8: the operator gives final approval of how the app looks and functions (C05 now; F13 acceptance later).
+
+**THE CONTRACT.** `docs/ops/contracts/C05_dispatcher_and_gui.md` is C05 FINAL: the operator bank `C05_FINAL.md` sha256 `715e87ca44b6f140d1fa3fd7d037bc03625361e78ea36dfc93c20a1912aaab40`, which is the draft (`C05_DRAFT.md` `237dd64e17a154c85582742a57f50bb356512a6d1a6f053bff8e0c8df7b006d1`) plus EXACTLY F1-F10, the operator rows Q1-Q8 and the RULED clauses of E1-E11, each verified at the source before it was written; the repository copy differs from the bank only by two sanitization edits (the drafting mission's REPORT.md named by sha256 `63af0b5c6da2d8663bdfaa4c9e8adfc8d831b4c7305b6ca47cf98d3ca4ff696a`). Its FIXES section, at the top, is keyed F1-F10, Q1-Q8 and E1-E11.
+- F1 (X1): BU12, the lease relation -- the C1 lease floor (C03 AM-25), the per-mailbox ACK flush right after its items, per-mailbox processing <= lease_secs / 2 (items past it HOLD), vector V1125. F2 (X2): T1a maps every receive-path code to exactly one disposition (new reasons P6 SKIP_BOUND and P7 EPOCH_CAPACITY; the EPOCH_UNKNOWN split rule), vector V1126. F3: K10's mbb arm becomes RESP-REFUSED per C03 C3. F4: G1's one durable exception (the crossing loser's superseded receipt); P3 left to the C03 slot sweep. F5: G4 marks entries STALE (the first option; no item bytes in memory). F6: a round-robin cursor over sessions for owed controls. F7: OPEN_MAX and SETTLE_MAX defined; settles in REQ_PASS. F8: LK9's key-material bound is one request deadline plus one commit. F9: BU11's cite corrected and the five drift rows. F10: vectors V1119-V1124 and V1318-V1326.
+
+**E1-E11 AS RULED.** E1 RESOLVED by A5. E2 by Q2. E3 by Q3 (MAJOR stands until F13 builds it). E4 by Q4. E5 by Q7. E6 by Q8. E7 UV3 ACCEPTED (C02 identity_changed governs). E8, E10, E11 filed as ENG-0358 (receive-path candidate defects at #1831/#1828), ENG-0359 (lock does not stop the engine at main) and ENG-0360 (truthful-status defects at main), each with its repair named, NOT repaired here. E9 by F1 (C03 AM-26).
+
+**THE AMENDMENTS (appended after each contract's last END line; prior text never rewritten).** C03 AMENDMENTS AM-25 (F1: v2.lease_secs >= T_PASS + the ack deadline + LEASE_MARGIN, superseding AM-6's floor of 1; the stated arithmetic that the PROPOSED T_PASS puts the floor above the v1 relay's 60 s default) and AM-26 (E9: v2.max_body_bytes <= 1048576). C04 AMENDMENTS AM-1 (the per-peer history share H_P < H_N, value HYPOTHESIS) and AM-2 (the retention interplay: expiry is a user-visible retirement; undelivered and closed-undelivered entries never expire; queue rows and Flights untouched).
+
+**THE ALLOCATION.** `docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md` section 12 gains subsection 12.7, inserted before the document's end marker; no existing line is edited. Rows C05-01 (dispositions), C05-02 (DTO and status meanings, drawn per A5), C05-03 (the IPC action id) and C05-04 (budgets and the text limit) allocate no identifier; C04-01-AM1 (H_P; OPEN) and C03-04-AM3 (the lease floor and the body ceiling; ALLOCATED as an amendment for the ceiling, the lease value HYPOTHESIS).
+
+**OPEN CELLS.** CLOSED here: C5-O6 (Q5), C5-O8 (Q6), C5-O9 (Q2), C5-O11 (Q3), C5-O12 (A5), C5-O13 (Q7), C5-O14 (E9), C5-O17 (Q8); C5-O10 RULED (the look at F13). NEW: C5-O19 (Q2 option (d), OPEN, not taken), C5-O20 (what deleting a conversation does to its pending messages; the operator at F13). OPEN, unchanged in owner: C5-O1 (with LEASE_MARGIN, OPEN_MAX, SETTLE_MAX), C5-O2 (C3-O13), C5-O3 (F06), C5-O4, C5-O5, C5-O7 (with H_P), C5-O15, C5-O16, C5-O18.
+
+**IDS.** D-1433 and ENG-0358..ENG-0360 derived at this edit on DECLARING forms (`^## D-nnnn `, `^### ENG-nnnn ` in the ledger): positive controls D-1432 = 1 and ENG-0357 = 1 on main; negative controls D-1999 = 0 and ENG-0998 = 0 as declarations (ENG-0998 has 2 mentions at main, both earlier records' control text); D-1433 and ENG-0358..ENG-0361 = 0 on main and on the three open qsl-protocol PR heads (#1831 `ffc8fc52`, #1828 `e29a07df`, #1825 `a4b172bc`; each head's highest D heading D-1422 read as the live control); ENG-0358..ENG-0360 have 0 mentions anywhere at main; the operator record holds 0 declarations (the directive's "expect D-1433" is a mention). HIGHEST_D 1432 -> 1433. No ENG id counter exists, so none is advanced.
+
+**CLAIM BOUNDARY.** Records only: n=0 product bytes, n=0 test bytes, n=0 builds or tests run by this commit mission; nothing merged; no `.github` byte. The contract is design evidence: every citation is source reading at the named revisions (#1831 `ffc8fc52`, main `4e9dfd0e`, #1828 `e29a07df`, qsl-desktop `92cba80a`, qsl-server `5ea0f925`); no vector byte exists until F11/F13, and no test's pass/fail is established here. ENG-0358..ENG-0360 are source readings, NOT RUN; the named repairs are not verified. The C05 construction is accepted on one independent SR-15 read and is subject to the operator's final approval of how the app looks and functions. Every value the contract calls HYPOTHESIS remains one; the stated lease arithmetic uses the PROPOSED T_PASS and the v1 relay's source default, not a deployed relay's configuration.

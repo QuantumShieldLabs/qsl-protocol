@@ -552,3 +552,19 @@ companion C02 amendments are C02 AMENDMENTS AM-10..AM-15.
 | AM-24 (R-7; N-G) | AM-8 C6 | "from its own recovery_until (AM-16)" reads "from its clamped recovery_until (AM-16)" |
 
 END OF C03 AMENDMENTS AM-17 ONWARD
+
+==============================================================================================================
+AMENDMENTS AM-25 ONWARD (appended by D-1433; the text above, C03 FINAL and AM-1..AM-24, is NOT rewritten)
+==============================================================================================================
+Ruled by RULING_NA0783_C05_ACCEPT_2026-09-24 (sha256 c135b67538405af40cab8410c3970b2bbf97d7e8b7dd6757dcb2aaa916ae02ea) at the C05
+acceptance (docs/ops/contracts/C05_dispatcher_and_gui.md): AM-25 is the C03 C1 amendment the ruling's F1 includes (the
+SR-15 C05 read's X1 and fix F1 (a), SR15_C05_FINDINGS sha256
+cc5c69d77ee0be110126cca1d77ae69197494f403690f5fb1f035ef218bd5174); AM-26 is the C05 draft's E9, ruled "by F1". Each
+amendment names its source and the cell it amends; where an amendment and the text above disagree, the amendment
+governs. Citations: S = qsl-server 5ea0f925 (the revision the read cites); M = qsl-protocol main 4e9dfd0e.
+| Id | Amends | Amendment |
+|---|---|---|
+| AM-25 (C05 F1; SR-15 C05 X1) | T3 C1 (with AM-6 and AM-18); T10 CL2 | C1 also requires v2.lease_secs >= T_PASS + the ack deadline + LEASE_MARGIN (C05 T3 BU12 (a): T_PASS is the dispatcher's per-pass soft wall, C05 BU4; the ack deadline is 15 s, C4; LEASE_MARGIN is a stated margin; T_PASS and LEASE_MARGIN are HYPOTHESIS values, C05 C5-O1); otherwise relay_v2_unsupported, before any v2 call. This floor supersedes AM-6's v2.lease_secs >= 1. Why: EP4 deletes LEASED copies only and V16 pins "ack an unleased id -> 200 acked 0; the item remains", so an ACK flushed after the item's lease expired is lost and the item returns every lease. The client obligations that go with it are C05's: the ACK set of a mailbox is flushed right after that mailbox's items are processed, and per-mailbox processing is bounded to v2.lease_secs / 2, items past it left un-ACKed (HOLD) (C05 D-R5, BU12 (b)). Stated arithmetic: at C05's PROPOSED T_PASS 60 s the floor exceeds 75 s, above the v1 relay's shipped default pull lease of 60 s (S src/store.rs:7 PULL_LEASE_SECS_DEFAULT; ceiling 3600, :8); the v2 relay's lease default (DOC-SRV-008, F08) or F11's T_PASS must meet it. CL2 gains the arm "v2.lease_secs below the floor -> relay_v2_unsupported, before any v2 call"; C05 T8 V1125 is the dispatcher's vector. DOC-CAN-003 row C03-04-AM3 |
+| AM-26 (C05 E9, by F1) | T3 C1 (with AM-6 and AM-18); T10 CL2 | C1 also requires v2.max_body_bytes <= 1048576, the relay's own source ceiling (S src/lib.rs:113 MAX_BODY_BYTES_CEILING = 1024 * 1024; E1), so the pull CAP of C3, which scales with v2.max_body_bytes, has a client-side bound; otherwise relay_v2_unsupported, before any v2 call. AM-18's floor v2.max_body_bytes >= 65536 is unchanged. CL2 gains the arm "v2.max_body_bytes = 1048577 -> relay_v2_unsupported, before any v2 call". C05 C5-O14 closes. DOC-CAN-003 row C03-04-AM3 |
+
+END OF C03 AMENDMENTS AM-25 ONWARD

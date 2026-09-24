@@ -360,3 +360,20 @@ ESCALATIONS RAISED WITH THE DRAFT (named; each RULED by RULING_NA0783_C04_ACCEPT
 | E7 | C03 T3 C1 with AM-6 accepts a relay whose v2.max_body_bytes is anything >= 12,288 (the B1 envelope floor); an ordinary NDE1 wire may be 65,536 bytes (core:18). On such a relay a padded message is SEALED (PREPARED, committed protocol debt, D08) and only then refused with 413, and by T4 Q01 it can leave PREPARED only by session close | C03 / tree C / THE PLAN D08 | T4 Q11: refuse before sealing a wire longer than the advertised max_body_bytes; or the Director raises the C1 floor to 65,536 (C4-O17). The deployed rig's configured 65,536 equals MAX_WIRE, so the rig is not affected (C03 E1). RULED (E7): BOTH -- a C03 amendment raising the T3 C1 floor to v2.max_body_bytes >= MAX_WIRE (65,536) (C03 AMENDMENTS AM-18) AND Q11 kept as the seal-time guard; a 413 after sealing leaves the row PREPARED; C4-O17 closes |
 
 END OF C04 FINAL
+
+==============================================================================================================
+AMENDMENTS (appended by D-1433; the text above is C04 FINAL as merged by D-1431 and is NOT rewritten)
+==============================================================================================================
+Ruled by RULING_NA0783_C05_ACCEPT_2026-09-24 (sha256 c135b67538405af40cab8410c3970b2bbf97d7e8b7dd6757dcb2aaa916ae02ea) at the C05
+acceptance (docs/ops/contracts/C05_dispatcher_and_gui.md), on the operator's answer Q5 (banked verbatim in
+RBANK_C05_operator_answers_2026-09-24, sha256 6e5e8bd43ae8f3f83ff207b87a5e660da3930c7fdeabde2fe67f75baa6bd219c, and its
+addendum A1, sha256 848a1c9ebda18c6beb8a8db83c286825f40687a4049201fa440072886625b256): the ruling's words, "PLUS a per-peer
+history share H_P (a C04 amendment, value HYPOTHESIS) so one contact cannot fill the global quota R07". Each amendment
+names its source and the cell it amends; where an amendment and the text above disagree, the amendment governs.
+PROPOSED keeps the meaning the FIXES section gives it.
+| Id | Amends | Amendment |
+|---|---|---|
+| AM-1 (C05 Q5; per-peer history share) | T1 R07; T4 Q03; T6 L27; T9 C4-O3 | R07 gains a per-peer share H_P: the history units of ONE conversation never exceed H_P, with H_P < H_N (Q08's Q_P < Q_S, applied to history), so one contact -- a flooding peer included -- cannot fill the global quota. An arrival that would exceed that peer's share is DEFER-C (C05 T2 reason C3: un-ACKed, no receipt), as for the global quota; a submit that would exceed it refuses history_full before any row, directory or temporary (Q03's order, the history unit checked against R07 and H_P). Value HYPOTHESIS: L27 gains H_P (C4-O3; C05 C5-O7), measured with H_N and H_B at F07 |
+| AM-2 (C05 Q5; retention interplay) | T1 R07 (the release column); T4 Q06; T9 C4-O3 | The user-visible history retirement R07 names is fixed in policy by C05 T6 HI4 (Q5): a user setting "keep messages for" -- 1 week / 1 month / 1 year / Forever, default 1 month -- with expired history deleted automatically; that expiry IS a user-visible history retirement and frees R07 and H_P units. An entry whose message is still undelivered (C05 M1-M3) or closed_undelivered (M6) is NEVER retired by expiry, so expiry never removes the user's view of a live obligation and never touches a queue row or a Flight (Q06: a row whose Flight is live is never removed; history is R07, not a queue row). A protocol retirement still never frees history (THE PLAN sec 4). What deleting a conversation does to its still-pending messages is OPEN for F13 (the operator; C05 C5-O20). C4-O3's policy half closes; its values stay OPEN (C05 C5-O7) |
+
+END OF C04 AMENDMENTS

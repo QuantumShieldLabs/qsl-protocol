@@ -756,5 +756,20 @@ DOC-SRV-007 stays the v1 contract.
 | C03-06 | v2 protocol constants | H_REC (recovery horizon, a protocol constant the client checks; PROPOSED 259200 s); V2_PULL_MAX_ITEMS (PROPOSED 32); PUSH_RECEIPTS_PER_MAILBOX (PROPOSED 1024); MAILBOX_IDLE_SECS (PROPOSED = retention TTL, a mailbox pulled at least once); the never-pulled horizon 3600 s (the pull lease ceiling); MAX_V2_MAILBOXES (PROPOSED 4096 default, 65536 ceiling); the global open bucket and the per-L/per-K lookup bucket (PROPOSED); CLOCK_SLACK (PROPOSED 3600 s). The A1 deliver body cap is C02 ENV_MAX 12288 (row C02-03); relay_v2 requires max_body_bytes >= 12288 | per the contract's T6-T8 | OPEN (C3-O2, C3-O3): dimensions allocated, values not |
 | C03-07 | RETIRED on the successor path (never reused) | tui.relay.inbox_token as a mailbox secret (R is fresh CSPRNG output per mailbox; never a v1 token's bytes); the v1 ACK mapping of 404 to LegacyComplete on any /v2/ path; the relay-minted invite ticket and revoke_token on v2 (client-minted T; revoke by R_slot). The v1 relay endpoints themselves stay for old clients (retirement: C3-O9, operator) | a successor client never sends them | RETIRED (successor path) |
 
+### 12.5 Amendment rows from the F01 combined audit (C01-C03 as a set)
+
+Added for PLAN card F01 after the combined adversarial audit of C01, C02 and C03 (AUDIT_F01_C01_C03_FINDINGS, sha256
+512d42751d7a7dc3b26fa68fb100a7bf5c812f646e44fad47adc80bb142001c2), as ruled (RULING_NA0783_F01_audit_2026-09-24) and
+recorded by D-1429; the contract amendments are the AMENDMENTS sections of the three contracts. Sections 12.1-12.4 are
+not edited (as 12.3 and 12.4 state for their predecessors); rows are appended here only. SUPERSEDED, used in this
+subsection only, means: the named later row replaces the value, and the value is NOT allocated. This subsection
+allocates identifiers, not error codes; refusal spellings the amendments mark NEW are registered by the implementing
+PRs (C02 OC12, C03 C3-O10).
+
+| Row | Namespace | Exact allocation | Refusal when absent / different | Status |
+|---|---|---|---|---|
+| C03-04-AM1 | Relay capability advertisement (AMENDS C03-04; C03 AMENDMENTS AM-6) | the successor client also requires v2.max_body_bytes >= 12288 (= C02 ENV_MAX, row C02-03), v2.pull_max_items >= 1 and v2.lease_secs >= 1 | a value below its floor -> relay_v2_unsupported (client), before any v2 call; a 401 on server-info -> relay_unauthorized (existing client code), not relay_v2_unsupported | ALLOCATED (amendment; adds to C03-04) |
+| A04-ST1 | QHSM version (STATUS OF A04) | A04 value 2 SUPERSEDED by A04-AM1; not allocated. The successor QHSM version is 3 (row A04-AM1) | per A04-AM1 | SUPERSEDED |
+
 ---
 End of DOC-CAN-003

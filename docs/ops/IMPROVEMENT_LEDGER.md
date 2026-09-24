@@ -8218,3 +8218,28 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   No completed reproduction CI was rerun. No multi-device or reconnect claim.
 - Next collision disposition: explicit attempt-scoped cancellation and one fresh
   invitation for the no-session case is preferred but not authorized for implementation.
+
+### ENG-0356 -- v1 RELAY: AN EXPIRED INVITE SLOT ADMITS TICKETLESS PUSHES AS AN ORDINARY ROUTE; ERR_INVITE_EXPIRED ON /v1/push IS UNREACHABLE (qsl-server; NA-0783 C03 E2) -- MAJOR AS A LATENT v1 CONTRACT DEFECT, EXPOSURE LOW
+
+- Type: defect (the v1 relay's invite-slot contract, qsl-server). Status: open (filed; repair NOT done).
+- Originating lane: NA-0783. Last lane: NA-0783. Last-updated: 2026-09-24. Ruled: RULING_NA0783_C03_ACCEPT_2026-09-24
+  E2; recorded by D-1428.
+- Finding (source reading at qsl-server main 5ea0f925; NOT RUN): the /v1/push handler captures ONE now
+  (src/lib.rs:1053); route_status (:1058) runs the sweep, which deletes invite rows with expiry <= now
+  (src/store.rs:343-345); enqueue (lib.rs:1120) then looks the slot up with the SAME now, so the Expired arm
+  (store.rs:633-635) is unreachable: the lookup misses and the ordinary path creates a route and inserts the message
+  (store.rs:653-693). DOC-SRV-007:93 promises ERR_INVITE_EXPIRED (410) on the handshake push; the code does not
+  deliver it. The 60 s periodic sweep (src/main.rs:15, :293-297) removes the row within a minute of expiry anyway.
+  Revoked slots are unaffected (the tombstone persists until expiry).
+- Exposure: LOW -- it needs the invite code, a passed expiry, and a relay clock ahead of the inviter's while the inviter
+  still polls (the client refuses an expired invite on its own clock before pulling); the admitted frames are the
+  pusher's own bytes. Severity as a latent v1 contract defect: MAJOR (a normative refusal that cannot happen; the gate
+  ends at expiry instead of at the sweep).
+- Named repair (one line, as the SR-15 C03 read names it): "enqueue must evaluate the slot's expiry from a row that the
+  sweep has not yet removed -- either sweep invites only for rows past expiry + a grace, or keep the tombstone through
+  the handler's own transaction, or move route_status's sweep after enqueue's admission"; the choice among the three is
+  the repairing lane's. With it, the missing test: a push to a slot after its expiry, asserting ERR_INVITE_EXPIRED (410)
+  and no route or message row. No such test exists (tests/na0678_invite_slots.rs holds ERR_INVITE_EXPIRED once, on the
+  redeem path, :243).
+- Successor: not affected -- the v2 relay closes the path (C03 T2 N5, vector V46). C02's F2 source note is corrected by
+  C02 AMENDMENTS AM-2 (its safety claim stands). Repairing v1 needs its own authorized qsl-server lane.

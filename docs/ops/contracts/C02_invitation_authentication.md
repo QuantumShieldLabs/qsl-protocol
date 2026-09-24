@@ -526,3 +526,17 @@ ESCALATIONS RAISED WITH THIS DRAFT (named, NOT resolved by choice; the same list
 | E7 | The bearer secret replaces v1 `cap` and derives the relay-facing capability (T1a): a change to the content (not the shape) of what the relay compares, which borders C03's capability scope | C02 / C03 | proposed here because C02 owns the invite wire (C01 row 12); C03 confirms (T8 OC4). RULED: accepted; relay measured at qsl-server 5ea0f925 (T1a) |
 
 END OF C02 FINAL
+
+==============================================================================================================
+AMENDMENTS (appended by D-1428; the text above is C02 FINAL as merged by D-1427 and is NOT rewritten)
+==============================================================================================================
+Ruled by RULING_NA0783_C03_ACCEPT_2026-09-24 (sha256 bbeb679c87b74978e87a6fb95c034555dbca62eb4ed0516d0da181121496a3fe),
+items F6 (= E3) and E2 of the C03 acceptance (docs/ops/contracts/C03_relay_authority_and_recovery.md). Each amendment
+names the cell it amends; where an amendment and the text above disagree, the amendment governs. Relay citations are at
+S = qsl-server main 5ea0f925.
+| Id | Amends | Amendment |
+|---|---|---|
+| AM-1 (C03 F6 / E3) | T2 step 2b; T1b row 10; T7 M12 | T2 step 2b: route_cap is EXACTLY hex32(D) -- 64 lowercase hex characters [0-9a-f], untrimmed, the hex encoding of the 32-byte deposit capability D (C03 T1 row 2); any other value refuses at step 2b as handshake_envelope_noncanonical (permanently invalid). T1b row 10: route_len keeps its structural bound u8 22..128 (outside it: handshake_envelope_malformed, as today); inside it, the value must be that hex32 form (hex32 lies inside the [A-Za-z0-9_-] set, so this only narrows). T7 M12 re-expected: the mutations become "route_cap with a leading space; a '.'; 21 and 129 bytes; 63 and 65 lowercase hex characters; 64 hex characters with one upper-case digit; 64 characters of [A-Za-z0-9_-] that are not all hex", and the rs cell "noncanonical; noncanonical; malformed; malformed; noncanonical; noncanonical; noncanonical" (the ns cell is unchanged; delta DHE). Closes C03 C3-O8: without it a peer could sign a route_cap the v2 relay refuses (C03 V06), discovered only at push time, after occupancy |
+| AM-2 (C03 E2) | FIXES row F2 (the source note) and T2 L0 (the parenthesis on the relay) | The relay premise "the relay checks expiry on ITS clock at push and burns the ticket (qsl-server store.rs:633-635, :645-650)" is corrected. On v1 /v1/push the handler captures one now (S lib.rs:1053); route_status (:1058) runs the sweep, which deletes invite rows with expiry <= now (store.rs:343-345); enqueue then looks the slot up with the same now, so its expiry refusal (store.rs:633-635) is UNREACHABLE: an expired slot's row is already gone and the push is admitted as an ordinary ungated route (store.rs:653-693). The ticket burn (:645-650) is reached only for a live slot. C02's safety claim STANDS: steps 4-5 (bearer tag, signature) refuse such a frame before effects, and the successor relay closes the path (C03 T2 N5, vector V46). The v1 finding is filed as ENG-0356 (docs/ops/IMPROVEMENT_LEDGER.md); the v1 relay is not repaired by this amendment |
+
+END OF C02 AMENDMENTS

@@ -734,5 +734,27 @@ identifiers, not error codes. Values that depend on A02 (the profile string) sta
 | C02-05 | Domain labels (KEPT) | QSL.invite.identity-commitment.v1 (DS_COMMIT); QSL.invite.payload.v1 (DS_SIG); QSC.HS.ROOT.COMBINE.v1; QSC.HS.PQ; QSC.HS.DHINIT; QSC.HS.TRANSCRIPT; QSC.HS.TRANSCRIPT.H; QSC.HS.CONFIRM; QSC.HS.A2; QSC.HS.SIG.B1; QSC.HS.SIG.A2 | n/a (labels) | EXISTING (bytes kept) |
 | C02-06 | RETIRED by C02 (refused, never reused) | "QSLI-1-" codes and invite payload v1; the QSLH-1 envelope (ENVELOPE_VER 0x01, TAG_BUNDLE 0x01, TAG_ROUTE_TOKEN 0x02, TAG_A1 0x03, TAG_B1 0x04, types 0x01/0x02 of that version); QHSM versions 1 and 2; the bare (unenveloped) A1/B1 on the successor mailbox | per rows C02-01, C02-03 and A04-AM1; a bare A1/B1 is not accepted on the successor mailbox (contract OC7) | RETIRED |
 
+### 12.4 C03 allocations (relay authority and recovery)
+
+Added for PLAN card F01 contract C03 (relay authority and recovery): `docs/ops/contracts/C03_relay_authority_and_recovery.md`,
+ACCEPTED WITH NAMED FIXES and recorded by D-1428. The contract is the rationale (T1-T11 are its sections); this table is
+the allocation, which takes effect when this subsection merges. Sections 12.1-12.3 are not edited. The relay derivation
+LABELS are NOT allocated here: their spellings stay PROPOSED and the row is OPEN until the Director rules C3-O1. Values
+the contract leaves to measurement or to the Director stay OPEN (C3-O2 H_REC; C3-O3 the bucket, ring, idle and ceiling
+values). Refusal spellings the contract marks NEW (relay ERR_V2_* and the client relay_v2_* codes) are registered by the
+implementing PRs (C3-O10: the qsl-server contract document, DRAFT DOC-SRV-008, and DOC-SCL-002); this subsection
+allocates identifiers, not error codes. The relay's own contract for v2 is qsl-server `docs/server/DOC-SRV-008` (DRAFT);
+DOC-SRV-007 stays the v1 contract.
+
+| Row | Namespace | Exact allocation | Refusal when absent / different | Status |
+|---|---|---|---|---|
+| C03-01 | Relay derivation labels (CRYPTO-TOUCHING) | the set, each followed by fixed-length input and prefix-free: QSL.relay.deposit.v1 (D = H(label ++ R)), QSL.relay.key.v1 (K = H(label ++ D)), QSL.relay.log.v1, QSL.relay.slot-locator.v1 (L = H(label ++ invite_id)), QSL.relay.recovery.v1 (H_S), QSL.relay.ticket.v1 (H_T), QSL.relay.request.redeem.v1 (Q_R), QSL.relay.request.push.v1 (P), QSL.relay.request.create.v1 (Q_C); H = SHA-256 | n/a (labels) | OPEN (C3-O1): spellings PROPOSED, not allocated |
+| C03-02 | Relay v2 request headers | X-QSL-Read-Cap = hex32(R); X-QSL-Deposit-Cap = hex32(D); both EXACTLY 64 lowercase hex, no trim, decoded before hashing. X-QSL-Operation-Id = hex16(op_id). X-QSL-Invite-Locator = hex16(invite_id). X-QSL-Invite-Ticket (EXISTING header name) carries hex32(T) on v2. On any v2 request X-QSL-Route-Token and x-msg-id are refused | malformed -> 400 (contract V06); v1 token present -> 400; capability missing -> 400 (contract T2 N2) | ALLOCATED |
+| C03-03 | Relay v2 endpoints | POST /v2/mailbox/open; POST /v2/push; GET /v2/pull?max=N; POST /v2/pull/ack; POST /v2/invite/create; POST /v2/invite/redeem; POST /v2/invite/deliver; POST /v2/invite/settle; POST /v2/invite/revoke. Lease-only (no delete-on-pull arm); JSON bodies carry "v":2 and an exact field set | per the contract's T3 and T6 | ALLOCATED |
+| C03-04 | Relay capability advertisement | GET /v1/server-info (existing, additive per DOC-SRV-006 rule 1): api gains "relay_v2"; new object "v2" with fields max_body_bytes, pull_max_items, lease_secs, recovery_secs, max_ack_ids, push_receipts_per_mailbox, max_mailboxes. The successor client requires all of them and v2.recovery_secs equal to its H_REC | absent or different -> relay_v2_unsupported (client), no request of any kind to /v1/ mailbox or invite paths | ALLOCATED |
+| C03-05 | Relay store | mailbox kinds "mailbox" and "invite_slot", fixed at creation; qsl-server SCHEMA_VERSION 3 adds the v2 tables (mailboxes_v2, messages_v2, slots_v2, claims_v2, push_receipts_v2); no v1 row is migrated into v2 | a version-2 binary refuses a version-3 store (ERR_STORE_VERSION, existing); kind conflict -> 409 | ALLOCATED |
+| C03-06 | v2 protocol constants | H_REC (recovery horizon, a protocol constant the client checks; PROPOSED 259200 s); V2_PULL_MAX_ITEMS (PROPOSED 32); PUSH_RECEIPTS_PER_MAILBOX (PROPOSED 1024); MAILBOX_IDLE_SECS (PROPOSED = retention TTL, a mailbox pulled at least once); the never-pulled horizon 3600 s (the pull lease ceiling); MAX_V2_MAILBOXES (PROPOSED 4096 default, 65536 ceiling); the global open bucket and the per-L/per-K lookup bucket (PROPOSED); CLOCK_SLACK (PROPOSED 3600 s). The A1 deliver body cap is C02 ENV_MAX 12288 (row C02-03); relay_v2 requires max_body_bytes >= 12288 | per the contract's T6-T8 | OPEN (C3-O2, C3-O3): dimensions allocated, values not |
+| C03-07 | RETIRED on the successor path (never reused) | tui.relay.inbox_token as a mailbox secret (R is fresh CSPRNG output per mailbox; never a v1 token's bytes); the v1 ACK mapping of 404 to LegacyComplete on any /v2/ path; the relay-minted invite ticket and revoke_token on v2 (client-minted T; revoke by R_slot). The v1 relay endpoints themselves stay for old clients (retirement: C3-O9, operator) | a successor client never sends them | RETIRED (successor path) |
+
 ---
 End of DOC-CAN-003

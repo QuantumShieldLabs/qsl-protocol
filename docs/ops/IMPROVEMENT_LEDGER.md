@@ -8243,3 +8243,35 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   redeem path, :243).
 - Successor: not affected -- the v2 relay closes the path (C03 T2 N5, vector V46). C02's F2 source note is corrected by
   C02 AMENDMENTS AM-2 (its safety claim stands). Repairing v1 needs its own authorized qsl-server lane.
+
+### ENG-0357 -- #1831 CANDIDATE: A SEALED DIRECTIONAL FLIGHT WHOSE PUSH FAILS (RELAY 413 BELOW MAX_WIRE, OR LOCAL device_revoked AFTER SEAL) IS RECORDED RELAY-ACCEPTED AND PROJECTED SENT WHILE THE FLIGHT STAYS OWED (NA-0783 C04 E3 + X2) -- MAJOR
+
+- Type: defect (the NA-0780 directional candidate, qsl-protocol PR #1831 head ffc8fc52; NOT on main). Status: open
+  (filed; repair NOT done; named for PLAN card F07).
+- Originating lane: NA-0783. Last lane: NA-0783. Last-updated: 2026-09-24. Ruled: RULING_NA0783_C04_ACCEPT_2026-09-24
+  E3 + X2 (SR-15 C04 read X2, MAJOR); recorded by D-1431.
+- Finding (source reading at #1831 ffc8fc52, client qsl/qsl-client/qsc/src; Director-verified; NOT RUN): a PACKED row
+  whose push ends Fail or FailPermanent runs apply_result (msgqueue/mod.rs:1012-1019) -> retire_packed (:1039-1048,
+  sender.commit when the row is packed) -> RelayMessageSender::commit (transport/mod.rs:3748-3764), which calls
+  state.accepted(raw) (:3759; the Flight is marked relay-accepted) and timeline_project_message(peer, "out", ...)
+  (:3762; the entry is created in state Sent, timeline/mod.rs:462-466, :485); the row is then FAILED or
+  FAILED_PERMANENT (:1014, :1018) while the Flight stays in the transaction.
+- Two routes: (a) the relay answers 413 -> PushFailClass::TooLarge (transport:2106) -> classify -> Fail (:3613), on
+  any relay whose max_body_bytes is below the sealed wire (not the rig's configured 65536 = MAX_WIRE; not the
+  qsl-server source default 1048576); (b) LOCAL, no relay needed: push() maps the routing target's device_revoked to
+  FailPermanent (transport:3657-3659; contacts/mod.rs:324, :729) for a row already sealed and retrying after any
+  Retry-class failure (:3614-3617).
+- Consequences: (i) a false Sent in the timeline (no relay accepted the bytes; no receipt can arrive); (ii) the Flight
+  is replayed on every receive for that peer (pending(), directional_delivery.rs:566-568 -> directional_replay,
+  transport:4184-4193); (iii) under route (a) each replay is a 413 again, Err at :4162, and the receive aborts at :545
+  before directional_flush on every call until session close; under route (b) the replay push succeeds at the relay,
+  so the peer receives and receipts a frame the sender's queue calls FAILED-PERMANENT; (iv) the row cannot be
+  discarded (discard_at msgqueue:1065-1079 runs retire_packed again, then remove refuses a directional peer, :641).
+- Named repair (for F07; NOT repaired here): RelayMessageSender::classify and RelayMessageSender::commit, besides
+  retire_packed -- a 413 on a sealed row leaves it PREPARED and retriable with the same bytes, with no accepted() and
+  no timeline write; device_revoked after seal routes to the K07 session close (C05's user meaning), never to a
+  terminal row. The C04 contract (docs/ops/contracts/C04_ownership_and_accounting.md) fixes the rules (T4 Q01, Q06,
+  Q10) and the vector (T8 V709, with its three added assertions); C03 AMENDMENTS AM-18 raises the relay body floor to
+  MAX_WIRE and C04 Q11 stays the seal-time guard.
+- Successor: the directional structures are absent at main (C04 source note); the candidate is evidence only
+  (D-1425). The repair lands with F07's queue rewrite.

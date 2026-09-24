@@ -563,3 +563,26 @@ EDITED IN PLACE BEFORE MERGE: every row whose Id cites an FX id was edited by RU
 | AM-9 (audit S1.3) | T2 (new row 2a', after 2a); T8 OC12 | Row 2a': a BARE QHSM frame (magic "QHSM", no QSLH envelope; the classifier's existing QHSM arm, M frameclass.rs:64) of type 1 (A1) or 2 (B1) on a successor slot or inbox -> handshake_envelope_required (NEW; registration OC12); refuses before effects; disposition permanently invalid. A bare type 3 goes to the A2 receiver table. Consistent with T1f (the bare A1/B1 is retired on the successor mailbox) and OC7 (no known-contact re-handshake until decided) |
 
 END OF C02 AMENDMENTS AM-3 ONWARD
+
+==============================================================================================================
+AMENDMENTS AM-10 ONWARD (appended by D-1431; the text above, C02 FINAL and AM-1..AM-9, is NOT rewritten)
+==============================================================================================================
+Ruled by RULING_NA0783_C04_ACCEPT_2026-09-24 (sha256 c99b476ad0d3236528dcd5438bc5207cbc46061a6368e8d295d305e67307842e) at the C04
+acceptance (docs/ops/contracts/C04_ownership_and_accounting.md): AM-10 is the C04 draft's E6; AM-11..AM-15 are the owed
+items R-1..R-8 of the SR-15 delta read SR15_F01_FIXUP_FINDINGS (sha256
+474de737e18c24bdee0e6986b735d67788e4960065ce0e5a0aca427ecd05e5c8, section 8), owed to this ruling by
+RULING_NA0783_F01_PR1841_2026-09-24 (sha256 41ec1f8da9b63c238ed2cab4f88c010e40929470ffc876a388d8f306e2a8a658) R2 and
+taken there "as appended C02/C03 amendments" (R-1 takes the VALUE; R-2 through R-8 as worded). Each amendment names its
+source and the cell it amends; where an amendment and the text above disagree, the amendment governs. Citations: M =
+qsl-protocol main 1fbaa814; P28 = #1828 e29a07df. The companion C03 amendments are C03 AMENDMENTS AM-17..AM-24
+(docs/ops/contracts/C03_relay_authority_and_recovery.md).
+| Id | Amends | Amendment |
+|---|---|---|
+| AM-10 (C04 E6) | T2 step 10 (a capacity arm) | An authenticated A1 whose responder candidate the first-connection reservation cannot admit (the R11 quota full: C04 T1 R11, T7 X01) is NOT refused: it takes the disposition DEFER of AM-3 (retained un-ACKed, with no write) and is processed when a record retires (C04 vector V1002). It is never disposed as invalid (THE PLAN I07), which would burn the invite. The code's spelling is registered through DOC-SCL-002 by the implementing PR, as C01 O9; the mechanics of DEFER stay C05's (T8 OC6) |
+| AM-11 (R-1; N-A) | AM-3: T3 "For how long" and T5 failed-expired, the two figures | Both figures "recovery_until + 2 x CLOCK_SLACK" read "recovery_until + 3 x CLOCK_SLACK": the inviter's candidate deadline is RU_I + 3 x CLOCK_SLACK (C03 AMENDMENTS AM-19), which holds for any two clocks each within CLOCK_SLACK of the relay's. This value supersedes FX2's |
+| AM-12 (R-2; N-B) | T2 step 10 (one clause, the mirror of AM-4's FX3) | An authenticated A1 from an identity for which this side holds a committed session or an applied first-connection record is NOT answered (P28 handshake/mod.rs:987-989 NotConsumed; :972-986 on the lower side) and is disposed per C05, until OC7 decides the known-contact re-handshake; a stored session is never overwritten (:632-636) |
+| AM-13 (R-5; N-E) | AM-3, T2 step 10 (FX6), the DEFER disposition | Added (the read's optional clause, taken as worded): the deferral may be remembered in memory; no durable write |
+| AM-14 (R-6; N-F) | T2 step 10 | The invite record enters Redeemed in this commit (today M invite/mod.rs:1593) |
+| AM-15 (R-8; N-H) | AM-3, its Id cell | The Id's FX list reads "FX1, FX2, FX4, FX6": the row applies FX4 ("and clamped there, FX4"). The row's text is not rewritten; no change to the D-1429 heading is needed (the read) |
+
+END OF C02 AMENDMENTS AM-10 ONWARD

@@ -8343,3 +8343,147 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   causes need distinct names).
 - Named repair (for F13; NOT repaired here): C05 T4 M1-M6 (each message state set only by its backing durable fact) and
   C1-C3 (distinct notices for distinct relay causes); vectors V1304, V1306.
+
+### ENG-0361 -- #1831 CANDIDATE: THE INITIATOR PUSHES ITS A2 TO THE RELAY BEFORE THE DIRECTIONAL PAIR THAT FUNDS THE SESSION IS COMMITTED (NA-0783 AUDIT-1831-engine X1) -- MAJOR
+
+- Type: defect (the NA-0780 directional candidate, qsl-protocol PR #1831 head ffc8fc52; NOT on main). Status: open
+  (filed; repair NOT done; named for PLAN card F10).
+- Originating lane: NA-0783. Last lane: NA-0784 (filed at its promotion). Last-updated: 2026-09-24. Ruled:
+  RULING_NA0783_AUDIT_1831_engine_2026-09-24 (sha256 f45a914fc79dc7baa2594c809591f4400cab601a643f9bc81a432abcb445258c)
+  R1 (NEW MAJOR), R2 (owner F10), R3 (this entry); recorded by D-1435. Source: AUDIT_1831_ENGINE_FINDINGS.md (sha256
+  a427d577581179ab4505de5891f982cb345a3dd815fc9334acaea89e38885ac2) X1.
+- Finding (source reading at #1831 ffc8fc52, client qsl/qsl-client/qsc/src; the Director re-read the two lines; NOT
+  RUN): handshake/mod.rs:2221 `transport::relay_inbox_push(relay, peer_route_token, &cbytes)?;` pushes the A2 BEFORE
+  :2228 `crate::protocol_state::directional_establish(peer, &st)?;` (-> protocol_state/mod.rs:1361-1370 ->
+  vault/mod.rs:2151-2183 create_directional_pair) and :2229 hs_commit_session_guarded. The responder's order (:2400
+  establish before :2401 store) is correct.
+- Consequences: if the create is refused (the vault aggregate one byte short of a session reserve, or nine sessions
+  ever created) or the process is cut between :2221 and :2228, the responder commits its session and sends ordinary
+  frames the initiator cannot admit (NoCandidate); the responder's window fills and its session reserve stays pinned
+  for the vault's life; the initiator signs and pushes a fresh A2 every lease. C04 T1 R02 and I03 ("reserve capacity
+  before announcing completion") are violated by the order of :2221 and :2228.
+- Named repair (for F10; NOT repaired here): run directional_establish and the session commit BEFORE the A2 push, and
+  make the A2 an exact committed reply retried with the same bytes (C03 AM-17's third op_id holder); F05's release map
+  names F10 as owner; F08's op_id removes the second A2; C02's A2 table owes the clause at F10's formalization.
+  Instrument: V605 extended ("no A2 leaves before the pair commit; a refused create leaves no A2 at the relay"); F03
+  carries the "cut between :2221 and :2228" fixture capability as a NOT_RUN marker.
+- Successor: the candidate is evidence only (D-1425).
+
+### ENG-0362 -- #1831 CANDIDATE: NO RECEIVER-SIDE WINDOW ON INBOUND ORDINARY FRAMES; A HOSTILE AUTHENTICATED PEER EXHAUSTS THE SHARED VAULT AGGREGATE (NA-0783 AUDIT-1831-engine X2) -- MAJOR
+
+- Type: defect (the NA-0780 directional candidate, qsl-protocol PR #1831 head ffc8fc52; NOT on main). Status: open
+  (filed; repair NOT done; named for PLAN card F06).
+- Originating lane: NA-0783. Last lane: NA-0784 (filed at its promotion). Last-updated: 2026-09-24. Ruled:
+  RULING_NA0783_AUDIT_1831_engine_2026-09-24 (sha256 f45a914fc79dc7baa2594c809591f4400cab601a643f9bc81a432abcb445258c)
+  R1, R2 (owner F06), R3; recorded by D-1435. Source: AUDIT_1831_ENGINE_FINDINGS.md (sha256
+  a427d577581179ab4505de5891f982cb345a3dd815fc9334acaea89e38885ac2) X2. The Director did NOT independently re-trace
+  this multi-file chain; accepted on the seat's cited chain, to be proven by F06's instrument.
+- Finding (source reading at #1831 ffc8fc52, client qsl/qsl-client/qsc/src; NOT RUN): directional_delivery.rs:751-851
+  (in receive_inner) admits any ordinary frame the core accepts; directional_core.rs:647-660 accepts every sequential n
+  and bounds only gaps (MAX_SKIP 16); EpochReceipts::admit (:198-207) never bounds its holes; each admission retains a
+  Disposition (delivery :837-844) released only by the peer's closure (:554-556) or final closure (:557-559). The
+  window (WINDOW 16, delivery :617, :629) is enforced at the SENDER only; the receiver's one span check is
+  protocol_state/mod.rs:1578 (in retain_control), for controls only; bounds() (delivery :481-505) counts neither
+  dispositions nor holes.
+- Consequences: a peer that sends ordinary frames in one epoch and never carries a closure fills the global vault
+  aggregate (protocol_state:1493-1499) after on the order of 20,000 frames; directional_aggregate_waiting then refuses
+  every writer of the vault (sends to every other contact, new sessions, receives from every other peer, generic
+  secret_set), and nothing releases it (no session close, C04 K07 absent). An honest peer cannot cause it.
+- Named repair (for F06; NOT repaired here): in receive_inner, after receive_promises and before core.receive, refuse
+  an ordinary frame whose slot n >= confirmed + WINDOW + MAX_SKIP with a DEFER-P code (C05 T1a); count holes in
+  bounds(); land K07 so a never-closing peer can be closed. Instrument: P withholds closures and sends 64 + 1 frames ->
+  the 65th refused before any Disposition, a third peer's send and a new session still admitted. F03 carries the
+  "withhold a peer's closures" fixture capability as a NOT_RUN marker.
+- Successor: the candidate is evidence only (D-1425).
+
+### ENG-0363 -- #1831 CANDIDATE: A NO-EFFECT STANDALONE CLOSURE CARRIER IS NEVER RECEIPTED, AND :867 THEN SUPPRESSES EVERY LATER CONTROL OF THE SESSION, THE PQ ADVERTISEMENT INCLUDED (NA-0783 AUDIT-1831-engine X3) -- MAJOR
+
+- Type: defect (the NA-0780 directional candidate, qsl-protocol PR #1831 head ffc8fc52; NOT on main). Status: open
+  (filed; repair NOT done; named for PLAN cards F06 and F11).
+- Originating lane: NA-0783. Last lane: NA-0784 (filed at its promotion). Last-updated: 2026-09-24. Ruled:
+  RULING_NA0783_AUDIT_1831_engine_2026-09-24 (sha256 f45a914fc79dc7baa2594c809591f4400cab601a643f9bc81a432abcb445258c)
+  R1, R2 (owners F06 + F11), R3, R4 (status truth); recorded by D-1435. Source: AUDIT_1831_ENGINE_FINDINGS.md (sha256
+  a427d577581179ab4505de5891f982cb345a3dd815fc9334acaea89e38885ac2) X3.
+- Finding (source reading at #1831 ffc8fc52, client qsl/qsl-client/qsc/src; the Director re-read :867; NOT RUN):
+  next_control (directional_delivery.rs:866-884) seals a standalone closure carrier "[2]" (:869 / :877) carrying the
+  same promises an ordinary frame already delivered; the receiver maps it to class 3 with effect false (:804-810,
+  closures_free_nonclosure :1147-1163) and protocol_state/mod.rs:1625
+  `3 => {if !effect {return Err("TRANSACTION_CAPACITY");}}` refuses it, so no Disposition and no receipt are made. At
+  the sender, directional_delivery.rs:867 `if self.flights.values().any(|f|f.id.is_empty()){return Ok(None);}` returns
+  None on every later call while that maintenance flight is outstanding.
+- Consequences (honest peers, in-order relay): no advertisement, request or closure carrier is ever sent again on that
+  session; once the peer consumes the current PQ target, every later boundary carries target 0 and the session's
+  post-quantum refresh ENDS silently (DH only thereafter). Not user-visible today (R4).
+- Named repair (for F06 and F11; NOT repaired here): F06 -- no redundant standalone closure carrier (do not seal a
+  standalone [2] whose promises equal the newest sealed ordinary flight's), a no-effect control from an authenticated
+  peer gets a bounded receipt (at most one un-closed no-effect Disposition per epoch, else DEFER-P), :867 no longer a
+  single point of control death (V607 arm); F11 -- C05 T1a gains its own row for a no-effect TRANSACTION_CAPACITY (not
+  DEFER-C), and the status display never claims more than is true (A5, I12). F03 carries the "send before poll with
+  15+ unconfirmed" fixture capability as a NOT_RUN marker.
+- Successor: the candidate is evidence only (D-1425).
+
+### ENG-0364 -- #1831 CANDIDATE: ONE LOST ORDINARY FRAME PINS ITS EPOCH; THE NEXT BOUNDARY IS REFUSED UNTIL THE SENDER'S EXACT RE-PUSH, WHICH C05 BU8 SCHEDULES AFTER H_REC (NA-0783 AUDIT-1831-engine X4) -- MAJOR
+
+- Type: defect (the NA-0780 directional candidate, qsl-protocol PR #1831 head ffc8fc52; NOT on main) and a cadence
+  consequence of C05 BU8. Status: open (filed; repair NOT done; named for PLAN cards F06 and F11).
+- Originating lane: NA-0783. Last lane: NA-0784 (filed at its promotion). Last-updated: 2026-09-24. Ruled:
+  RULING_NA0783_AUDIT_1831_engine_2026-09-24 (sha256 f45a914fc79dc7baa2594c809591f4400cab601a643f9bc81a432abcb445258c)
+  R1, R2 (owners F06 + F11), R3; recorded by D-1435. Source: AUDIT_1831_ENGINE_FINDINGS.md (sha256
+  a427d577581179ab4505de5891f982cb345a3dd815fc9334acaea89e38885ac2) X4.
+- Finding (source reading at #1831 ffc8fc52, client qsl/qsl-client/qsc/src; the Director re-read :688-689; NOT RUN):
+  directional_core.rs:688-689 `if self.recv.len() >= MAX_EPOCHS { return Err("EPOCH_CAPACITY"); }` is evaluated
+  BEFORE :720-740 retire the active epoch, and an epoch with a lost frame keeps its skipped key after terminal
+  (:664-668, :738-739); at the delivery layer receive_inner :768 refuses a boundary when send.len() + recv.len() >= 3,
+  and a recv EpochReceipts is removed only by the peer's final closure (:557-559), impossible while a frame is lost.
+- Consequences: after one lost frame and two boundaries, the next boundary is EPOCH_CAPACITY (core) and
+  RECEIPT_CONTEXT_CAPACITY (delivery), and every later ordinary frame is EPOCH_UNKNOWN; all inbound traffic from that
+  peer waits for the lost frame. At #1831 it heals at the sender's next receive (re-push on every receive); under C05
+  BU8 the exact re-push comes after H_REC (259,200 s), so one lost frame can cost up to three days of inbound silence.
+  The delivery-layer context budget (1 send + 2 recv) tolerates ZERO retained epochs beyond the active one.
+- Named repair (for F06 and F11; NOT repaired here): F06 -- core:688 counts the prospective epoch set, and F06 decides
+  the context budget under one retained epoch (V608 arm); F11 -- the re-push cadence becomes gap-driven (a DEFER-P
+  P2/P6/P7 triggers the exact re-push of the missing slots at the next pass, not after H_REC; C5-O4). F03 carries the
+  "withhold one frame, deliver it later" fixture capability as a NOT_RUN marker.
+- Successor: the candidate is evidence only (D-1425).
+
+### ENG-0365 -- MAIN: THE ONE WRITE PRIMITIVE DISCARDS THE DIRECTORY-FLUSH RESULT (fsync_dir_best_effort; PLAN F02 formalization E-3) -- NO POWER-LOSS CLAIM MAY REST ON IT
+
+- Type: defect (qsl-protocol main 3de1572b, the qsc engine). Status: open (filed; repair NOT done; named for PLAN card
+  F05; a constraint on the C07 contract).
+- Originating lane: NA-0784 (its F02 formalization, before the lane). Last lane: NA-0784. Last-updated: 2026-09-24.
+  Ruled: RULING_F02_formalization_2026-09-24 (sha256
+  7d268aaee5798dd5e5301ca8f25648e734b5ce333003cd4ab8cfe3660f74ac14) R4; recorded by D-1435. Source: the F02
+  formalization REPORT.md (sha256 b781656dd064bfec438f1a4c9214025d43e1b9ae96619ee0ac35d3d9e8eb0637) E-3.
+- Finding (source reading at main 3de1572b, client qsl/qsl-client/qsc/src; re-read at this edit; NOT RUN):
+  fs_store/mod.rs:492-493 `pub(crate) fn fsync_dir_best_effort(dir: &Path) {` /
+  `let _ = File::open(dir).and_then(|d| d.sync_all());` discards the result; it is called by write_atomic (:252) and
+  by vault init (vault/mod.rs:771). The C07 design's A4 requires every write and flush result to be checked.
+- Consequences: a rename can be reported durable while its directory entry is not; no power-loss claim (C07, F02
+  Part B, F18) can rest on today's primitive.
+- Named repair (for F05; NOT repaired here): a CHECKED directory flush whose failure fails the commit; the C07
+  contract may not rest a power-loss claim on the current primitive. F02's standalone prototype uses checked flushes
+  and does not touch production persistence.
+
+### ENG-0366 -- MAIN (AND THE #1831 CANDIDATE): AUTHORITATIVE STATE LIVES IN WRITER FILES OUTSIDE THE VAULT; AN ANCHOR OVER THE VAULT ALONE LEAVES THEIR ROLLBACK UNDETECTED (PLAN F02 formalization E-4) -- GATE FOR F03-F05
+
+- Type: design gap (qsl-protocol main 3de1572b; the #1831 candidate ffc8fc52 has the same shape). Status: open (filed;
+  owned by the C07 contract as an implementation gate for F03-F05; nothing repaired here).
+- Originating lane: NA-0784 (its F02 formalization, before the lane). Last lane: NA-0784. Last-updated: 2026-09-24.
+  Ruled: RULING_F02_formalization_2026-09-24 (sha256
+  7d268aaee5798dd5e5301ca8f25648e734b5ce333003cd4ab8cfe3660f74ac14) R4; recorded by D-1435. Source: the F02
+  formalization REPORT.md (sha256 b781656dd064bfec438f1a4c9214025d43e1b9ae96619ee0ac35d3d9e8eb0637) E-4.
+- Finding (source reading, client qsl/qsl-client/qsc/src; NOT RUN): at main 3de1572b, calls of write_atomic (the form
+  `write_atomic(`, fs_store/mod.rs:252 its call of the unchecked flush) appear in 9 source files -- dedup, fs_store,
+  identity, msgqueue, protocol_state, quarantine, transport, vault/mod.rs, vault/protection.rs (the F02 seat's census
+  and this edit's re-measurement agree; the formalization REPORT E-4 and the ruling's R4 say "ten", which is the
+  candidate's count): session blobs, SCKA monotonic state, message queue, seen-inbound replay set, outbox/send state,
+  dedup, identity, quarantine and the unlock counter live outside the vault. The candidate ffc8fc52 adds
+  commit_directional_pair (vault/mod.rs:2057) and has calls in 10 files (directional_delivery.rs added). The C07
+  design (A4 :72) anchors "every authoritative vault replacement" and requires all other state be projection or
+  vault-authenticated; the design labels that coverage UNVERIFIED.
+- Consequences: a rollback of any authoritative file outside the vault is undetected by an anchor over the vault
+  alone, in every C07 profile.
+- Named repair (the C07 contract, as an implementation gate for F03-F05; NOT repaired here): the contract enumerates
+  every authoritative file and requires each to be inside the anchored vault, or a projection, or vault-authenticated;
+  F03-F05 may not claim rollback coverage for a file the enumeration does not place. The pre-unlock state (the unlock
+  counter and attempt limit, vault/protection.rs:512-534) is the named exception domain of F02 E-5 (R5).

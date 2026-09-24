@@ -534,3 +534,19 @@ the per-peer share H_P; Q6 blocked = full stop; Q7 (a); Q8 the operator gives fi
 functions. Where each lands: the FIXES section.
 
 END OF C05 FINAL
+
+==============================================================================================================
+AMENDMENTS (appended by D-1434; the text above is C05 FINAL as merged by D-1433 and is NOT rewritten)
+==============================================================================================================
+Ruled by RULING_NA0783_C05_PR1843_2026-09-24 (sha256 258b63a5bc782edf69f4c7350827b57650cb43b02c404bf2a0c85702bcee7442),
+R3, on escalation E3 of the C05 commit: "CONFIRMED as the ruling's intent -- PREPARED application flights queued to a
+contact before a block are NOT pushed or re-pushed while blocked (BU2 / BU8 exception). OWED as one clause in the next
+amendment (the C06 boundary commit), recorded here so F11 builds it." The operator's final approval (Q8) is banked
+verbatim in RBANK_C05_operator_approval_2026-09-24 (sha256
+d9b0c3749151f05c1fc751b855b2a2337242017594ea5ebb29059d2d857ce5cb) and recorded by D-1434: C05 is ACCEPTED, no longer
+pending that approval. Where the amendment and the text above disagree, the amendment governs.
+| Id | Amends | Amendment |
+|---|---|---|
+| AM-1 (R3; the C05 commit's E3) | T3 BU2 (2) and BU8; T1 K11 | PREPARED application flights queued to a contact before it was blocked are neither pushed (BU2 (2), the application round-robin across peers) nor re-pushed (BU8) while that contact is blocked: the BU2 / BU8 exception, beside BU2 (2)'s existing exception for the blocked contact's owed controls and receipts (K11, Q6). Unchanged: those flights stay PREPARED, committed protocol debt (C04 R04: released only by an authenticated exact receipt or an explicit session close; THE PLAN D08); the block retires, fails and deletes none of them. F11 builds it. V1117's case (owed receipts and controls) holds no PREPARED application flight from before the block; F11 adds that case to V1117 (named here, not written) |
+
+END OF C05 AMENDMENTS

@@ -715,5 +715,24 @@ row above. Whether the candidate section's TEXT is carried anywhere stays OPEN (
 | :670 Development vault envelope | QSCV03, schema 3 (the candidate's code: payload version 4) | RETIRED value (A21); recognised-old under A11, refused | A11, A13 |
 | :671 Packed queue record | schema 1, protocol directional-v1 | RETIRED value (A21) | A17 |
 
+### 12.3 C02 allocations (invitation authentication) and the A04 amendment
+
+Added for PLAN card F01 contract C02 (invitation authentication): `docs/ops/contracts/C02_invitation_authentication.md`,
+ACCEPTED WITH NAMED FIXES and recorded by D-1427. The contract is the rationale (T1a-T8 are its sections); this table is
+the allocation, which takes effect when this subsection merges. Sections 12.1 and 12.2 are not edited: row A04-AM1
+below supersedes row A04's value, as C01's appended amendment AM-2 records. Refusal spellings the contract marks NEW are
+registered in DOC-SCL-002 by the implementing PR (the contract's OC12, as C01's O9); this subsection allocates
+identifiers, not error codes. Values that depend on A02 (the profile string) stay OPEN with it (O2).
+
+| Row | Namespace | Exact allocation | Refusal when absent / different | Status |
+|---|---|---|---|---|
+| A04-AM1 | QHSM version (AMENDS A04; C01 O11 RESOLVED) | 3; versions 1 and 2 refused on the successor path. Frame layouts (C02 T1c), each after the header "QHSM" ++ u16 3 ++ type ++ u16 block_len ++ block, block = A01 suite block ++ A03 parameter: A1 = sid 16, kem_pk 1184, sig_pk 1952, dh_pub 32, resp_kem_ct 1088, eph_kem_pk 1184 (a fresh ML-KEM-768 key per attempt); B1 = sid 16, kem_ct 1088, eph_kem_ct 1088, mac 32, sig_pk 1952, sig 3309, dh_pub 32; A2 = sid 16, mac 32, sig 3309. The PQ combiner input list is [ss_eph, ss_pq, resp_kem_ss]. In A04's label list, QSC.HS.SID is a test-seam label, not a domain label (C01 AMENDMENTS AM-3) | v1, v2 -> REJECT_QSC_HS_INTEGRATION_REQUIRED; other -> handshake_version | ALLOCATED (amendment; supersedes A04's value 2) |
+| C02-01 | Invite code | prefix "QSLI-2-" ++ base64url without padding (canonical trailing bits) of the C02-02 payload; raw input at most 2048 bytes before trim or decode; trimmed code at most 859 characters | over 2048 -> invite_code_too_long; "QSLI-1-" -> invite_version_unsupported; other "QSLI-" -> invite_version_newer; else invite_malformed | ALLOCATED |
+| C02-02 | Invite payload v2 | ver 0x02, type 0x01, profile (u8 length 1..50 ++ A02 bytes), invite_id 16, expiry u64, relay_ep (u16 length 1..512 ++ bytes in the contract's canonical relay_ep grammar, T1a), bearer_secret 16, commit 32 (SHA-256 of DS_COMMIT ++ the canonical bundle); no trailing bytes; at most 639 bytes. Signed ML-DSA-65 over "QSL.invite.payload.v1" ++ payload (label bytes kept) | ver 0x01 -> invite_version_unsupported; other ver -> invite_version_newer; type -> invite_type_unknown; profile -> invite_profile_unsupported; else invite_malformed | ALLOCATED; profile value OPEN (O2) |
+| C02-03 | Handshake envelope | magic "QSLH" (51 53 4C 48), env_ver 0x02, env_type 0x01 (A1) / 0x02 (B1); the fields in the fixed order of C02 T1b; relay_ep equal to the invitation payload's; signature ML-DSA-65, 3309 bytes, over DS_ENV_T ++ envelope[0 .. offset(sig)); a received envelope over ENV_MAX = 12288 bytes is refused before any parse | QSLH-1 first bytes 01 01 / 01 02 -> handshake_envelope_version_retired; other env_ver -> handshake_envelope_version_unsupported; env_type -> handshake_envelope_type; size -> handshake_envelope_too_large; structure -> handshake_envelope_malformed; profile -> handshake_envelope_profile; form -> handshake_envelope_noncanonical; binding -> handshake_envelope_binding; A1 bearer tag -> invite_bearer_invalid; signature -> handshake_envelope_signature_invalid | ALLOCATED; profile value OPEN (O2) |
+| C02-04 | Domain labels (NEW) | QSL.invite.redeem-cap.v1 (redeem_cap = KMAC<16>(bearer_secret, label, invite_id)); QSL.invite.bearer-key.v1 (K_bearer = KMAC<32>(bearer_secret, label, invite_id)); QSL.handshake.bearer.v1 (the A1 bearer tag, KMAC<32> keyed by K_bearer); QSL.handshake.envelope.A1.v1 and QSL.handshake.envelope.B1.v1 (DS_ENV_A1, DS_ENV_B1) | n/a (labels) | ALLOCATED |
+| C02-05 | Domain labels (KEPT) | QSL.invite.identity-commitment.v1 (DS_COMMIT); QSL.invite.payload.v1 (DS_SIG); QSC.HS.ROOT.COMBINE.v1; QSC.HS.PQ; QSC.HS.DHINIT; QSC.HS.TRANSCRIPT; QSC.HS.TRANSCRIPT.H; QSC.HS.CONFIRM; QSC.HS.A2; QSC.HS.SIG.B1; QSC.HS.SIG.A2 | n/a (labels) | EXISTING (bytes kept) |
+| C02-06 | RETIRED by C02 (refused, never reused) | "QSLI-1-" codes and invite payload v1; the QSLH-1 envelope (ENVELOPE_VER 0x01, TAG_BUNDLE 0x01, TAG_ROUTE_TOKEN 0x02, TAG_A1 0x03, TAG_B1 0x04, types 0x01/0x02 of that version); QHSM versions 1 and 2; the bare (unenveloped) A1/B1 on the successor mailbox | per rows C02-01, C02-03 and A04-AM1; a bare A1/B1 is not accepted on the successor mailbox (contract OC7) | RETIRED |
+
 ---
 End of DOC-CAN-003

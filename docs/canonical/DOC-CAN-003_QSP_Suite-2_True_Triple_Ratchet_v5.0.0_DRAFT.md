@@ -771,5 +771,24 @@ PRs (C02 OC12, C03 C3-O10).
 | C03-04-AM1 | Relay capability advertisement (AMENDS C03-04; C03 AMENDMENTS AM-6) | the successor client also requires v2.max_body_bytes >= 12288 (= C02 ENV_MAX, row C02-03), v2.pull_max_items >= 1 and v2.lease_secs >= 1 | a value below its floor -> relay_v2_unsupported (client), before any v2 call; a 401 on server-info -> relay_unauthorized (existing client code), not relay_v2_unsupported | ALLOCATED (amendment; adds to C03-04) |
 | A04-ST1 | QHSM version (STATUS OF A04) | A04 value 2 SUPERSEDED by A04-AM1; not allocated. The successor QHSM version is 3 (row A04-AM1) | per A04-AM1 | SUPERSEDED |
 
+### 12.6 C04 allocations (ownership and accounting)
+
+Added for PLAN card F01 contract C04 (ownership and accounting): `docs/ops/contracts/C04_ownership_and_accounting.md`,
+ACCEPTED WITH NAMED FIXES and recorded by D-1431. The contract is the rationale (T1-T9 are its sections). Sections
+12.1-12.5 are not edited (as 12.3-12.5 state for their predecessors); rows are appended here only. C04 allocates NO wire
+or local-schema identifier and no VaultPayload field (C01 O13): its rows fix reservation DIMENSIONS and their owners and
+apply rows A13 and A17 without changing them. Values the contract leaves to measurement stay OPEN or HYPOTHESIS; its
+word PROPOSED stays PROPOSED here. Refusal spellings the contract marks NEW (msgqueue_queue_full,
+msgqueue_queue_bytes_full, history_full and the Q11 code) are PROPOSED and are registered in DOC-SCL-002 by the
+implementing PR (C01 O9); this subsection allocates identifiers, not error codes. Row C03-04-AM2 amends row C03-04-AM1
+as C03 AMENDMENTS AM-18 records.
+
+| Row | Namespace | Exact allocation | Refusal when absent / different | Status |
+|---|---|---|---|---|
+| C04-01 | Reservation dimensions and owners | R01-R14 of the contract's T1, each with exactly ONE durable owner: the paired owner (CapacityOwner, PeerReserve, SessionControlReserve, OwnerEntry) inside the successor vault's owner secret, the Transaction for R04/R05, the msgqueue_v2 row for R08/R09 before PREPARED; no counter file and no second database; the owner key strings stay OPEN (C01 O5, row A15) | an admission that would exceed a reservation refuses before effects (contract T3 V-R2) | OPEN: dimensions fixed, values not (C4-O1..C4-O5, C4-O8, C4-O13); no identifier allocated |
+| C04-02 | Aggregate and session-reserve limits | B_V 16777216 (L2), H_W 524288, CORE_B 288920, CTRL_B 36775 and the DERIVED per-session reserve 1699966; the ordinary-material L2 ceiling B_V - H_W - n x 1699966 (contract T6 L29); byte-field encoding of the vault and queue OPEN (C4-O7) | directional_aggregate_waiting (EXISTING at the candidate) | HYPOTHESIS (contract T6 L01-L08, L29; F06 proves or re-derives); not allocated |
+| C04-03 | Queue family application (APPLIES row A17; A17 unchanged) | the counted pool = QUEUED plus PREPARED-not-yet-relay-accepted rows across all contacts; admission by slots Q_S, per-peer share Q_P and bytes Q_B with MAXPACK charged at enqueue, under one hold of the store lock, before any directory, file or temporary; record version 2 checked at reopen | msgqueue_queue_full, msgqueue_queue_bytes_full, history_full (PROPOSED spellings, NEW; DOC-SCL-002) | OPEN: values HYPOTHESIS (Q_S 64, Q_B 4194304, Q_P OPEN; C4-O1); spellings PROPOSED |
+| C03-04-AM2 | Relay capability advertisement (AMENDS C03-04-AM1; C03 AMENDMENTS AM-18) | the successor client requires v2.max_body_bytes >= 65536 (= MAX_WIRE, the largest NDE1 wire), replacing the 12288 floor of C03-04-AM1; the pull_max_items and lease_secs floors of C03-04-AM1 are unchanged | a value below 65536 -> relay_v2_unsupported (client), before any v2 call | ALLOCATED (amendment; its max_body_bytes floor replaces C03-04-AM1's, which is not allocated) |
+
 ---
 End of DOC-CAN-003

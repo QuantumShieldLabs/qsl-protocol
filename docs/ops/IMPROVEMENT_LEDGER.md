@@ -7766,6 +7766,7 @@ left unbuilt for a stated reason, not overlooked. None is a blocker.
 - Cross-references: `ENG-0293`; `ENG-0298` family (desktop); NA-0779 (`D-1422`).
 - Evidence: `AUDIT_qsl-desktop_2026-09-03.md` sha256 `40b8bceca2f1673f441b6a66d11c97c1ab840dd1cffe677908065d177dd96e50` (20677 B) -- as measured on the upload by the Director (`TRIAGE_AND_PLAN` sec 0); NOT on this box at this edit (E-1 of `STOP_NA0779_001`).
 - Source: `TRIAGE_AND_PLAN` sec 1 G.
+- ADDENDUM 2026-09-25 (NA-0784 ledger rider, D-1436; RULING_REVIEWS_2026-09-24 sha256 c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483 R1 "RD-01's verified fix is accepted as an addendum to ENG-0324", R3 b): REVIEW-desktop RD-01 (REVIEW-desktop_FINDINGS.md sha256 8f29822b42cdf8675a73ca5ee225b67e693c60f50f09f8a2613a037ec00e3b20; ALREADY-KNOWN under this entry's audit item, the resettable counter under ENG-0319) MEASURED A CONSEQUENCE at qsl-desktop main 92cba80a: wipe_arm and wipe_disarm (src-tauri/src/commands.rs:406-426, re-read at this edit) run with no unlocked-state check, and qsc's set_attempt_limit resets failed_unlocks and last_failure on every arm or disarm, so wipe_arm/disarm called while LOCKED reset the unlock-delay counter (RUN, rv01_red_base EXIT 101: failed_unlocks 3 -> 0 and retry_after_s 4 -> 0 while locked; bounded to the online brake, ENG-0319; MINOR); verified diff fixes/RD-01.diff sha256 b22615bdd4cc33bd34891f0c141bfc740fbd20ca6ee2845cfccaeb6a827f36df (wipe_arm and wipe_disarm return Err("vault_locked") unless unlocked, checked inside the gateway closure; RED EXIT 101 -> GREEN, full non-ignored suite EXIT 0, 250 passed; the review's scratch copy only), CARRIED BY TMP-desktop-lock (RBANK_fix_lanes_A_B sha256 1e72163789d0a6366f8e599f361f8c8277796513ccf880b6aa02a9cce86ed00d) with an SR-15 read before merge (the lock-state gate). Nothing above is edited.
 
 ### ENG-0325 — THE qsc PIN BUMP IS A PRE-MERGE CHECKLIST LINE FOR EVERY qsl-protocol PR THAT TOUCHES qsc (G-02) -- P4: THE DESKTOP RIDES `63ece4fe`, 26 COMMITS BEHIND PROTOCOL MAIN
 
@@ -8487,3 +8488,267 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   every authoritative file and requires each to be inside the anchored vault, or a projection, or vault-authenticated;
   F03-F05 may not claim rollback coverage for a file the enumeration does not place. The pre-unlock state (the unlock
   counter and attempt limit, vault/protection.rs:512-534) is the named exception domain of F02 E-5 (R5).
+
+### ENG-0367 -- MAIN: AN A1 REPLAYED AFTER A COMPLETED HANDSHAKE IS PROCESSED AS A FRESH A1 ON THE NO-PENDING ARM; A RESPONDER PENDING IS MINTED UNDER THE COMMITTED SID AND A FRESH SIGNED B1 LEAVES PER REPLAY (REVIEW-crypto K2-A) -- MINOR
+
+- Type: defect (qsl-protocol main, the qsc handshake). Status: open (filed; repair NOT done; carried by PLAN card F10
+  with the verified diff as its starting patch).
+- Originating lane: NA-0783 reserve (the read-only crypto review, 2026-09-24). Last lane: NA-0784 (filed at its ledger
+  rider). Last-updated: 2026-09-25. Ruled: RULING_REVIEWS_2026-09-24 (sha256
+  c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483) R1 (NEW, MINOR), R3 c (carrier), R3 d (this entry);
+  recorded by D-1436. Source: REVIEW-crypto_FINDINGS.md (sha256
+  87d6675f0344a8ec3a100fa4ecb7176a6614099d937d0fd64a4af612da82ae11; fable/xhigh seat, no model routing observed) K2-A,
+  sections 2 (K2), 3 and 4; banked 444 in the operator record under REVIEWS/2026-09-24/.
+- Subject revision: qsl-protocol main 3de1572b (the review's subject). Main moved to 6e3f46aa during the review (#1845,
+  records only); the diff between the two over qsl/qsl-client/qsc/src is empty (measured by the review and re-measured
+  at this edit), so every line below holds at 6e3f46aa.
+- Finding (source reading plus a red run in the review's scratch copy; :1677-1685, :2505, :2664 and :2693 re-read at
+  this edit): qsl/qsl-client/qsc/src/handshake/mod.rs:2492-2712, the no-pending arm, decodes an INIT at :2505 and stores
+  a responder pending at :2664 and pushes a fresh signed B1 at :2693. The only replay guards are :2452-2461 (the
+  responder-pending arm) and :2493-2504 / :2748-2760 (CONFIRM and RESP only; hs_frame_session_id :1677-1685 returns None
+  for an INIT by design). Nothing compares the INIT's session_id with the COMMITTED session's. Failing sequence: A and B
+  complete a handshake (sid S); the captured A1 (sid S) is redelivered to B's inbox; B mints a responder pending under S
+  and sends a fresh B1, which A retires as AlreadyComplete; a later legitimate A1 from A lands in the responder-pending
+  arm and is refused until B initiates.
+- Consequences: an availability wedge on re-handshake (ENG-0282's shape, entered by a replay) and one signed B1 per
+  replay (amplification). No key or plaintext exposure; the stored session is untouched. C02 T3 RP4 assumes an "existing
+  guard" that exists only in the responder-pending arm.
+- Severity: MINOR (the review's grade, accepted by RULING_REVIEWS R1).
+- Verified fix: fixes/K2-A.diff sha256 7131fdbc461065a9c25e963fd17398e6c1df05af1acf1a71ce7f79c7b8cba683
+  (REVIEW-crypto_fixes/, SHA256SUMS -c EXIT 0 at this edit): in the no-pending arm, before any effect, refuse an A1
+  whose session_id equals the committed session's for that peer (REJECT_QSC_HS_REPLAY, retired as AlreadyComplete; no
+  pending, no B1). Test tests/review_crypto_k2a_a1_replay_after_completion.rs: RED at base EXIT 101 (the replay produced
+  a B1), GREEN with the diff EXIT 0, 1 passed. VERIFIED in the review's scratch copy only; a synthetic in-process run
+  establishes nothing about production.
+- Carrier (RULING_REVIEWS R3 c): PLAN card F10, the verified diff as the card's starting patch, SR-15 at the card. A C02
+  T3 RP4 amendment is owed at F10: the "existing guard" cell must name this arm, and the successor's replay /
+  idempotence lookup must cover the no-pending arm explicitly.
+- Cross-references: ENG-0282 (the wedge's shape, a different cause); NA-0771 STOP_005 (c) (the mechanism noted in
+  passing, never filed); C02 T3 RP4.
+
+### ENG-0368 -- MAIN: THE SCKA CTXT RECEIVER PERSISTS THE CONSUMED ONE-TIME KEY BEFORE THE RESEEDED SESSION IS WRITTEN; A CUT BETWEEN THE TWO WRITES STRANDS THE PEER'S RESEED (REVIEW-crypto K4-B) -- MINOR
+
+- Type: defect (qsl-protocol main, the qsc SCKA commit ordering). Status: open (filed; repair NOT done; carried by PLAN
+  card F05 with the verified diff as its starting patch).
+- Originating lane: NA-0783 reserve (the read-only crypto review, 2026-09-24). Last lane: NA-0784 (filed at its ledger
+  rider). Last-updated: 2026-09-25. Ruled: RULING_REVIEWS_2026-09-24 (sha256
+  c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483) R1 (NEW, MINOR), R3 c (carrier), R3 d (this entry);
+  recorded by D-1436. Source: REVIEW-crypto_FINDINGS.md (sha256
+  87d6675f0344a8ec3a100fa4ecb7176a6614099d937d0fd64a4af612da82ae11) K4-B, sections 2 (K4), 3 and 4.
+- Subject revision: qsl-protocol main 3de1572b; the lines hold at 6e3f46aa (empty diff over qsl/qsl-client/qsc/src,
+  re-measured at this edit).
+- Finding (source reading plus a red run in the review's scratch copy; lib.rs:2365-2387 and transport/mod.rs:605-614
+  re-read at this edit): qsl/qsl-client/qsc/src/lib.rs:2365-2387, the CTXT arm of qsp_unpack: decap -> recv_pq_reseed ->
+  scka.consume_advkey(target_id) -> qsp_scka_store (protocol_state/mod.rs:783-798 rewrites the blob with the OLD
+  snapshot plus the new SCKA section). The reseeded next_state is written later by the transport commit
+  (transport/mod.rs:605-614, qsp_session_store_with_trigger): two separate write_atomic calls on the same blob. Failing
+  sequence: the peer sends a CTXT boundary targeting our advertised key; write 1 lands (the key consumed and tombstoned;
+  the session still pre-reseed); the process is cut before write 2; on restart the un-ACKed frame is redelivered, the
+  lookup finds no live key -> qsp_scka_target_unknown for ever, and every later frame from the peer fails header
+  authentication.
+- Consequences: a permanent desync until a fresh handshake; PLAN I03 (an interrupted authoritative write recovers
+  old-complete or new-complete) is violated. Availability only; a narrow crash window; no secret exposure.
+- Severity: MINOR (the review's grade, accepted by RULING_REVIEWS R1).
+- Verified fix: fixes/K4-B.diff sha256 048108336db9423525c4a516d04f085644b3baf64eec0f19fc981cfa643e6179: consume the
+  one-time key IN MEMORY in the CTXT arm, carry the updated store in QspUnpackOutcome.scka, and write trigger + SCKA +
+  reseeded snapshot in ONE qsp_session_store_with_trigger_scka call at the transport commit. Unit test src/lib.rs
+  review_crypto_k4b_tests::scka_ctxt_one_time_key_is_not_consumed_on_disk_before_the_session_commit: RED at base EXIT
+  101 (the key consumed on disk after qsp_unpack), GREEN with the diff EXIT 0, 1 passed. The commit half is asserted by
+  reading, not by a cut test. VERIFIED in the review's scratch copy only (synthetic).
+- Carrier (RULING_REVIEWS R3 c): PLAN card F05, the verified diff as the card's starting patch, SR-15 at the card; F05's
+  process-cut instrument is extended with "cut between the SCKA consume and the session write".
+- Cross-references: ENG-0042 (the plaintext-vs-state order; its design note left the SCKA arm out of scope); ENG-0159
+  (the eviction wedge of the same marker, a different cause); PLAN I03.
+
+### ENG-0369 -- MAIN: THE NESTED qsc FUZZ LOCKFILE RESOLVES rustls 0.23.37 (RUSTSEC-2026-0285) AND NO CI STEP AUDITS IT (REVIEW-crypto K7-A) -- MINOR
+
+- Type: dependency hygiene (qsl-protocol main; a repository artifact, not a shipped one). Status: open (filed; repair
+  NOT done; carried by the next qsl-protocol lane authorized to touch lockfiles).
+- Originating lane: NA-0783 reserve (the read-only crypto review, 2026-09-24). Last lane: NA-0784 (filed at its ledger
+  rider). Last-updated: 2026-09-25. Ruled: RULING_REVIEWS_2026-09-24 (sha256
+  c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483) R1 (NEW, MINOR), R3 c (carrier), R3 d (this entry);
+  recorded by D-1436. Source: REVIEW-crypto_FINDINGS.md (sha256
+  87d6675f0344a8ec3a100fa4ecb7176a6614099d937d0fd64a4af612da82ae11) K7-A, sections 2 (K7), 3 and 4.
+- Subject revision: qsl-protocol main 3de1572b; the fuzz lockfile is byte-identical at 6e3f46aa (empty diff, re-measured
+  at this edit; blob 8aba107b).
+- Finding (a cargo audit run in the review, offline, advisory database of 2026-09-22; the lockfile line re-read at this
+  edit): qsl/qsl-client/qsc/fuzz/Cargo.lock resolves rustls 0.23.37 (RUSTSEC-2026-0285, medium 5.3, published
+  2026-09-14, fixed at 0.23.45, which the workspace lock already has); the same audit warns lru 0.16.3
+  (RUSTSEC-2026-0253, unsound, via ratatui-core) and a yanked der 0.8.0; EXIT 1. The workspace Cargo.lock audits clean
+  (0 vulnerabilities, EXIT 0). The public CI audits the workspace lock and the PR lock only
+  (.github/workflows/public-ci.yml:218-235), not the nested lock; the record's "nested qsc fuzz lock audit is green"
+  lines (NA-0442..0447) are stale.
+- Consequences: a repository artifact the record claims to keep green carries a known advisory; no shipped binary is
+  affected.
+- Severity: MINOR (the review's grade, accepted by RULING_REVIEWS R1).
+- Verified fix: fixes/K7-A.diff sha256 4cfa0e4afc919b3db2722813e293418aee2ad53efd60c2dfc8ba491acd55f494, lockfile only:
+  an offline re-resolution of the nested lock against the current qsc manifest (rustls to 0.23.45, der 0.8.0 to 0.8.2;
+  the stale TUI-era crates drop out, 287 -> 240 packages). cargo audit on that file: EXIT 1 before, EXIT 0 after.
+  VERIFIED in the review's scratch copy. Whether to keep a nested lock at all, and adding it to the CI audit step (a
+  workflow edit), are the implementing lane's and the operator's calls.
+- Carrier (RULING_REVIEWS R3 c): the next qsl-protocol lane authorized to touch lockfiles -- PLAN card F12 or a hygiene
+  bundle. It is the D-1424 OWED item (i), "THE FUZZ LOCKFILE LANE" (NA-0782's fuzz lockfile carried OWED). This rider is
+  governance documents only and carries no lockfile byte.
+- Cross-references: D-1424 OWED item (i) and its E-1 / E-4; ENG-0017 (pre-1.0 crates).
+
+### ENG-0370 -- qsl-server v1 RELAY: PULL MEMORY AMPLIFICATION -- NO SERVER-SIDE BYTE BUDGET; ONE PULL HOLDS ABOUT 4.6x THE QUEUED BYTES, REPEATABLE EVERY LEASE (REVIEW-relay-server RS-C1) -- MAJOR
+
+- Type: defect (qsl-server main, the live internet-facing v1 relay). Status: open (filed; repair NOT done; carried by
+  the blessed lane TMP-relay-hardening, then an operator deploy).
+- Originating lane: NA-0783 reserve (the read-only relay-server review, 2026-09-24). Last lane: NA-0784 (filed at its
+  ledger rider). Last-updated: 2026-09-25. Ruled: RULING_REVIEWS_2026-09-24 (sha256
+  c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483) R1 (NEW, MAJOR), R2 (the seat's mid-run model
+  routing, fable -> opus after the hunt list froze, accepted as disclosed), R3 a (carrier), R3 d (this entry); recorded
+  by D-1436. The Director verified the lines on the public remote. Source: REVIEW-relay-server_FINDINGS.md (sha256
+  5a34eebb1fb81c9c961e77e898bc4eda29b97c8961a19fb96a40b958689faa30) RS-C1, sections 1, 3 (R2), 4 and 5.
+- Subject revision: qsl-server main 0c04fa47 (unchanged at this edit by the mirror's main).
+- Finding (a red run in the review's scratch copy; src/lib.rs:516-525, :1183-1187 and :1225 re-read at this edit):
+  src/lib.rs:516-525 PullItem { id: String, data: Vec<u8> } derives Serialize, so each body is a JSON array of decimal
+  integers; :1183-1187 clamps `max` only to max_queue_depth; :1225 returns Json(PullResp { items }), serialised fully in
+  memory; src/store.rs:716-740 materialises every selected body first. No byte budget, no cap on concurrent pulls or
+  in-flight bytes. Measured (C1r_red, EXIT 101): 64 pushes of 256 KiB, one pull -> 64 items, 16777216 raw bytes,
+  59903499 response bytes (ratio 3.571).
+- Consequences (arithmetic from source, NOT RUN): at the source defaults one pull of a full mailbox holds about 1.15
+  GiB; at the rig's configured 65536 about 73 MiB. One bearer holder (every client shares the bearer, ENG-0306; anyone,
+  on an open relay, ENG-0304) can fill up to 256 mailboxes once and re-pull them every lease period (60 s) for the
+  retention TTL with no further upload.
+- Severity: MAJOR (memory exhaustion of the only internet-facing component by any authorized client; the review's grade,
+  accepted by RULING_REVIEWS R1).
+- Verified fix: fixes/RS-C1.diff sha256 7d479a0e3f1fd8885aebd80ce238cbfb9f2e9f10e90ecc8963079eb05189bb7d: a per-pull raw
+  byte budget max(8 MiB, max_body_bytes), always at least one item; rows not taken are neither leased nor deleted. Test
+  tests/review_c1_pull_budget.rs: RED at base EXIT 101, GREEN EXIT 0 (32 items, 8 MiB; the second pull 200); full suite
+  with the fix EXIT 0, 136 passed (baseline 135 plus the new test). The 8 MiB floor keeps the NA-0598 pin. Residual,
+  stated by the review: the integer-array encoding stays; no concurrency cap. VERIFIED in the review's scratch copy on
+  loopback in-process servers only; nothing is established about the deployed relay.
+- Carrier (RULING_REVIEWS R3 a, blessed by the operator in RBANK_fix_lanes_A_B, sha256
+  1e72163789d0a6366f8e599f361f8c8277796513ccf880b6aa02a9cce86ed00d): TMP-relay-hardening on qsl-server (RS-C1 + RS-C2 +
+  RS-C4 in one lane from the verified diffs), then an OPERATOR deploy to the rig. No SR-15 (no crypto or lock region).
+  For v2, F08 should state a server-side per-pull byte budget, which C03 EP3 does not.
+- Cross-references: ENG-0323 (I-01, the same facts filed as metadata and a client parse cap); ENG-0306; ENG-0304;
+  ENG-0356 (a natural rider for the same lane).
+
+### ENG-0371 -- qsl-server v1 RELAY: THE JSON ROUTES PARSE BEFORE ANY BODY CAP (REVIEW-relay-server RS-C2) -- MINOR
+
+- Type: defect (qsl-server main, the live v1 relay). Status: open (filed; repair NOT done; carried by the blessed lane
+  TMP-relay-hardening).
+- Originating lane: NA-0783 reserve (the read-only relay-server review, 2026-09-24). Last lane: NA-0784 (filed at its
+  ledger rider). Last-updated: 2026-09-25. Ruled: RULING_REVIEWS_2026-09-24 (sha256
+  c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483) R1 (NEW, MINOR), R2, R3 a (carrier), R3 d (this
+  entry); recorded by D-1436. Source: REVIEW-relay-server_FINDINGS.md (sha256
+  5a34eebb1fb81c9c961e77e898bc4eda29b97c8961a19fb96a40b958689faa30) RS-C2, sections 3 (R2), 4 and 5.
+- Subject revision: qsl-server main 0c04fa47.
+- Finding (a red run in the review's scratch copy; src/lib.rs:1041-1043, :699, :713-717, :785, :851 and :1240 re-read at
+  this edit): max_body_bytes is checked only in push (src/lib.rs:1041-1043). invite_create parses at :699 and
+  base64-decodes both blobs before its only size check (:713-717); invite_redeem (:785), invite_revoke (:851) and
+  ack_messages (:1240) parse with no size check. These routes are bounded only by the framework's default body limit (2
+  MiB). Measured (C2r_red, EXIT 101; max_body_bytes 65536): 1 MiB redeem and revoke bodies parsed (404), a 1.5 MiB ack
+  accepted (200), a 1 MiB invite_id created (200).
+- Consequences: up to 2 MiB of JSON parsing, hashing and SQL parameter binding per request, partly under the single
+  store mutex, on routes whose legitimate bodies are well under 64 KiB; an oversize invite_id occupies a slot and a
+  global create token. Contradicts the qsl-server README's "every limit has a default, a ceiling, and a deterministic
+  error".
+- Severity: MINOR (bounded per request; the review's grade, accepted by RULING_REVIEWS R1).
+- Verified fix: fixes/RS-C2.diff sha256 4a81e596008f513240f065c470b5a558a25f5b0115c7a0ab9efe8fae6b797332: each JSON
+  route checks body.len() against its own cap BEFORE any parse (redeem and revoke 4 KiB, ack 1 MiB -> 413 ERR_TOO_LARGE;
+  create from max_invite_bundle_bytes -> 413 ERR_INVITE_TOO_LARGE, before the create bucket). Test
+  tests/review_c2_json_body_caps.rs: RED at base EXIT 101, GREEN EXIT 0 (positive controls unchanged); full suite EXIT
+  0, 136 passed. New observable, stated: 413 ERR_TOO_LARGE on redeem, revoke and ack (an SR-18 census line for the
+  carrier). Residual: the framework still buffers up to its default before the handler (a one-line follow-up named by
+  the review). VERIFIED in the review's scratch copy only (synthetic).
+- Carrier (RULING_REVIEWS R3 a; RBANK_fix_lanes_A_B 1e721637...): TMP-relay-hardening on qsl-server, then the operator
+  deploy. No SR-15. For v2, F08's instrument should include the four oversize vectors (C03 T3 already demands the cap
+  before any parse).
+- Cross-references: ENG-0307 (S-06, id shape validation after the parse; a partial overlap).
+
+### ENG-0372 -- qsl-server v1 RELAY: THE PER-REQUEST RETENTION SWEEP CANNOT USE ITS INDEX (REVIEW-relay-server RS-C4) -- MINOR
+
+- Type: defect (qsl-server main, the live v1 relay; a structural cost). Status: open (filed; repair NOT done; carried by
+  the blessed lane TMP-relay-hardening).
+- Originating lane: NA-0783 reserve (the read-only relay-server review, 2026-09-24). Last lane: NA-0784 (filed at its
+  ledger rider). Last-updated: 2026-09-25. Ruled: RULING_REVIEWS_2026-09-24 (sha256
+  c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483) R1 (NEW, MINOR), R2, R3 a (carrier), R3 d (this
+  entry); recorded by D-1436. Source: REVIEW-relay-server_FINDINGS.md (sha256
+  5a34eebb1fb81c9c961e77e898bc4eda29b97c8961a19fb96a40b958689faa30) RS-C4, sections 3 (R2), 4 and 5.
+- Subject revision: qsl-server main 0c04fa47.
+- Finding (a red run in the review's scratch copy; src/store.rs:234, :299 and :315 re-read at this edit): both retention
+  predicates put an expression on the indexed column -- src/store.rs:299 `m.enqueued_at + ?1 <= ?2` and :315 `DELETE
+  FROM messages WHERE enqueued_at + ?1 <= ?2` -- so idx_messages_enqueued (:234) is unusable. sweep_expired runs on
+  every push (via route_status, :366), in pull (:715), ack (:809) and invite_create (:415), besides the 60 s background
+  sweep, all under the one store mutex. Measured (C4r_red, EXIT 101): the query plan of the retention DELETE is "SCAN
+  messages".
+- Consequences: every request full-scans `messages` under the global lock; a client that fills mailboxes raises every
+  other user's request cost. Latency NOT measured.
+- Severity: MINOR (the review's grade, accepted by RULING_REVIEWS R1).
+- Verified fix: fixes/RS-C4.diff sha256 5d69ab8f62b4c168f79f9a8566b90c06ed981d7ce2db5ac1726e693288bf42ea: both
+  predicates rewritten sargable as `enqueued_at <= ?2 - ?1` (the same rows for integer columns), the two SQL strings
+  named as constants. In-crate test src/store.rs review_c4_tests::review_c4_retention_delete_uses_the_enqueued_index:
+  RED EXIT 101 ("SCAN messages"), GREEN EXIT 0 (a covering-index search); full suite EXIT 0, 136 passed. The fix changes
+  neither the sweep's timing nor the set of rows it deletes, so it neither repairs nor worsens ENG-0356. VERIFIED in the
+  review's scratch copy only (synthetic).
+- Carrier (RULING_REVIEWS R3 a; RBANK_fix_lanes_A_B 1e721637...): TMP-relay-hardening on qsl-server, then the operator
+  deploy. No SR-15. For v2, F09's bounded cleanup should use the sargable form from the start.
+- Cross-references: ENG-0356 (the lazy sweep in route_status is its mechanism; stated entanglement, no change to it).
+
+### ENG-0373 -- qsl-desktop: VIEW > RELOAD LEAVES THE ENGINE UNLOCKED UNDER THE UNLOCK SCREEN; VAULT-BACKED COMMANDS ANSWER WITHOUT THE PASSPHRASE AND THE AUTOLOCK NEVER FIRES AGAIN (REVIEW-desktop RD-02) -- MAJOR
+
+- Type: defect (qsl-desktop main, the lock path). Status: open (filed; repair NOT done; carried by the blessed lane
+  TMP-desktop-lock, SR-15 before merge).
+- Originating lane: NA-0783 reserve (the read-only desktop review, 2026-09-24). Last lane: NA-0784 (filed at its ledger
+  rider). Last-updated: 2026-09-25. Ruled: RULING_REVIEWS_2026-09-24 (sha256
+  c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483) R1 (NEW, MAJOR), R3 b (carrier), R3 d (this entry);
+  recorded by D-1436. The Director verified the boot block on the public remote. Source: REVIEW-desktop_FINDINGS.md
+  (sha256 8f29822b42cdf8675a73ca5ee225b67e693c60f50f09f8a2613a037ec00e3b20; opus/high seat) RD-02, sections 0, 3 (D4), 4
+  and 5.
+- Subject revision: qsl-desktop main 92cba80a (unchanged at this edit by the mirror's main); qsc pin 08c0e327.
+- Finding (a GUI-harness red run on a pinned base binary; lib.rs:669-675 and main.js:4188-4201 re-read at this edit):
+  src-tauri/src/lib.rs:669-675, the "qsl-reload" menu item evals location.reload() (the View menu exists only while
+  unlocked); ui/main.js:4188-4201, the boot block, awaits settings_get and app_info and then route() with no lock_now;
+  route() draws the unlock screen (main.js:287-298) and showUnlockScreen does not lock (:263-281); the idle autolock
+  returns early unless the screen is scr-main or scr-settings (:2003-2011). Measured (rd02_red_base, EXIT 1, base binary
+  sha256 609c7c1f...): after location.reload() the unlock screen is visible while protection_status.locked = false and
+  contact_list answers ok without a passphrase.
+- Consequences: the app presents itself as locked while it is not; the passphrase stays in process memory; the autolock
+  is silently off; in the only documented run mode (a debug build) the web inspector is reachable from that screen
+  (RD-11, READ), so every vault-backed command is callable without the passphrase.
+- Severity: MAJOR (a security property broken in a reachable user flow; the review's grade, accepted by RULING_REVIEWS
+  R1).
+- Verified fix: fixes/RD-02.diff sha256 ba9ff11c7652658b40124d0dcdbbcea562fd6a9aeeaae7b841c5d2d479e05279: a boot is a
+  locked start -- the boot block calls lock_now before route() (a no-op on a fresh process). GUI scenario
+  f_w_reload_seals_engine (gui_driver.rs rd02_gui_w_reload_seals_engine): RED on the base binary (2 rows FAIL), GREEN on
+  the fixed binary (sha256 81654929..., 27 steps PASS, EXIT 0; four regression scenarios PASS); full non-ignored suite
+  EXIT 0, 249 passed; test_inventory 273 of 273. VERIFIED in the review's scratch copy only; a synthetic harness run
+  establishes nothing about a user's machine.
+- Carrier (RULING_REVIEWS R3 b; blessed by the operator in RBANK_fix_lanes_A_B, sha256
+  1e72163789d0a6366f8e599f361f8c8277796513ccf880b6aa02a9cce86ed00d): TMP-desktop-lock on qsl-desktop (RD-02 + RD-01 +
+  RD-05 in one lane); the lock path takes an SR-15 read of the diff by a fresh fable seat before merge. PLAN card F13
+  keeps the GUI harness scenario green.
+- Cross-references: ENG-0293 (the lock order); ENG-0324 (the JS-only auto-lock; RD-01's addendum); ENG-0359 (the
+  engine's lock scope); RD-11 (the web-inspector reach, a NOTE).
+
+### ENG-0374 -- qsl-desktop: THE README'S NETWORK-CONTACT PRIVACY CLAIM IS FALSE -- THE SHIPPED LIVENESS TICK AND THE UNLOCK SCAN CONTACT THE RELAY WITHOUT A BUTTON (REVIEW-desktop RD-05) -- MINOR
+
+- Type: documentation defect (qsl-desktop main; a user-facing privacy claim). Status: open (filed; repair NOT done;
+  carried by the blessed lane TMP-desktop-lock).
+- Originating lane: NA-0783 reserve (the read-only desktop review, 2026-09-24). Last lane: NA-0784 (filed at its ledger
+  rider). Last-updated: 2026-09-25. Ruled: RULING_REVIEWS_2026-09-24 (sha256
+  c4ad4cde779eab94bf4e38d5ec02ac815ac7e3a3cec4c0f09437c6e5d25fa483) R1 (NEW, MINOR), R3 b (carrier), R3 d (this entry);
+  recorded by D-1436. Source: REVIEW-desktop_FINDINGS.md (sha256
+  8f29822b42cdf8675a73ca5ee225b67e693c60f50f09f8a2613a037ec00e3b20) RD-05, sections 3 (D4), 4 and 5.
+- Subject revision: qsl-desktop main 92cba80a.
+- Finding (source reading; the README lines re-read at this edit): README.md:27-28 says "It connects only when you ask
+  it to. Nothing reaches the network at launch, in the background, or on a timer. Every connection is the direct result
+  of a button you pressed." While unlocked with a relay configured, the liveness tick (ui/main.js:2175-2191, about 20 s,
+  backing off to 900 s) runs the relay scan (invite_finish and invite_accept pulls, main.js:3446-3499, :3916-3958); the
+  same scan runs at unlock (main.js:863) and when the send or redeem invitation windows open. The sentence was written
+  at NA-0758, before the tick (NA-0763). The tick firing was NOT run.
+- Consequences: a false privacy statement to users about when the app contacts the network.
+- Severity: MINOR (the review's grade, accepted by RULING_REVIEWS R1).
+- Verified fix: fixes/RD-05.diff sha256 a3710b1b7c50fb54fcce652644c73b6b69470d7d64f2eb18beadf2cdc9eeefee: the bullet
+  replaced with what the code does (nothing at launch or while locked; while unlocked with a relay, background checks at
+  unlock, when the invitation windows open and about every 20 s; to the configured relay and each open invitation's
+  relay). Test src-tauri/tests/rd05_readme_network_claim.rs: RED on the base README EXIT 101, GREEN EXIT 0; full
+  non-ignored suite EXIT 0, 250 passed. VERIFIED in the review's scratch copy only.
+- Carrier (RULING_REVIEWS R3 b; RBANK_fix_lanes_A_B 1e721637...): TMP-desktop-lock on qsl-desktop, beside RD-02 and
+  RD-01. No crypto or lock byte: SR-15 not needed for this part.
+- Cross-references: NA-0758 (the sentence), NA-0763 (the tick); the existing README guard pins only an older retired
+  phrase (server_pane.rs:545-553).

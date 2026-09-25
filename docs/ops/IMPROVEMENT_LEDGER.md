@@ -8626,6 +8626,7 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   For v2, F08 should state a server-side per-pull byte budget, which C03 EP3 does not.
 - Cross-references: ENG-0323 (I-01, the same facts filed as metadata and a client parse cap); ENG-0306; ENG-0304;
   ENG-0356 (a natural rider for the same lane).
+- ADDENDUM 2026-09-25 (NA-0784 post-close rider, D-1438; RULING_TMP_relay_hardening_PR75_2026-09-25 sha256 2944eb626d63e849a93cf62f3daf0ba7897562830de8626150fd8e72a7d46d54 R1 "#75 CLEARED"; RECORD_TMP_relay_deploy_DONE_2026-09-25 sha256 e594203babeb38ba26767a15da856770a6601369a003891f84fa86abf818f40c and its addendum RECORD_TMP_relay_deploy_DONE_A1_2026-09-25 sha256 a088b4d99fb859873e77a5027d224eb628f5dd06932f77dd8a2f7f14b44cd332): LANDED in qsl-server #75, merge 45edf9b7730c72a23b05c82753ec36c6933580bb (parents 0c04fa47 + df11df43, measured on the mirror at this edit): one pull returns at most max(PULL_BUDGET_BYTES, max_body_bytes) raw bytes, PULL_BUDGET_BYTES = FINISH_SCAN_BATCH (16) x MAX_BODY_BYTES_CEILING (1 MiB) (src/lib.rs:559-574, :1240) -- the bound ruled by RULING_fix_lanes_and_PR1846 R4(a), larger than the review's 8 MiB floor. DEPLOYED to the rig relay 2026-09-25 by the operator (the Director's record, from the operator's terminal output): installed binary sha256 15ea9012225f9a732df96caa3f6c303e2305347bc0f51a659307950079049901, equal to the expected build; service active; a bad route token answered 401 ERR_UNAUTHORIZED on the direct listener and on the path clients use (A1 F4). Claim boundary (the record's): the refusal case only; an authorized client round trip and server-info mode were NOT measured. The client-side short-pull assumption this budget exposes is ENG-0378. Nothing above is edited.
 
 ### ENG-0371 -- qsl-server v1 RELAY: THE JSON ROUTES PARSE BEFORE ANY BODY CAP (REVIEW-relay-server RS-C2) -- MINOR
 
@@ -8659,6 +8660,7 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   deploy. No SR-15. For v2, F08's instrument should include the four oversize vectors (C03 T3 already demands the cap
   before any parse).
 - Cross-references: ENG-0307 (S-06, id shape validation after the parse; a partial overlap).
+- ADDENDUM 2026-09-25 (NA-0784 post-close rider, D-1438; RULING_TMP_relay_hardening_PR75_2026-09-25 sha256 2944eb626d63e849a93cf62f3daf0ba7897562830de8626150fd8e72a7d46d54 R1; RECORD_TMP_relay_deploy_DONE_2026-09-25 sha256 e594203babeb38ba26767a15da856770a6601369a003891f84fa86abf818f40c + A1 sha256 a088b4d99fb859873e77a5027d224eb628f5dd06932f77dd8a2f7f14b44cd332): LANDED in qsl-server #75, merge 45edf9b7730c72a23b05c82753ec36c6933580bb: body caps checked before parse on the JSON routes (the ruling's verification: "body caps before parse"). DEPLOYED to the rig relay 2026-09-25 (installed sha256 15ea9012..., 401 on the direct and the client path; the record's claim boundary as in ENG-0370's addendum). Nothing above is edited.
 
 ### ENG-0372 -- qsl-server v1 RELAY: THE PER-REQUEST RETENTION SWEEP CANNOT USE ITS INDEX (REVIEW-relay-server RS-C4) -- MINOR
 
@@ -8688,6 +8690,7 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
 - Carrier (RULING_REVIEWS R3 a; RBANK_fix_lanes_A_B 1e721637...): TMP-relay-hardening on qsl-server, then the operator
   deploy. No SR-15. For v2, F09's bounded cleanup should use the sargable form from the start.
 - Cross-references: ENG-0356 (the lazy sweep in route_status is its mechanism; stated entanglement, no change to it).
+- ADDENDUM 2026-09-25 (NA-0784 post-close rider, D-1438; RULING_TMP_relay_hardening_PR75_2026-09-25 sha256 2944eb626d63e849a93cf62f3daf0ba7897562830de8626150fd8e72a7d46d54 R1; RECORD_TMP_relay_deploy_DONE_2026-09-25 sha256 e594203babeb38ba26767a15da856770a6601369a003891f84fa86abf818f40c + A1 sha256 a088b4d99fb859873e77a5027d224eb628f5dd06932f77dd8a2f7f14b44cd332): LANDED in qsl-server #75, merge 45edf9b7730c72a23b05c82753ec36c6933580bb: the retention sweep predicate made sargable (the ruling's verification: "sargable sweep predicate"). DEPLOYED to the rig relay 2026-09-25 (installed sha256 15ea9012..., 401 on the direct and the client path; the record's claim boundary as in ENG-0370's addendum). Nothing above is edited.
 
 ### ENG-0373 -- qsl-desktop: VIEW > RELOAD LEAVES THE ENGINE UNLOCKED UNDER THE UNLOCK SCREEN; VAULT-BACKED COMMANDS ANSWER WITHOUT THE PASSPHRASE AND THE AUTOLOCK NEVER FIRES AGAIN (REVIEW-desktop RD-02) -- MAJOR
 
@@ -8724,6 +8727,7 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   keeps the GUI harness scenario green.
 - Cross-references: ENG-0293 (the lock order); ENG-0324 (the JS-only auto-lock; RD-01's addendum); ENG-0359 (the
   engine's lock scope); RD-11 (the web-inspector reach, a NOTE).
+- ADDENDUM 2026-09-25 (NA-0784 post-close rider, D-1438; RULING_TMP_desktop_lock_PR63_2026-09-25 sha256 a6bcbf145d774a9d9599b21a099c56c3de9bd374527c80ba8b564b0a6ffc0828; RULING_TMP_desktop_lock_PR65_2026-09-25 sha256 1d872ebfb2120997ca376471f6483809dc5b37ae2478a54c40c5fe8b04adcb74 R2; SR15_PR63_FINDINGS.md sha256 d6d43a32e76f6b638cd3b8810f35a6febd8d9c9940e71570fd1d7a4b8e068f6d): LANDED in qsl-desktop #63, merge 8b6f18f7d8ba08e3c7cace6d36cc24c812054804 (parents 92cba80a + c44c25cc): the boot block calls lock_now before route(). The fail-open boot seal #63 left (SR15_PR63 L1: a rejected lock_now was swallowed and the unlock screen drawn anyway) and the four locked-command gates (L5-a / L7-a: settings_set, relay_config_set, relay_test and relay_probe refuse while locked; commands.rs:455, :856, :875, :1017) LANDED in qsl-desktop #65, merge 99c7c8aaeede8d42338e29f29fc5175adf65fb03 (parents 8b6f18f7 + 4eaebee5; merged 2026-09-25T19:01:46Z, measured at this rider's STEP 0), cleared by RULING_TMP_desktop_lock_PR65 R2 after an SR-15 read (SR15_PR65_FINDINGS.md sha256 6f436ec8ae419ec11b6b9bd1947a9b3eddc2797c768e3f22bc1db51daca7a678: no BLOCKER, no MAJOR). Remainder carried by ENG-0379 (lock truth, F13) and ENG-0380 (test hardening, the next desktop lane). Nothing above is edited.
 
 ### ENG-0374 -- qsl-desktop: THE README'S NETWORK-CONTACT PRIVACY CLAIM IS FALSE -- THE SHIPPED LIVENESS TICK AND THE UNLOCK SCAN CONTACT THE RELAY WITHOUT A BUTTON (REVIEW-desktop RD-05) -- MINOR
 
@@ -8752,6 +8756,7 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   RD-01. No crypto or lock byte: SR-15 not needed for this part.
 - Cross-references: NA-0758 (the sentence), NA-0763 (the tick); the existing README guard pins only an older retired
   phrase (server_pane.rs:545-553).
+- ADDENDUM 2026-09-25 (NA-0784 post-close rider, D-1438; RULING_TMP_desktop_lock_PR63_2026-09-25 sha256 a6bcbf145d774a9d9599b21a099c56c3de9bd374527c80ba8b564b0a6ffc0828; RULING_TMP_desktop_lock_PR65_2026-09-25 sha256 1d872ebfb2120997ca376471f6483809dc5b37ae2478a54c40c5fe8b04adcb74 R2): LANDED in qsl-desktop #63, merge 8b6f18f7d8ba08e3c7cace6d36cc24c812054804: README.md:27 now reads "It connects only while unlocked. Nothing reaches the network at launch or while the ..." (re-read at main 99c7c8aa), pinned by src-tauri/tests/rd05_readme_network_claim.rs. After #65 (merge 99c7c8aaeede8d42338e29f29fc5175adf65fb03) the sentence also holds at the command layer: relay_test and relay_probe, the two UI-unreachable probes that reached out while locked (SR15_PR63 L7-a), now refuse while locked. Nothing above is edited.
 
 ### ENG-0375 -- C07 PROVIDER: A WRONG AUTHORIZATION ON THE PRODUCTION NO_DA-SET INDEX RETURNS TPM_RC_BAD_AUTH, NOT AUTH_FAIL; anchor_auth_failed MUST MAP BOTH (PLAN F02 Phase 4 E2) -- REQUIREMENT FOR F05
 
@@ -8816,3 +8821,117 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   successor directory refuses successor_dir_foreign (C01 O8 L4); F03-F05's census re-run has zero unplaced readers that
   mutate vault state from a disk file (identity/mod.rs:484-489, C01 O6, is the other named one).
 - Owner: PLAN cards F03/F04 (C01 O6 blocks F04; G-366 binds F03-F05).
+
+### ENG-0378 -- MAIN: THE qsc INVITE FINISH SCAN TREATS A SHORT BATCH AS EXHAUSTED (invite/mod.rs:1432-1437); A BYTE-BUDGETED RELAY PULL CAN BE SHORT WITHOUT BEING EMPTY (TMP-relay-hardening E1; RULING_fix_lanes_and_PR1846 R4(b)) -- MINOR
+
+- Type: design gap (qsl-protocol main 6db330d8, the qsc client's invite-finish scan). Status: open (filed; carrier PLAN
+  card F08; nothing repaired here).
+- Originating lane: TMP-relay-hardening (its stop E1, 2026-09-25). Last lane: NA-0784 (filed at its post-close rider).
+  Last-updated: 2026-09-25. Ruled: RULING_fix_lanes_and_PR1846_2026-09-25 (sha256
+  e64f1f8f32dae4d59844239317ef39d1768849de4e17d43927e5a49eefbc5677) R4, option (c), part (b): "the client's 'short batch
+  = exhausted' assumption is filed as an ENG entry at the next governance touch and carried to F08 ... the client must
+  treat only an EMPTY batch as exhausted"; RULING_TMP_relay_hardening_PR75_2026-09-25 (sha256
+  2944eb626d63e849a93cf62f3daf0ba7897562830de8626150fd8e72a7d46d54) R2 (the resume seat's E1 accepted; its sealed
+  reading governs); recorded by D-1438.
+- Subject revision: qsl-protocol main 6db330d8 (the lines below re-read from the mirror at this edit); the relay it
+  pairs with, qsl-server main 45edf9b7 (#75).
+- Finding (source reading; NOT RUN): qsl/qsl-client/qsc/src/invite/mod.rs:1325 `const FINISH_SCAN_BATCH: usize = 16;`
+  and :1432-1437 `if returned < want { // A short batch means the relay had nothing more to give: the unleased head is
+  // exhausted, and pulling again would only re-ask an empty mailbox. head_exhausted = true; break; }`. The scan reads
+  any batch shorter than it asked for as an exhausted mailbox; :1442 then computes `truncated = selected.is_none() &&
+  !head_exhausted`, i.e. false. A relay pull bounded by BYTES (qsl-server #75, RS-C1: at most max(PULL_BUDGET_BYTES,
+  max_body_bytes) raw bytes, src/lib.rs:559-574 and :1240 at 45edf9b7) returns fewer items than asked when the budget
+  binds, while more remain.
+- Consequences: on v1 today, none on the finish scan: #75 set PULL_BUDGET_BYTES = FINISH_SCAN_BATCH x
+  MAX_BODY_BYTES_CEILING (16 x 1 MiB), so no 16-frame finish batch can be cut at any legal configuration
+  (RULING_fix_lanes_and_PR1846 R4(a)); user-driven pulls with --max above 16 can be short, and every such caller
+  tolerates it (the resume seat's measured reading, RULING_TMP_relay_hardening_PR75 R2). The coupling is by constant
+  only (the relay's comment at src/lib.rs:564-570 asks that FINISH_SCAN_BATCH be kept in step with qsc). Under v2 (F08,
+  a relay pull with a byte budget) the assumption would read "more remain" as "mailbox empty": the scan ends early and
+  reports truncated = false while unread frames remain.
+- Severity: MINOR (latent; no v1 finish scan is cut today).
+- Named repair (NOT repaired here): the client treats only an EMPTY batch as exhausted (R4(b)); F08's pull contract
+  states the short-but-not-empty case and the client's continuation rule.
+- Carrier: PLAN card F08.
+- Cross-references: ENG-0370 (RS-C1, the byte budget that makes a short batch legal; landed and deployed, its addendum);
+  the operator record's owed list, OWED.md L2 and D6.
+
+### ENG-0379 -- qsl-desktop LOCK TRUTH, CARRIED TO F13: lock_now RECORDS A LOCK ON EVERY CALL; THE DRAW-SITE SEAL WAITS ON IT; A RELOAD AFTER AN AUTOLOCK REWRITES THE CAUSE; NO RUST-SIDE LOCK BACKSTOP (RULING_TMP_desktop_lock_followup_stop R3/R4; SR15_PR65 H2-a; SR15_PR63 F4 / L3-a) -- MINOR
+
+- Type: design gap and defects (qsl-desktop main 99c7c8aa, the lock path). Status: open (filed; carrier PLAN card F13,
+  C05 lock truth; nothing repaired here).
+- Originating lane: TMP-desktop-lock-followup (its T4 stop, and the SR-15 read of qsl-desktop PR #65), 2026-09-25. Last
+  lane: NA-0784 (filed at its post-close rider). Last-updated: 2026-09-25. Ruled:
+  RULING_TMP_desktop_lock_followup_stop_2026-09-25 (sha256
+  b931851b65d7847d15605553aea6e5c20ae72d62f4f11ae83eff103d0a27f56f) R3 (F3 carried to F13 with option (2) as its design
+  input) and R4 (the pre-existing cause rewrite, carried with R3); RULING_TMP_desktop_lock_PR65_2026-09-25 (sha256
+  1d872ebfb2120997ca376471f6483809dc5b37ae2478a54c40c5fe8b04adcb74) R1 (H2-a MINOR) and R3 FU-2; recorded by D-1438.
+  Sources: SR15_PR65_FINDINGS.md (sha256 6f436ec8ae419ec11b6b9bd1947a9b3eddc2797c768e3f22bc1db51daca7a678; fable/xhigh)
+  H2-a; SR15_PR63_FINDINGS.md (sha256 d6d43a32e76f6b638cd3b8810f35a6febd8d9c9940e71570fd1d7a4b8e068f6d) L3-a, L3-b and
+  the follow-ups F3, F4.
+- Subject revision: qsl-desktop main 99c7c8aa (#65's merge; the lines below re-read from the mirror at this edit).
+- Finding (1), a lock is recorded on every call (source reading; the stop ruling's V1/V2):
+  src-tauri/src/commands.rs:381-387 lock_now runs protection::lock(None) in the gateway and then UNCONDITIONALLY
+  `DebugLog::global().on_lock(cause.as_deref().unwrap_or("user"))`; src-tauri/src/debug_log.rs:638-652 on_lock clears
+  the ring, restarts seq at 1 and pushes gw.lock with the cause. There is no check for an engine that is already locked,
+  so a seal on a locked engine rewrites the recorded cause. Design input for F13 (the stop ruling R3, option (2)):
+  lock_now records a lock only on an unlocked -> locked TRANSITION, so a seal on a locked engine is a true no-op; that
+  changes the desktop's D-0048 debug-log behaviour and is a design ruling for F13's formalization, not a seat's choice.
+- Finding (2), the draw-site seal waits on (1): the seal lives in callers, not at the draw site (SR15_PR63 L3-b, NOTE;
+  follow-up F3: seal inside showUnlockScreen). With (1) unfixed, a seal there would replace an autolock record with
+  cause=user (the stop ruling V3). Moved to F13 by the stop ruling R3.
+- Finding (3), PRE-EXISTING log fidelity (the stop ruling R4; measured by the follow-up seat at the IPC level, not
+  through the GUI): a webview reload after an autolock replaces cause=autolock with cause=user -- the boot seal
+  (ui/main.js:4213 `await invoke("lock_now")`, no cause) runs after the autolock's `invoke("lock_now", { cause:
+  "autolock" })` (:2019). Lock safety is unaffected. Option (2) fixes it too.
+- Finding (4), no Rust-side lock backstop (READ): (a) SR15_PR63 L3-a (MINOR, PRE-EXISTING; follow-up F4): on Linux a
+  web-process crash leaves the engine UNLOCKED with the page's timers dead, so the JS autolock never fires; (b)
+  SR15_PR65 H2-a (MINOR): after a boot seal REJECTED on a reload from an unlocked surface, File > Lock now and File >
+  Settings stay enabled but inert while the engine is unlocked -- the menu item only emits to the page
+  (src-tauri/src/lib.rs:666-667) and the page's listener ignores it with no surface drawn. Reach: a build defect (a
+  dropped registration, a renamed command, an ACL change), not a user act. RULING_TMP_desktop_lock_PR65 R3 FU-2: a
+  native lock on qsl-lock-now and on a rejected seal; the reader's one-line surface report is NOT taken separately (the
+  backstop subsumes it).
+- Consequences: (1) and (3) the debug log can misstate why the vault locked; (4) the engine can stay unlocked with the
+  page's lock controls inert (H2-a, a rejected-seal state) or with the JS autolock gone (L3-a, a web-process crash).
+- Severity: MINOR (each part graded MINOR or NOTE by its ruling; RULING_TMP_desktop_lock_PR65 R2: none is the product
+  failing open in a reachable user flow).
+- Carrier: PLAN card F13 (C05 lock truth), which takes (1) as the design input for (2), (3) and (4).
+- Cross-references: ENG-0373 (RD-02; the boot seal landed in #63 and made fail-closed in #65, its addendum); ENG-0380
+  (the test hardening from the same read); ENG-0359 (lock does not stop the engine); ENG-0324 (the JS-only auto-lock).
+
+### ENG-0380 -- qsl-desktop TEST HARDENING: THE f1 AND t5 TEXT SEALS ACCEPT A COMMENT AND DO NOT SEE A DRAW BEFORE THE SEAL; invoke() LEAVES THE BUSY COUNTER UNBALANCED ON A SYNCHRONOUS THROW; na0700_ipc_replay.rs:457 ASSERTS ONLY is_err (RULING_TMP_desktop_lock_PR65 R3 FU-1, FU-3, FU-4) -- MINOR
+
+- Type: test-strength defects and one cosmetic UI defect (qsl-desktop main 99c7c8aa). Status: open (filed; carrier the
+  next qsl-desktop lane; nothing repaired here).
+- Originating lane: TMP-desktop-lock-followup (the SR-15 read of qsl-desktop PR #65, fable/xhigh), 2026-09-25. Last
+  lane: NA-0784 (filed at its post-close rider). Last-updated: 2026-09-25. Ruled:
+  RULING_TMP_desktop_lock_PR65_2026-09-25 (sha256 1d872ebfb2120997ca376471f6483809dc5b37ae2478a54c40c5fe8b04adcb74) R1
+  (H6-a and H6-b MINOR; H1-a and O-3 NOTEs) and R3 FU-1, FU-3, FU-4; FU-4 first recorded by
+  RULING_TMP_desktop_lock_followup_stop_2026-09-25 (sha256
+  b931851b65d7847d15605553aea6e5c20ae72d62f4f11ae83eff103d0a27f56f) R8; recorded by D-1438. Source:
+  SR15_PR65_FINDINGS.md (sha256 6f436ec8ae419ec11b6b9bd1947a9b3eddc2797c768e3f22bc1db51daca7a678) H6-a, H6-b, H1-a, O-3.
+- Subject revision: qsl-desktop main 99c7c8aa (the lines below re-read from the mirror at this edit).
+- FU-1, H6-a + H6-b (MINOR; MEASURED by the reader with mutants M2-M5 in its scratch copy): the f1 and t5 text seals
+  (src-tauri/tests/f1_boot_seal_fail_closed.rs:25-39, :105-124) use plain str::find over ui/main.js with no comment
+  stripping. M2 (the fail-open swallow restored, plus one comment carrying the matched tokens) and M5 (the ARM handler
+  printing the bare code, the old call kept in a comment): 2 passed, EXIT 0 -- FALSE GREEN. The order check anchors only
+  the first `await route();` (:65-68): M3 (`await showUnlockScreen("main");` before the seal) and M4 (a bare `route();`
+  before the seal): 2 passed, EXIT 0 -- not caught. Repair (test files only): strip comments before matching; forbid
+  show( / route( / showUnlockScreen( before the sealed flag; exactly one route( in the boot; require the call shape
+  `err.textContent = plainError(` in t5; the four mutants are its red arms.
+- FU-3, H1-a (NOTE; PRE-EXISTING, made visible by #65's F1; READ): ui/main.js:19-30 invoke() increments pendingCalls and
+  shows the busy indicator (:24-25) before `return tauriInvoke(cmd, args).finally(...)` (:26); when the IPC is absent
+  altogether, tauriInvoke throws synchronously, .finally is never attached, and the counter is never decremented --
+  "Working..." stays beside the boot notice. Repair: start the chain with a resolved promise so a synchronous throw
+  becomes a rejection and the counter balances.
+- FU-4, O-3 (NOTE; PRE-EXISTING): src-tauri/tests/na0700_ipc_replay.rs:457-462, the locked missing-arg row, invokes
+  relay_config_set with no url and asserts only `missing.is_err()`. Since #65's F2 gate (commands.rs:856, the first
+  statement of relay_config_set) the command refuses while locked, so the row would stay green if IPC ingestion stopped
+  rejecting a missing argument -- the gate masks the instrument. Repair: assert the ingestion error text, not is_err.
+- Consequences: tests that can pass while the property they guard is broken (FU-1, FU-4); a stuck busy indicator in an
+  absent-IPC build (FU-3). No lock semantics are wrong at main because of these.
+- Severity: MINOR (FU-1; FU-3 and FU-4 are NOTEs carried with it).
+- Carrier: the next qsl-desktop lane (RULING_TMP_desktop_lock_PR65 R3). Operator act carried beside it, not an ENG item:
+  promote the gui-driver CI job to required after its green streak (SR15_PR63 L6-a, R3).
+- Cross-references: ENG-0379 (the lock-truth items from the same read); ENG-0373 (RD-02).

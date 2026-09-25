@@ -813,3 +813,443 @@ fn s5_owning_candidate_mismatch_still_emits() {
     assert!(asserted_sec,
         "S5b: an ASSERTED peer's real mismatch MUST still emit the security marker (RULING_006 sec 2, the preserved clause):\n{pt}");
 }
+
+// NA-0780: characterization, not a repair. These passing tests assert the defect.
+// The separately ignored desired-progress arm is deliberately failing on main.
+// Real pinned relay, mock vault/seed helpers; no production-relay or StdCrypto claim.
+// A transparent observer records only routing and frame equality in memory. It does
+// not pull, ack, retry, reorder or decode handshake payloads on the client's behalf.
+#[derive(Clone)]
+struct ReproRequest {
+    at: Instant,
+    path: String,
+    route: String,
+    frames: Vec<(String, Vec<u8>)>,
+}
+
+struct ReproRelay {
+    base: String,
+    trace: Arc<Mutex<Vec<ReproRequest>>>,
+    stop: Option<tokio::sync::oneshot::Sender<()>>,
+    join: Option<thread::JoinHandle<()>>,
+}
+
+impl Drop for ReproRelay {
+    fn drop(&mut self) {
+        let _ = self.stop.take().unwrap().send(());
+        self.join.take().unwrap().join().expect("observer shutdown");
+    }
+}
+
+impl ReproRelay {
+    fn new(upstream: &str) -> Self {
+        let trace = Arc::new(Mutex::new(Vec::new()));
+        let state = (upstream.to_owned(), trace.clone());
+        let (ready_tx, ready_rx) = std::sync::mpsc::channel();
+        let (stop, stopped) = tokio::sync::oneshot::channel();
+        let join = thread::spawn(move || {
+            tokio::runtime::Runtime::new()
+                .unwrap()
+                .block_on(async move {
+                    let socket = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+                    ready_tx.send(socket.local_addr().unwrap()).unwrap();
+                    let app = axum::Router::new()
+                        .fallback(repro_forward)
+                        .with_state(state);
+                    axum::serve(socket, app)
+                        .with_graceful_shutdown(async {
+                            let _ = stopped.await;
+                        })
+                        .await
+                        .unwrap();
+                });
+        });
+        Self {
+            base: format!("http://{}", ready_rx.recv().unwrap()),
+            trace,
+            stop: Some(stop),
+            join: Some(join),
+        }
+    }
+
+    fn requests(&self) -> Vec<ReproRequest> {
+        self.trace.lock().unwrap().clone()
+    }
+
+    fn deliveries(&self, route: &str) -> Vec<(String, Vec<u8>)> {
+        self.requests()
+            .into_iter()
+            .filter(|r| r.path == "/v1/pull" && r.route == route)
+            .flat_map(|r| r.frames)
+            .collect()
+    }
+}
+
+async fn repro_forward(
+    axum::extract::State((upstream, trace)): axum::extract::State<(
+        String,
+        Arc<Mutex<Vec<ReproRequest>>>,
+    )>,
+    req: axum::extract::Request,
+) -> axum::response::Response {
+    use sha2::{Digest, Sha256};
+    let (parts, body) = req.into_parts();
+    let route = parts
+        .headers
+        .get("X-QSL-Route-Token")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_owned();
+    let path = parts.uri.path().to_owned();
+    let bytes = axum::body::to_bytes(body, 2 * 1024 * 1024).await.unwrap();
+    let mut headers = parts.headers;
+    headers.remove("host");
+    headers.remove("content-length");
+    let response = reqwest::Client::builder()
+        .timeout(Duration::from_secs(10))
+        .build()
+        .unwrap()
+        .request(parts.method, format!("{upstream}{}", parts.uri))
+        .headers(headers)
+        .body(bytes)
+        .send()
+        .await
+        .expect("observer upstream");
+    let status = response.status();
+    let headers = response.headers().clone();
+    let bytes = response.bytes().await.unwrap();
+    let mut frames = Vec::new();
+    if path == "/v1/pull" && status.is_success() && status.as_u16() != 204 {
+        let json: serde_json::Value = serde_json::from_slice(&bytes).expect("relay pull JSON");
+        for item in json["items"].as_array().expect("relay items") {
+            let id = item["id"].as_str().expect("relay frame ID").to_owned();
+            let data: Vec<u8> = serde_json::from_value(item["data"].clone()).expect("relay bytes");
+            frames.push((id, Sha256::digest(&data).to_vec()));
+        }
+    }
+    trace.lock().unwrap().push(ReproRequest {
+        at: Instant::now(),
+        path,
+        route,
+        frames,
+    });
+    let mut result = axum::response::Response::new(axum::body::Body::from(bytes));
+    *result.status_mut() = status;
+    *result.headers_mut() = headers;
+    result
+}
+
+fn repro_mint(cfg: &Path, base: &str) -> (String, String) {
+    let code = invite_code(&run_ok(
+        cfg,
+        &["invite", "create", "--relay", base, "--ttl-secs", "3600"],
+    ));
+    (code, newest_invite_id(cfg))
+}
+
+fn repro_redeem(cfg: &Path, code: &str, alias: &str) {
+    let (ok, text) = run_any(cfg, &["invite", "redeem", "--code", code, "--alias", alias]);
+    // No invitation, keys or command arguments in assertion diagnostics.
+    assert!(ok, "redeem command failed");
+    assert!(has_marker_line(
+        &text,
+        "handshake_start",
+        &["role=initiator"]
+    ));
+    assert!(has_marker_line(&text, "handshake_send", &["msg=A1"]));
+}
+
+fn repro_accept(cfg: &Path, slot: &str, alias: &str) -> String {
+    let (ok, text) = run_any(
+        cfg,
+        &["invite", "accept", "--invite-id", slot, "--alias", alias],
+    );
+    assert!(ok, "accept command failed");
+    text
+}
+
+fn repro_status(cfg: &Path, alias: &str) -> (String, String) {
+    let text = run_ok(cfg, &["handshake", "status", "--peer", alias]);
+    let lines = marker_lines(&text, "handshake_status");
+    assert_eq!(lines.len(), 1);
+    (
+        marker_field(lines[0], "status"),
+        marker_field(lines[0], "peer_fp"),
+    )
+}
+
+fn repro_invite_state(cfg: &Path, slot: &str, state: &str) {
+    let text = run_ok(cfg, &["invite", "list"]);
+    let line = text
+        .lines()
+        .find(|line| marker_field(line, "invite") == slot)
+        .expect("local invitation row");
+    assert_eq!(marker_field(line, "state"), state);
+}
+
+fn repro_refused(text: &str) {
+    assert!(has_marker_line(
+        text,
+        "handshake_pending",
+        &["present=true", "role=initiator"]
+    ));
+    assert!(has_marker_line(
+        text,
+        "handshake_reject",
+        &["reason=handshake_type"]
+    ));
+    assert_eq!(count_marker(text, "invite_accept_not_consumed"), 1);
+    assert_eq!(count_marker(text, "producer_ack"), 0);
+    assert_eq!(count_marker(text, "handshake_send"), 0);
+    assert_eq!(count_marker(text, "handshake_complete"), 0);
+}
+
+fn repro_finish(cfg: &Path, alias: &str, base: &str) -> String {
+    let (ok, text) = run_any(
+        cfg,
+        &["invite", "finish", "--alias", alias, "--relay", base],
+    );
+    assert!(ok, "finish command failed");
+    text
+}
+
+fn repro_has_session(status: &str) -> bool {
+    matches!(
+        status,
+        "established" | "established_recv_only" | "awaiting_peer_confirm"
+    )
+}
+
+fn repro_crossed(renamed: bool, redelivery: bool, demand_progress: bool) {
+    let _g = guard();
+    let lease = if redelivery {
+        SHORT_PULL_LEASE_SECS
+    } else {
+        PRODUCTION_PULL_LEASE_SECS
+    };
+    let server = common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, lease);
+    let observer = ReproRelay::new(server.base_url());
+    let base = &observer.base;
+    let root = test_root("na0780_crossed");
+    let a = party(&root, "alpha", ALPHA_INBOX);
+    let b = party(&root, "bravo", BRAVO_INBOX);
+    let (ac, ai) = repro_mint(&a, base);
+    let (bc, bi) = repro_mint(&b, base);
+    assert!(ai != bi && ai != ALPHA_INBOX && bi != BRAVO_INBOX);
+    // Explicit barrier: BOTH persisted initiator starts and A1 sends must pass
+    // before EITHER accept. Each command is a fresh process/unlock, including retries.
+    repro_redeem(&a, &bc, "bravo");
+    repro_redeem(&b, &ac, "alpha");
+    let a_pin = repro_status(&a, "bravo").1;
+    let b_pin = repro_status(&b, "alpha").1;
+    assert!(a_pin.len() == 64 && b_pin.len() == 64 && a_pin != b_pin);
+    assert!(observer.deliveries(&ai).is_empty() && observer.deliveries(&bi).is_empty());
+    let aa = if renamed { "bravo-incoming" } else { "bravo" };
+    let ba = if renamed { "alpha-incoming" } else { "alpha" };
+    let at = repro_accept(&a, &ai, aa);
+    let bt = repro_accept(&b, &bi, ba);
+    assert_eq!(observer.deliveries(&ai).len(), 1);
+    assert_eq!(observer.deliveries(&bi).len(), 1);
+    assert!(observer.deliveries(&ai)[0] != observer.deliveries(&bi)[0]);
+    assert!(
+        repro_status(&a, aa).1 == a_pin && repro_status(&b, ba).1 == b_pin,
+        "accept identity binding changed"
+    );
+    if demand_progress {
+        // Desired property must NOT depend on the characterization's refusal
+        // assertions: a real repair must be able to turn this arm green.
+        repro_finish(&a, "bravo", base);
+        repro_finish(&b, "alpha", base);
+        repro_finish(&a, "bravo", base);
+        let a_status = repro_status(&a, "bravo").0;
+        let b_status = repro_status(&b, "alpha").0;
+        assert!(repro_has_session(&a_status) && repro_has_session(&b_status),
+            "KNOWN REGRESSION ENG-0345: crossed invitations make no local session progress; alpha={a_status} bravo={b_status}");
+        return;
+    }
+    if renamed {
+        // Same identity, NEW storage alias: no existing pending record at that key.
+        assert!(has_marker_line(
+            &at,
+            "handshake_pending",
+            &["present=false", "role=none"]
+        ));
+        assert!(has_marker_line(
+            &bt,
+            "handshake_pending",
+            &["present=false", "role=none"]
+        ));
+        assert!(has_marker_line(&at, "handshake_send", &["msg=B1"]));
+        assert!(has_marker_line(&bt, "handshake_send", &["msg=B1"]));
+        assert_eq!(count_marker(&at, "producer_ack"), 1);
+        assert_eq!(count_marker(&bt, "producer_ack"), 1);
+    } else {
+        repro_refused(&at);
+        repro_refused(&bt);
+    }
+    repro_invite_state(&a, &ai, if renamed { "Redeemed" } else { "Active" });
+    repro_invite_state(&b, &bi, if renamed { "Redeemed" } else { "Active" });
+    let af = repro_finish(&a, "bravo", base);
+    let bf = repro_finish(&b, "alpha", base);
+    if !renamed {
+        assert!(!observer.requests().iter().any(|r| r.path == "/v1/ack"));
+        for text in [&af, &bf] {
+            assert!(has_marker_line(text, "invite_scan_summary", &["scanned=0"]));
+        }
+        assert!(observer.deliveries(ALPHA_INBOX).is_empty());
+        assert!(observer.deliveries(BRAVO_INBOX).is_empty());
+        assert_eq!(repro_status(&a, "bravo").0, "no_session");
+        assert_eq!(repro_status(&b, "alpha").0, "no_session");
+    } else {
+        assert!(has_marker_line(
+            &af,
+            "handshake_complete",
+            &["role=initiator"]
+        ));
+        assert!(has_marker_line(
+            &bf,
+            "handshake_complete",
+            &["role=initiator"]
+        ));
+        // Scan again after both A2s exist, inspecting actual state, not which
+        // caller happened to emit completion during the ordinary-inbox fan-out.
+        repro_finish(&a, aa, base);
+        repro_finish(&b, ba, base);
+        for (cfg, alias) in [(&a, "bravo"), (&a, aa), (&b, "alpha"), (&b, ba)] {
+            let status = repro_status(cfg, alias).0;
+            println!("NA0780 alias_control alias={alias} status={status}");
+            assert!(matches!(
+                status.as_str(),
+                "established" | "established_recv_only" | "awaiting_peer_confirm"
+            ));
+        }
+    }
+    if redelivery {
+        // Let only the remaining lease time elapse. The server uses integer wall
+        // seconds and has no injected clock in the pinned public helper. The
+        // observer's non-consuming request history supplies the original frame IDs.
+        let last_delivery = observer
+            .requests()
+            .into_iter()
+            .filter(|r| !r.frames.is_empty())
+            .map(|r| r.at)
+            .max()
+            .unwrap();
+        thread::sleep(
+            (last_delivery + Duration::from_secs(lease as u64 + 1))
+                .saturating_duration_since(Instant::now()),
+        );
+        let ar = repro_accept(&a, &ai, aa);
+        let br = repro_accept(&b, &bi, ba);
+        repro_refused(&ar);
+        repro_refused(&br);
+        repro_invite_state(&a, &ai, "Active");
+        repro_invite_state(&b, &bi, "Active");
+        for slot in [&ai, &bi] {
+            let frames = observer.deliveries(slot);
+            assert_eq!(frames.len(), 2);
+            assert!(
+                frames[0] == frames[1],
+                "lease returned a different frame or payload"
+            );
+        }
+        // Retrying the consumed invitation ticket is not contact recovery.
+        let (ok, text) = run_any(&a, &["invite", "redeem", "--code", &bc, "--alias", "bravo"]);
+        assert!(!ok, "single-use ticket unexpectedly reusable");
+        assert_eq!(count_marker(&text, "handshake_start"), 0);
+        assert_eq!(repro_status(&a, "bravo").0, "no_session");
+    }
+    let routes = observer.requests();
+    for route in [&ai, &bi] {
+        assert!(routes
+            .iter()
+            .any(|r| r.path == "/v1/pull" && r.route == *route));
+    }
+    for route in [ALPHA_INBOX, BRAVO_INBOX] {
+        assert!(routes
+            .iter()
+            .any(|r| r.path == "/v1/pull" && r.route == route));
+    }
+    println!(
+        "NA0780 crossed renamed={renamed} lease_secs={lease} redelivery={redelivery}: \
+barrier=both_initiators slots=distinct inboxes=ordinary bindings=same_identity \
+restart=fresh_process_per_command measured_progress={renamed}"
+    );
+}
+
+#[test]
+fn na0780_crossed_initiators_refuse_and_redeliver_after_restart() {
+    repro_crossed(false, true, false);
+}
+
+#[test]
+fn na0780_same_identity_under_distinct_accept_aliases() {
+    repro_crossed(true, false, false);
+}
+
+#[test]
+#[ignore = "deliberately failing ENG-0345 progress regression; test-only reproduction, no repair"]
+fn na0780_desired_crossed_invitation_progress() {
+    repro_crossed(false, false, true);
+}
+
+#[test]
+fn na0780_serialized_invitation_completes() {
+    let _g = guard();
+    let server =
+        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, PRODUCTION_PULL_LEASE_SECS);
+    let observer = ReproRelay::new(server.base_url());
+    let root = test_root("na0780_serialized");
+    let a = party(&root, "alpha", ALPHA_INBOX);
+    let b = party(&root, "bravo", BRAVO_INBOX);
+    let (code, slot) = repro_mint(&a, &observer.base);
+    repro_redeem(&b, &code, "alpha");
+    let accepted = repro_accept(&a, &slot, "bravo");
+    assert!(has_marker_line(&accepted, "handshake_send", &["msg=B1"]));
+    assert_eq!(count_marker(&accepted, "producer_ack"), 1);
+    repro_finish(&b, "alpha", &observer.base);
+    repro_finish(&a, "bravo", &observer.base);
+    for (cfg, alias) in [(&a, "bravo"), (&b, "alpha")] {
+        let status = repro_status(cfg, alias).0;
+        println!("NA0780 serial_control alias={alias} status={status}");
+        assert!(repro_has_session(&status));
+    }
+    assert_eq!(observer.deliveries(&slot).len(), 1);
+    assert_eq!(observer.deliveries(ALPHA_INBOX).len(), 1);
+    assert_eq!(observer.deliveries(BRAVO_INBOX).len(), 1);
+    println!(
+        "NA0780 serialized lease_secs=60: both_established=true slot_and_inboxes_distinct=true"
+    );
+}
+
+#[test]
+fn na0780_changed_identity_same_alias_keeps_initiator_role() {
+    let _g = guard();
+    let server =
+        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, PRODUCTION_PULL_LEASE_SECS);
+    let observer = ReproRelay::new(server.base_url());
+    let root = test_root("na0780_identity_alias");
+    let a = party(&root, "alpha", ALPHA_INBOX);
+    let b = party(&root, "bravo", BRAVO_INBOX);
+    let c = party(&root, "charlie", CHARLIE_INBOX);
+    let (ac, ai) = repro_mint(&a, &observer.base);
+    let (bc, _) = repro_mint(&b, &observer.base);
+    repro_redeem(&a, &bc, "peer");
+    let old_pin = repro_status(&a, "peer").1;
+    repro_redeem(&c, &ac, "alpha");
+    let text = repro_accept(&a, &ai, "peer");
+    repro_refused(&text);
+    repro_invite_state(&a, &ai, "Active");
+    let (status, new_pin) = repro_status(&a, "peer");
+    assert_eq!(status, "no_session");
+    assert!(
+        new_pin != old_pin && new_pin == fingerprint(&c),
+        "new contact identity was not provisioned under the existing alias"
+    );
+    assert_eq!(observer.deliveries(&ai).len(), 1);
+    assert!(!observer.requests().iter().any(|r| r.path == "/v1/ack"));
+    println!(
+        "NA0780 identity_variation lease_secs=60: same_alias=true identity_changed=true \
+initiator_pending_survives=true A1_refused=true no_ack=true"
+    );
+}

@@ -8752,3 +8752,67 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
   RD-01. No crypto or lock byte: SR-15 not needed for this part.
 - Cross-references: NA-0758 (the sentence), NA-0763 (the tick); the existing README guard pins only an older retired
   phrase (server_pane.rs:545-553).
+
+### ENG-0375 -- C07 PROVIDER: A WRONG AUTHORIZATION ON THE PRODUCTION NO_DA-SET INDEX RETURNS TPM_RC_BAD_AUTH, NOT AUTH_FAIL; anchor_auth_failed MUST MAP BOTH (PLAN F02 Phase 4 E2) -- REQUIREMENT FOR F05
+
+- Type: requirement (the C07 TPM provider, which does not exist at qsl-protocol main 0159d423). Status: open (filed;
+  owner PLAN card F05; nothing implemented here).
+- Originating lane: NA-0784 (PLAN F02, Phase 4). Last lane: NA-0784. Last-updated: 2026-09-25. Ruled:
+  RULING_NA0784_phase4_and_C07_ACCEPT_2026-09-25 (sha256
+  f3c85a67d2c2bc91b64de4b1d9bdb2ffb0c0c2c211f4254093e75a36bdd821e5) E1 (accepted) and E2 (adopted into C07); recorded
+  by D-1437. Source: the Phase 4 REPORT.md (sha256 f534a89887ded07ddfc6777002cf14bfe21bf5512af46969482faf1a4f3fa686)
+  E1, E2 and QUALIFICATION_PHASE4.md (sha256 21d0398b194f83d20638f1b7584804cfeb0feb52e9a33db7d38982efbd846b3f) Q3.5,
+  Q4.4.
+- Finding (MEASURED on one TPM, the project's build box (Intel PTT, spec rev 1.38), firmware 0x01930001): with
+  TPMA_NV_NO_DA SET -- the production template, C07 T3.1 NV1, TPMA_NV 0x02040044 -- three wrong-authorization reads
+  (Q3.5 twice, Q4.4 once) each returned 0x9A2 TPM_RC_BAD_AUTH ("authorization failure without DA implications") with
+  LOCKOUT_COUNTER 0 -> 0. With NO_DA CLEAR (Phase 1) the same act returned 0x98E TPM_RC_AUTH_FAIL and raised the
+  counter by one. TCG TPM 2.0 Library Part 1 v185 16.6.8: a DA-exempt entity's failure is returned as TPM_RC_BAD_AUTH
+  and no failure counter is incremented. The seat predicted and sealed 0x9A2 before the run.
+- Consequences: a provider that maps only 0x98E / AUTH_FAIL to anchor_auth_failed would misclassify every wrong
+  authorization on the production index.
+- Requirement (C07 T3.6 ER11, ACCEPTED): anchor_auth_failed is returned for TPM_RC_BAD_AUTH (0x0A2 base, any session
+  index) as well as for TPM_RC_AUTH_FAIL; F05's provider tests exercise both. Claim boundary carried with it: the
+  wrong-auth reads were the password form; the HMAC-session form and a NO_DA index while the TPM is in lockout were NOT
+  measured (Phase 4 E4; C07 T11 QQ3).
+- Owner: PLAN card F05 (the provider).
+
+### ENG-0376 -- C01 CENSUS GAP: THE QSC_LOG_PATH MARKER-LOG WRITER (output/mod.rs:391) IS NOT IN THE C01 CENSUS (PLAN F02 phase-3 E7; C07 T8.2 W17) -- MINOR, FOR C01'S OWNER
+
+- Type: record gap (the C01 contract's CENSUS; no product defect). Status: open (filed; owner: C01's owner; nothing
+  repaired here).
+- Originating lane: NA-0784 (PLAN F02, phase 3). Last lane: NA-0784. Last-updated: 2026-09-25. Ruled:
+  RULING_NA0784_phase4_and_C07_ACCEPT_2026-09-25 (sha256
+  f3c85a67d2c2bc91b64de4b1d9bdb2ffb0c0c2c211f4254093e75a36bdd821e5), which accepts C07 and its T8.2 row W17; recorded
+  by D-1437. Source: the phase-3 REPORT.md (sha256 0a84d717e23091985895b13c0fb526f9c914f929f8e3b81ee55f69a38ebd14b9) E7.
+- Finding (source reading at main 0159d423, re-read at this edit; NOT RUN): qsl/qsl-client/qsc/src/output/mod.rs:359-395
+  (log_marker): when QSC_LOG=1 and QSC_LOG_PATH is set and non-empty (:360-366), the file named by QSC_LOG_PATH is
+  opened create + append and one redacted JSON marker line is written, the result discarded (:391-395). The C01 CENSUS
+  has no row for it: `grep -c -E "QSC_LOG_PATH|output/mod" docs/ops/contracts/C01_versions_and_boundaries.md` = 0 at
+  this edit (the same kind of grep for output/mod.rs:391 finds C07's W17 row: 1).
+- Consequences: none for rollback (C07 classifies the file OUTPUT, not state); the census that F03 re-runs under C07's
+  G-366 is short by one env-gated writer until C01 records it.
+- Named repair (NOT repaired here): C01's owner adds the row (class OUTPUT, an env-gated debug log) at C01's next
+  amendment.
+- Owner: C01's owner.
+
+### ENG-0377 -- MAIN: THE LEGACY HANDSHAKE-PENDING FILE IS READ AND MIGRATED INTO THE VAULT (handshake/mod.rs:1249-1273); UNDER C07 A RESTORED OLD FILE WOULD RE-ENTER AS A FRESH, ANCHORED MUTATION (SR-15 m6; C07 T8.2 W23) -- GATE FOR F03/F04
+
+- Type: design gap (qsl-protocol main 0159d423, the qsc engine). Status: open (filed; owner PLAN cards F03/F04 per
+  C07; nothing repaired here).
+- Originating lane: NA-0784 (PLAN F02; the C07 draft's SR-15 read). Last lane: NA-0784. Last-updated: 2026-09-25.
+  Ruled: RULING_SR15_C07_draft_2026-09-25 (sha256 8d42252411ff53cb8e192c68b832d57008e6c1fd135d12e22ba1df2eea7d391d) R4
+  m6 and RULING_NA0784_phase4_and_C07_ACCEPT_2026-09-25 (sha256
+  f3c85a67d2c2bc91b64de4b1d9bdb2ffb0c0c2c211f4254093e75a36bdd821e5); recorded by D-1437. Source: SR15_C07_FINDINGS.md
+  (sha256 c7f9dbe1edefce643ebbe8f17042f414867e23a4dec6fe8ed300d67b78ae5296) m6; C07 T8.2 W23 and G-366.
+- Finding (source reading at main 0159d423, re-read at this edit; NOT RUN): qsl/qsl-client/qsc/src/handshake/mod.rs
+  :1249-1273 -- when the legacy handshake_pending_<self>_<peer>.json exists it is read (:1262), parsed (:1263-1264),
+  written into the vault by vault::secret_set (:1266) and then removed (:1268); it is also removed on clear (:1296).
+  C01 CENSUS D16 and O6 propose RETIRE.
+- Consequences: with an anchored vault (C07), a restored old copy of that file would be migrated in as a new,
+  anchored commit; the anchor cannot see that the authority it carries is old. A reader that mutates vault state from a
+  disk file is invisible to a census of writers alone.
+- Named repair (C07 W23 and G-366, ACCEPTED; NOT repaired here): the successor never reads the file; its presence in a
+  successor directory refuses successor_dir_foreign (C01 O8 L4); F03-F05's census re-run has zero unplaced readers that
+  mutate vault state from a disk file (identity/mod.rs:484-489, C01 O6, is the other named one).
+- Owner: PLAN cards F03/F04 (C01 O6 blocks F04; G-366 binds F03-F05).

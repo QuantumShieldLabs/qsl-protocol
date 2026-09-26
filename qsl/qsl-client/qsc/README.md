@@ -89,31 +89,58 @@ a rejected redemption does not make the consumed invitation reusable. Existing
 expiry, signature, commitment, self-invitation and possession checks remain in
 force. No collision election, cancellation or device enrollment is implemented.
 
-### Directional first-release development draft (NA-0780)
+### Directional development profile (NA-0780 candidate)
 
-This checkout implements one directional profile for fresh development vaults.
-Create an empty private config directory and explicitly select it with
-`qsc vault init --protocol directional-v1 --passphrase-stdin`. Keep any passphrase
-input file outside the config directory during initialization. Default vault
+This checkout implements one directional development profile,
+`NA0780-DIR-INTEGRATION-03`. Its vault uses the `QSCV03` envelope with payload
+version 4. The profile is selected explicitly, in an empty private config
+directory, with `qsc vault init --protocol directional-v1`. Default vault
 initialization refuses. Existing development state is preserved and refused;
 there is no reset, migration or legacy interoperability path.
 
-The `QSCV03` envelope authenticates the vault header and stores schema 3 plus the
-exact directional profile. A peer must authenticate the exact critical profile
-and Suite-2 tuple. Queue routing is restricted to one channel equal to the contact
-alias. Exact ciphertext, receipt dispositions and outstanding obligations commit
-to the vault before release; queue and timeline state are durable projections.
+These identifiers (the profile `NA0780-DIR-INTEGRATION-03`, the `QSCV03` envelope,
+payload version 4 and the `directional-v1` selector) are RETIRED for the successor
+(C01 APPENDIX A row A21). They are replaced when the successor identity lands
+(DOC-CAN-003 sec 12.9; its placement is ruled at F04's formalization). See
+DOC-CAN-003 sec 12
+(`docs/canonical/DOC-CAN-003_QSP_Suite-2_True_Triple_Ratchet_v5.0.0_DRAFT.md`) and
+`docs/ops/contracts/C01_versions_and_boundaries.md` at the repository root.
 
 The disabled-by-default `na0780-test-hooks` Cargo feature enables local acceptance
-instrumentation. It must not be enabled in distributed builds. Ordinary debug and
-release builds exclude those fault, clock and seal-observation hooks.
+instrumentation. It must not be enabled in distributed builds.
 
 This is a draft, not release acceptance. Actual relay and macOS gates, independent
 security review and the formal verification work remain outstanding. A format
 version guard does not detect restoring an older complete vault backup; no new
 power-loss guarantee is claimed. PQ recovery requires an unexposed honest target
-and delivery of the corresponding event. See `FORMAL_VERIFICATION_PLAN.md` at the
-repository root and the NA-0780 reservation in DOC-CAN-003 for the claim boundary.
+and delivery of the corresponding event. File sends still refuse.
+
+#### Message padding (development profile)
+
+Message padding resolves once at enqueue. Auto (also the absent explicit choice)
+uses saved `policy-profile`: baseline selects Standard (1024-byte floor), strict
+selects Private (4096). A genuinely absent policy uses baseline; malformed or
+unknown saved policy refuses, including with an explicit override. Enhanced (2048)
+is explicit. Concrete `--pad-bucket` overrides a valid saved policy.
+
+`--pad-to` specifies the exact total inner plaintext body size, including the
+header, operation ID, typed payload and space reserved for all three closures.
+The reservation is 16 + ID bytes + 135 + payload bytes. It must fit the profile
+floor, saved maximum (default 4096, hard ceiling 65536) and tighter 60000-byte body
+ceiling. Automatic sizing selects the smallest fitting power of two; impossible
+requests refuse rather than clamp, grow or truncate. Padding reduces effective
+payload capacity. Closure space unused at packing becomes zero padding. Only
+same-frame-class lengths are comparable; boundary and receipt overhead still differ.
+
+Typed maintenance bodies currently use Standard padding (1024 bytes), independently
+of the saved application profile. Thus same-class control traffic can be visibly
+smaller than Enhanced or Private application traffic; this is not control/application
+length uniformity. That privacy versus
+bandwidth tradeoff needs an explicit policy decision before release; Stage A does not
+silently change maintenance sizing or already queued work.
+Core advertisements bypass this typed-body padding and retain their existing encoding.
+Explicit per-operation profiles and queued work from older policy settings also mean
+that an account's traffic need not have one application size.
 
 
 ### NA-0780 directional option and receipt contract (draft implementation)
@@ -158,65 +185,5 @@ and actual relay/macOS acceptance remain separate gates.
 Attachment and padding support remain unfinished first-release work. Their
 explicit refusals are interim limitations, not removal from the roadmap.
 Conditional PQ recovery, older-complete-backup rollback exposure and unproven
-power-loss guarantees remain as stated above; no default activation or release.
+power-loss guarantees remain as stated in "Directional development profile (NA-0780 candidate)" above; no default activation or release.
 
-### NA-0780 successor development profile (Stage A)
-
-The successor requires a fresh, explicitly selected development vault and exact
-handshake/storage profile 02. Earlier 01 vaults and NDI1 bodies are refused without
-migration or reset. Stage A is not release acceptance; file sends still refuse.
-
-Message padding resolves once at enqueue. Auto (also the absent explicit choice)
-uses saved `policy-profile`: baseline selects Standard (1024-byte floor), strict
-selects Private (4096). A genuinely absent policy uses baseline; malformed or
-unknown saved policy refuses, including with an explicit override. Enhanced (2048)
-is explicit. Concrete `--pad-bucket` overrides a valid saved policy.
-
-`--pad-to` specifies the exact total inner plaintext body size, including the
-header, operation ID, typed payload and space reserved for all three closures.
-The reservation is 16 + ID bytes + 135 + payload bytes. It must fit the profile
-floor, saved maximum (default 4096, hard ceiling 65536) and tighter 60000-byte body
-ceiling. Automatic sizing selects the smallest fitting power of two; impossible
-requests refuse rather than clamp, grow or truncate. Padding reduces effective
-payload capacity. Closure space unused at packing becomes zero padding. Only
-same-frame-class lengths are comparable; boundary and receipt overhead still differ.
-
-Typed maintenance bodies currently use Standard padding (1024 bytes), independently
-of the saved application profile. Thus same-class control traffic can be visibly
-smaller than Enhanced or Private application traffic; this is not control/application
-length uniformity. Matching their floors would increase each such control body by
-1024 or 3072 bytes respectively, before unchanged outer overhead. That privacy versus
-bandwidth tradeoff needs an explicit policy decision before release; Stage A does not
-silently change maintenance sizing or already queued work.
-Core advertisements bypass this typed-body padding and retain their existing encoding.
-Explicit per-operation profiles and queued work from older policy settings also mean
-that an account's traffic need not have one application size.
-
-Queued profile, limits, size and content remain fixed. Changing account settings,
-restarting or retrying cannot repack already sealed wire. Conflicting same-ID
-content/options refuse. Authoritative state commits before release. Full reset
-remains paused; older backup rollback and power-loss guarantees are not established.
-Stage B requires focused Stage A acceptance and independent sensitive review with
-findings resolved. Actual-relay/macOS acceptance remains separate.
-
-
-## R02 successor integration — UNAPPLIED review
-
-This proposed successor requires a fresh development vault. Explicit `vault init
---protocol directional-v1` creates payload schema4, profile03 and the empty capacity
-owner in one encrypted payload. `--protocol owner-free-v1` creates explicit ordinary
-storage-only state. Ordinary storage supports generic vault operations but cannot
-establish directional peers. Neither selection converts or overwrites existing data.
-Missing ownership, unknown/mixed namespaces and incompatible/corrupt tuples refuse.
-
-The single shared profile is `NA0780-DIR-INTEGRATION-03` across handshake, intent,
-transaction and receipt key/AD inputs. NDE1/NDI2/NDR1 and QSCV03 encodings are unchanged;
-old profile/state is not accepted. Exact retries and genuine-receipt pruning remain
-mandatory. The operator allocation is recorded in NA-0780 TASK, section “R02 approved
-identifier allocation”, dated2026-09-20; this source integration remains UNAPPLIED.
-
-The16MiB candidate is only for the named fresh evaluation fixtures; its appearance in
-review code is not production budget approval. Independent sensitive review, serializer/
-reachable-state bounds, the proposed seven-case allocation and explicit application/
-execution authority remain required. No tests ran in this preparation. Attachment
-work, reset/migration, macOS/actual-relay acceptance and release remain separate gates.

@@ -214,7 +214,7 @@ fn qscv03_unauthenticated_envelope_refused() {
         .hash_password_into(PASS.as_bytes(), &salt, &mut key)
         .expect("vault key");
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
-    let plaintext = br#"{"version":3,"protocol":"NA0780-DIR-INTEGRATION-02","secrets":{}}"#;
+    let plaintext = br#"{"version": 4, "protocol": "NA0780-OWNER-FREE-01", "secrets": {}}"#;
     let ciphertext = cipher
         .encrypt(Nonce::from_slice(&nonce), plaintext.as_slice())
         .expect("empty-aad encrypt");

@@ -1826,3 +1826,199 @@ pub fn init_real_pair(tag: &str, relay: PairRelay, a: (&str, &str), b: (&str, &s
         b_route: b.1.to_owned(),
     }
 }
+
+// =====================================================================================
+// NA-0785 PLAN F03 / S6b -- RELAY-SIDE WITHHOLD (INSTRUMENTS.md (a) FF3; the fixture capability
+// NR-2..NR-5 also owe). A test-only layer AROUND the in-process leasing relay's axum router
+// (`qsl_server::app`): a push whose (route token, body) matches the armed predicate is HELD -- its
+// pusher receives the relay's own 200 {"id"} answer, so it observes relay-accepted -- and reaches
+// the relay only on `release(id)`, byte-identical. NEW ITEMS ONLY: the relay's code,
+// `start_qsl_server*` and every existing helper are unchanged; nothing is held unless a test arms
+// a predicate.
+// =====================================================================================
+
+type WithholdPredicate = Box<dyn Fn(&str, &[u8]) -> bool + Send + Sync>;
+
+#[derive(Default)]
+struct WithholdState {
+    predicate: Option<WithholdPredicate>,
+    held: Vec<HeldPush>,
+    next: u64,
+}
+
+/// One held push: its release id, the route token it was addressed to, and its exact bytes.
+#[derive(Clone, Debug)]
+pub struct HeldPush {
+    pub id: u64,
+    pub route: String,
+    pub body: Vec<u8>,
+}
+
+/// The handle a test uses to hold and release pushes on a `start_qsl_server_withholding` relay.
+#[derive(Clone)]
+pub struct Withhold {
+    base_url: String,
+    state: Arc<Mutex<WithholdState>>,
+}
+
+/// Marks the layer's own release push so it passes through unheld (stripped before the relay).
+const WITHHOLD_RELEASE_HEADER: &str = "x-f03-withhold-release";
+
+impl Withhold {
+    /// Arm: every LATER push for which `predicate(route_token, body)` is true is held.
+    pub fn withhold(&self, predicate: impl Fn(&str, &[u8]) -> bool + Send + Sync + 'static) {
+        self.state.lock().unwrap().predicate = Some(Box::new(predicate));
+    }
+
+    /// Disarm: later pushes flow through. Items already held stay held until released.
+    pub fn stop(&self) {
+        self.state.lock().unwrap().predicate = None;
+    }
+
+    /// The pushes currently held, in arrival order.
+    pub fn held(&self) -> Vec<HeldPush> {
+        self.state.lock().unwrap().held.clone()
+    }
+
+    /// Deliver held push `id` to the relay exactly as its pusher sent it; the relay must accept it.
+    pub fn release(&self, id: u64) {
+        let item = {
+            let mut state = self.state.lock().unwrap();
+            let at = state
+                .held
+                .iter()
+                .position(|h| h.id == id)
+                .unwrap_or_else(|| panic!("withhold: no held push {id}"));
+            state.held.remove(at)
+        };
+        let response = reqwest::blocking::Client::new()
+            .post(format!("{}/v1/push", self.base_url))
+            .header(ROUTE_TOKEN_HEADER, item.route.as_str())
+            .header(WITHHOLD_RELEASE_HEADER, "1")
+            .body(item.body)
+            .send()
+            .expect("withhold: release push");
+        assert!(
+            response.status().is_success(),
+            "withhold: the relay refused the released push: {}",
+            response.status()
+        );
+    }
+}
+
+async fn withhold_layer(
+    axum::extract::State(state): axum::extract::State<Arc<Mutex<WithholdState>>>,
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    use axum::response::IntoResponse;
+    if request.method() != axum::http::Method::POST || request.uri().path() != "/v1/push" {
+        return next.run(request).await;
+    }
+    let (mut parts, body) = request.into_parts();
+    if parts.headers.remove(WITHHOLD_RELEASE_HEADER).is_some() {
+        return next
+            .run(axum::extract::Request::from_parts(parts, body))
+            .await;
+    }
+    let bytes = match axum::body::to_bytes(body, usize::MAX).await {
+        Ok(bytes) => bytes,
+        Err(_) => return (axum::http::StatusCode::BAD_REQUEST, "bad request").into_response(),
+    };
+    let route = parts
+        .headers
+        .get(ROUTE_TOKEN_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+    // The lock is taken and released inside this block: nothing !Send lives across the await.
+    let held_id = {
+        let mut guard = state.lock().unwrap();
+        if guard.predicate.as_ref().is_some_and(|p| p(&route, &bytes)) {
+            guard.next += 1;
+            let id = guard.next;
+            guard.held.push(HeldPush {
+                id,
+                route,
+                body: bytes.to_vec(),
+            });
+            Some(id)
+        } else {
+            None
+        }
+    };
+    if let Some(id) = held_id {
+        // The relay's own success shape: 200 {"id": <message id>}.
+        let msg_id = format!("00000000-0000-4000-8000-{id:012x}");
+        return (
+            axum::http::StatusCode::OK,
+            axum::Json(serde_json::json!({ "id": msg_id })),
+        )
+            .into_response();
+    }
+    next.run(axum::extract::Request::from_parts(
+        parts,
+        axum::body::Body::from(bytes),
+    ))
+    .await
+}
+
+/// `start_qsl_server_with_store` with the WITHHOLD layer around the relay's router. Until a
+/// predicate is armed every request reaches the relay unchanged.
+pub fn start_qsl_server_withholding(
+    max_body: usize,
+    max_queue: usize,
+    pull_lease_secs: usize,
+) -> (QslRelayTestServer, Withhold) {
+    let withheld: Arc<Mutex<WithholdState>> = Arc::new(Mutex::new(WithholdState::default()));
+    let layer_state = Arc::clone(&withheld);
+    let (addr_tx, addr_rx) = std::sync::mpsc::channel();
+    let (shutdown_tx, shutdown_rx) = oneshot::channel();
+    let handle = thread::spawn(move || {
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("qsl-server runtime");
+        runtime.block_on(async move {
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("qsl-server bind");
+            let addr = listener.local_addr().expect("qsl-server local addr");
+            addr_tx.send(addr).expect("qsl-server ready send");
+            let limits = QslRelayLimits::new(max_body, max_queue).expect("qsl-server limits");
+            let store_cfg = QslRelayStoreConfig {
+                pull_lease_secs,
+                ..QslRelayStoreConfig::default()
+            };
+            let state = QslRelayAppState::new_with_auth_controls_and_store(
+                limits,
+                QslRelayResourceControls::default(),
+                None,
+                store_cfg,
+            )
+            .expect("qsl-server store open");
+            let router = qsl_relay_app(state).layer(axum::middleware::from_fn_with_state(
+                layer_state,
+                withhold_layer,
+            ));
+            serve(listener, router)
+                .with_graceful_shutdown(async {
+                    let _ = shutdown_rx.await;
+                })
+                .await
+                .expect("qsl-server serve");
+        });
+    });
+    let addr = addr_rx.recv().expect("qsl-server ready addr");
+    let server = QslRelayTestServer {
+        base_url: format!("http://{}", addr),
+        shutdown: Some(shutdown_tx),
+        handle: Some(handle),
+    };
+    wait_until_qsl_server_ready(server.base_url());
+    let withhold = Withhold {
+        base_url: server.base_url().to_string(),
+        state: withheld,
+    };
+    (server, withhold)
+}

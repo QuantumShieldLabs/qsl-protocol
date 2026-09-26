@@ -1,11 +1,14 @@
 mod common;
 
+use common::VaultFixture;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const DESKTOP_PASS_ENV: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
+const DESKTOP_PASSPHRASE: &str = "desktop-passphrase";
 const ROUTE_TOKEN_ALICE: &str = "route_token_alice_abcdefghijklmnop";
 const ROUTE_TOKEN_BOB: &str = "route_token_bob_abcdefghijklmnopqr";
 
@@ -70,8 +73,17 @@ fn qsc_with_unlock(cfg: &Path) -> Command {
     cmd
 }
 
-fn identity_fp(cfg: &Path) -> String {
-    let out = qsc_with_unlock(cfg)
+// NA-0785 PLAN F03 / S6b: the message-surface helpers below drive a `common::VaultFixture` (an S4
+// successor vault of `profile::ACTIVE`, isolated HOME/XDG/TMPDIR, its own unlock) instead of a bare
+// QSC_CONFIG_DIR; each assertion is the base's, unchanged.
+fn qsc_fx(v: &VaultFixture) -> Command {
+    let mut cmd = v.command();
+    cmd.env("QSC_MARK_FORMAT", "plain");
+    cmd
+}
+
+fn identity_fp(v: &VaultFixture) -> String {
+    let out = qsc_fx(v)
         .args(["identity", "show"])
         .output()
         .expect("identity show");
@@ -82,8 +94,8 @@ fn identity_fp(cfg: &Path) -> String {
         .unwrap_or_else(|| panic!("missing identity_fp: {}", output_text(&out)))
 }
 
-fn identity_kem_pk(cfg: &Path) -> String {
-    let out = qsc_with_unlock(cfg)
+fn identity_kem_pk(v: &VaultFixture) -> String {
+    let out = qsc_fx(v)
         .args(["identity", "show"])
         .output()
         .expect("identity show");
@@ -94,8 +106,8 @@ fn identity_kem_pk(cfg: &Path) -> String {
         .unwrap_or_else(|| panic!("missing identity_kem_pk: {}", output_text(&out)))
 }
 
-fn identity_sig_pk(cfg: &Path) -> String {
-    let out = qsc_with_unlock(cfg)
+fn identity_sig_pk(v: &VaultFixture) -> String {
+    let out = qsc_fx(v)
         .args(["identity", "show"])
         .output()
         .expect("identity show");
@@ -106,8 +118,8 @@ fn identity_sig_pk(cfg: &Path) -> String {
         .unwrap_or_else(|| panic!("missing identity_sig_pk: {}", output_text(&out)))
 }
 
-fn device_id(cfg: &Path, label: &str) -> String {
-    let out = qsc_with_unlock(cfg)
+fn device_id(v: &VaultFixture, label: &str) -> String {
+    let out = qsc_fx(v)
         .args(["contacts", "device", "list", "--label", label])
         .output()
         .expect("contacts device list");
@@ -123,9 +135,9 @@ fn device_id(cfg: &Path, label: &str) -> String {
         .to_string()
 }
 
-fn trust_device(cfg: &Path, label: &str) {
-    let device = device_id(cfg, label);
-    let out = qsc_with_unlock(cfg)
+fn trust_device(v: &VaultFixture, label: &str) {
+    let device = device_id(v, label);
+    let out = qsc_fx(v)
         .args([
             "contacts",
             "device",
@@ -141,8 +153,8 @@ fn trust_device(cfg: &Path, label: &str) {
     assert!(out.status.success(), "{}", output_text(&out));
 }
 
-fn handshake_status(cfg: &Path, peer: &str) -> String {
-    let out = qsc_with_unlock(cfg)
+fn handshake_status(v: &VaultFixture, peer: &str) -> String {
+    let out = qsc_fx(v)
         .args(["handshake", "status", "--peer", peer])
         .output()
         .expect("handshake status");
@@ -150,8 +162,8 @@ fn handshake_status(cfg: &Path, peer: &str) -> String {
     output_text(&out)
 }
 
-fn advance_handshake_to_initiator_commit(relay: &str, alice_cfg: &Path, bob_cfg: &Path) {
-    let alice_init = qsc_with_unlock(alice_cfg)
+fn advance_handshake_to_initiator_commit(relay: &str, alice: &VaultFixture, bob: &VaultFixture) {
+    let alice_init = qsc_fx(alice)
         .args([
             "handshake",
             "init",
@@ -166,7 +178,7 @@ fn advance_handshake_to_initiator_commit(relay: &str, alice_cfg: &Path, bob_cfg:
         .expect("alice handshake init");
     assert!(alice_init.status.success(), "{}", output_text(&alice_init));
 
-    let bob_poll = qsc_with_unlock(bob_cfg)
+    let bob_poll = qsc_fx(bob)
         .args([
             "handshake",
             "poll",
@@ -183,7 +195,7 @@ fn advance_handshake_to_initiator_commit(relay: &str, alice_cfg: &Path, bob_cfg:
         .expect("bob handshake poll");
     assert!(bob_poll.status.success(), "{}", output_text(&bob_poll));
 
-    let alice_poll = qsc_with_unlock(alice_cfg)
+    let alice_poll = qsc_fx(alice)
         .args([
             "handshake",
             "poll",
@@ -201,8 +213,8 @@ fn advance_handshake_to_initiator_commit(relay: &str, alice_cfg: &Path, bob_cfg:
     assert!(alice_poll.status.success(), "{}", output_text(&alice_poll));
 }
 
-fn confirm_handshake_at_responder(relay: &str, bob_cfg: &Path) {
-    let bob_confirm = qsc_with_unlock(bob_cfg)
+fn confirm_handshake_at_responder(relay: &str, bob: &VaultFixture) {
+    let bob_confirm = qsc_fx(bob)
         .args([
             "handshake",
             "poll",
@@ -332,23 +344,34 @@ fn desktop_gui_contact_device_surface_is_deterministic() {
     assert!(devices_text.contains("state="), "{}", devices_text);
 }
 
+/// NA-0785 PLAN F03 / S6b -- FF3: delivery and timeline TRUTH over a REAL pair, with a RELAY-SIDE
+/// RECEIPT WITHHOLD (`common::start_qsl_server_withholding`) around the real in-process leasing
+/// relay.
+///
+/// The base obtained its "SENT, not yet DELIVERED" window from NA-0688's owed-receipt hold (bob,
+/// with no send chain, could not send his receipt). The head needs no send chain for a receipt:
+/// bob's receive answers with an NDR1 receipt at once (src/directional_delivery.rs:30-60, the
+/// receipt key bound to the RECEIVING epoch), so that window no longer exists in the client. The
+/// window is now made where it can really occur -- at the relay: bob's NDR1 receipt to alice is
+/// HELD, and every UI-truth claim is asserted against that real receipt: not delivered while it is
+/// withheld, delivered once it is released.
+///
+/// Vaults: the S4 successor helper (`profile::ACTIVE`) under the desktop passphrase. The test
+/// drives the REAL handshake itself, because its pre- and mid-handshake UI states are claims of the
+/// surface. No seeded session, no fabricated key. A synthetic local run.
 #[test]
 fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
-    let server = common::start_inbox_server(1024 * 1024, 16);
-    let base = unique_test_dir("na0215b_message_surface");
+    let (server, withhold) = common::start_qsl_server_withholding(1024 * 1024, 16, 2);
+    let alice = common::init_successor_vault("f03_s6b_desktop_alice", DESKTOP_PASSPHRASE);
+    let bob = common::init_successor_vault("f03_s6b_desktop_bob", DESKTOP_PASSPHRASE);
+    let base = alice.iso.root.join("run");
     create_dir_700(&base);
-    let alice_cfg = base.join("alice_cfg");
-    let bob_cfg = base.join("bob_cfg");
     let alice_out = base.join("alice_out");
     let bob_out = base.join("bob_out");
-    create_dir_700(&alice_cfg);
-    create_dir_700(&bob_cfg);
     create_dir_700(&alice_out);
     create_dir_700(&bob_out);
-    init_vault(&alice_cfg);
-    init_vault(&bob_cfg);
 
-    let alice_rotate = qsc_with_unlock(&alice_cfg)
+    let alice_rotate = qsc_fx(&alice)
         .args(["identity", "rotate", "--confirm"])
         .output()
         .expect("alice identity rotate");
@@ -357,20 +380,20 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         "{}",
         output_text(&alice_rotate)
     );
-    let bob_rotate = qsc_with_unlock(&bob_cfg)
+    let bob_rotate = qsc_fx(&bob)
         .args(["identity", "rotate", "--confirm"])
         .output()
         .expect("bob identity rotate");
     assert!(bob_rotate.status.success(), "{}", output_text(&bob_rotate));
 
-    let alice_fp = identity_fp(&alice_cfg);
-    let alice_kem = identity_kem_pk(&alice_cfg);
-    let alice_sig = identity_sig_pk(&alice_cfg);
-    let bob_fp = identity_fp(&bob_cfg);
-    let bob_kem = identity_kem_pk(&bob_cfg);
-    let bob_sig = identity_sig_pk(&bob_cfg);
+    let alice_fp = identity_fp(&alice);
+    let alice_kem = identity_kem_pk(&alice);
+    let alice_sig = identity_sig_pk(&alice);
+    let bob_fp = identity_fp(&bob);
+    let bob_kem = identity_kem_pk(&bob);
+    let bob_sig = identity_sig_pk(&bob);
 
-    let alice_inbox = qsc_with_unlock(&alice_cfg)
+    let alice_inbox = qsc_fx(&alice)
         .args(["relay", "inbox-set", "--token", ROUTE_TOKEN_ALICE])
         .output()
         .expect("alice inbox set");
@@ -379,13 +402,13 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         "{}",
         output_text(&alice_inbox)
     );
-    let bob_inbox = qsc_with_unlock(&bob_cfg)
+    let bob_inbox = qsc_fx(&bob)
         .args(["relay", "inbox-set", "--token", ROUTE_TOKEN_BOB])
         .output()
         .expect("bob inbox set");
     assert!(bob_inbox.status.success(), "{}", output_text(&bob_inbox));
 
-    let add_bob = qsc_with_unlock(&alice_cfg)
+    let add_bob = qsc_fx(&alice)
         .args([
             "contacts",
             "add",
@@ -403,7 +426,7 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         .output()
         .expect("alice adds bob");
     assert!(add_bob.status.success(), "{}", output_text(&add_bob));
-    let add_alice = qsc_with_unlock(&bob_cfg)
+    let add_alice = qsc_fx(&bob)
         .args([
             "contacts",
             "add",
@@ -422,13 +445,13 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         .expect("bob adds alice");
     assert!(add_alice.status.success(), "{}", output_text(&add_alice));
 
-    trust_device(&alice_cfg, "bob");
-    trust_device(&bob_cfg, "alice");
+    trust_device(&alice, "bob");
+    trust_device(&bob, "alice");
 
     let payload = base.join("msg.txt");
     fs::write(&payload, "desktop gui contract").expect("payload write");
 
-    let handshake_before = handshake_status(&alice_cfg, "bob");
+    let handshake_before = handshake_status(&alice, "bob");
     assert!(
         handshake_before.contains("event=handshake_status"),
         "{}",
@@ -450,7 +473,7 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         handshake_before
     );
 
-    let send_blocked = qsc_with_unlock(&alice_cfg)
+    let send_blocked = qsc_fx(&alice)
         .args([
             "send",
             "--transport",
@@ -478,7 +501,7 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         send_blocked_text
     );
 
-    let bob_recv_blocked = qsc_with_unlock(&bob_cfg)
+    let bob_recv_blocked = qsc_fx(&bob)
         .args([
             "receive",
             "--transport",
@@ -512,9 +535,9 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         bob_recv_blocked_text
     );
 
-    advance_handshake_to_initiator_commit(server.base_url(), &alice_cfg, &bob_cfg);
+    advance_handshake_to_initiator_commit(server.base_url(), &alice, &bob);
 
-    let alice_mid = handshake_status(&alice_cfg, "bob");
+    let alice_mid = handshake_status(&alice, "bob");
     assert!(
         alice_mid.contains("status=awaiting_peer_confirm"),
         "{}",
@@ -523,9 +546,9 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
     assert!(alice_mid.contains("peer_confirmed=no"), "{}", alice_mid);
     assert!(alice_mid.contains("send_ready=yes"), "{}", alice_mid);
 
-    confirm_handshake_at_responder(server.base_url(), &bob_cfg);
+    confirm_handshake_at_responder(server.base_url(), &bob);
 
-    let alice_ready = handshake_status(&alice_cfg, "bob");
+    let alice_ready = handshake_status(&alice, "bob");
     assert!(
         alice_ready.contains("status=awaiting_peer_confirm"),
         "{}",
@@ -534,7 +557,7 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
     assert!(alice_ready.contains("peer_confirmed=no"), "{}", alice_ready);
     assert!(alice_ready.contains("send_ready=yes"), "{}", alice_ready);
 
-    let bob_ready = handshake_status(&bob_cfg, "alice");
+    let bob_ready = handshake_status(&bob, "alice");
     assert!(
         bob_ready.contains("status=established_recv_only"),
         "{}",
@@ -548,7 +571,10 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         bob_ready
     );
 
-    let send = qsc_with_unlock(&alice_cfg)
+    // ⚠ THE WITHHOLD: from here on, every NDR1 receipt addressed to alice is held at the relay.
+    withhold.withhold(|route, body| route == ROUTE_TOKEN_ALICE && body.starts_with(b"NDR1"));
+
+    let send = qsc_fx(&alice)
         .args([
             "send",
             "--transport",
@@ -572,7 +598,7 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         send_text
     );
 
-    let bob_recv = qsc_with_unlock(&bob_cfg)
+    let bob_recv = qsc_fx(&bob)
         .args([
             "receive",
             "--transport",
@@ -605,33 +631,52 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
     // =====================================================================================
     // ARM 1 — ⚠ THE WINDOW, PINNED AS CORRECT BEHAVIOUR RATHER THAN LEFT AS AN ABSENCE.
     //
-    // Bob is `established_recv_only` with `chainkey_unset` — a state this fixture asserts
-    // DELIBERATELY above, and one the surface must handle. After NA-0688 reversed A6 an ack can
-    // no longer establish a chain, so bob CANNOT confirm delivery yet: his receipt is written to
-    // the durable owed-receipt hold instead of sent.
-    //
-    // The message is therefore SENT and not DELIVERED, and that is **correct**, not a failure.
-    // Asserting it explicitly is the point: a bare "peer_confirmed is absent" would also pass if
-    // the receipt had been silently LOST, which is the one outcome this design exists to prevent.
-    let alice_recv_pre = qsc_with_unlock(&alice_cfg)
+    // Bob HAS confirmed -- his NDR1 receipt left him -- but the relay is withholding it. The message
+    // is therefore SENT and not DELIVERED, and that is **correct**, not a failure. Asserting it
+    // explicitly is the point: a bare "peer_confirmed is absent" would also pass if the receipt had
+    // been silently LOST, which is why ARM 2 proves the very same receipt still arrives.
+    let alice_recv_pre = qsc_fx(&alice)
         .args([
-            "receive", "--transport", "relay", "--relay", server.base_url(),
-            "--mailbox", ROUTE_TOKEN_ALICE, "--from", "bob", "--max", "4",
-            "--out", alice_out.to_str().unwrap(),
+            "receive",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--mailbox",
+            ROUTE_TOKEN_ALICE,
+            "--from",
+            "bob",
+            "--max",
+            "4",
+            "--out",
+            alice_out.to_str().unwrap(),
         ])
         .output()
         .expect("alice receive (pre-reply)");
-    assert!(alice_recv_pre.status.success(), "{}", output_text(&alice_recv_pre));
+    assert!(
+        alice_recv_pre.status.success(),
+        "{}",
+        output_text(&alice_recv_pre)
+    );
     assert!(
         !output_text(&alice_recv_pre).contains("QSC_DELIVERY state=peer_confirmed"),
         "a recipient who has never sent cannot confirm delivery yet: {}",
         output_text(&alice_recv_pre)
     );
-    let timeline_pre = qsc_with_unlock(&alice_cfg)
+    assert!(
+        !output_text(&alice_recv_pre).contains("to=DELIVERED"),
+        "no DELIVERED transition while the receipt is withheld: {}",
+        output_text(&alice_recv_pre)
+    );
+    let timeline_pre = qsc_fx(&alice)
         .args(["timeline", "list", "--peer", "bob", "--limit", "8"])
         .output()
         .expect("timeline list (pre-reply)");
-    assert!(timeline_pre.status.success(), "{}", output_text(&timeline_pre));
+    assert!(
+        timeline_pre.status.success(),
+        "{}",
+        output_text(&timeline_pre)
+    );
     let timeline_pre_text = output_text(&timeline_pre);
     assert!(
         timeline_pre_text.contains("state=SENT"),
@@ -642,30 +687,50 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         !timeline_pre_text.contains("state=peer_confirmed"),
         "and it must not claim delivery it has no evidence for: {timeline_pre_text}"
     );
+    assert!(
+        !timeline_pre_text.contains("state=DELIVERED"),
+        "nor show DELIVERED while the receipt is withheld: {timeline_pre_text}"
+    );
 
     // =====================================================================================
-    // ARM 2 — ⚠ AND THE CONFIRMATION DOES ARRIVE, ON BOB'S FIRST REAL SEND.
+    // ARM 2 — ⚠ AND THE CONFIRMATION DOES ARRIVE.
     //
-    // His send lights the chain and flushes what he owed. The receipt alice then receives is the
-    // one owed for HER ORIGINAL message — this is the durable hold delivering, proven end to end
-    // at the GUI-contract layer rather than only in the protocol tests.
+    // Bob's first real send still works; the receipt he emitted for alice's ORIGINAL message is
+    // held at the relay, not lost; once released it reaches alice, who moves that message to
+    // DELIVERED -- end to end at the GUI-contract layer, against a real receipt.
     let bob_reply = base.join("bob_reply.bin");
     fs::write(&bob_reply, b"bob-first-reply").expect("write bob reply");
-    let bob_send = qsc_with_unlock(&bob_cfg)
+    let bob_send = qsc_fx(&bob)
         .args([
-            "send", "--transport", "relay", "--relay", server.base_url(),
-            "--to", "alice", "--file", bob_reply.to_str().unwrap(),
+            "send",
+            "--transport",
+            "relay",
+            "--relay",
+            server.base_url(),
+            "--to",
+            "alice",
+            "--file",
+            bob_reply.to_str().unwrap(),
         ])
         .output()
         .expect("bob first send");
     assert!(bob_send.status.success(), "{}", output_text(&bob_send));
-    let bob_send_text = output_text(&bob_send);
-    assert!(
-        bob_send_text.contains("event=receipt_flush"),
-        "bob's first send must flush the receipt he owed: {bob_send_text}"
+    // REPLACED (the head has no owed-receipt flush, `event=receipt_flush`): bob's receipt for
+    // alice's message LEFT bob and is held at the relay -- exactly one NDR1 receipt to alice.
+    let held: Vec<_> = withhold
+        .held()
+        .into_iter()
+        .filter(|h| h.route == ROUTE_TOKEN_ALICE && h.body.starts_with(b"NDR1"))
+        .collect();
+    assert_eq!(
+        held.len(),
+        1,
+        "bob's receipt must have left him and be held, not lost: {held:?}"
     );
+    withhold.stop();
+    withhold.release(held[0].id);
 
-    let alice_recv = qsc_with_unlock(&alice_cfg)
+    let alice_recv = qsc_fx(&alice)
         .args([
             "receive",
             "--transport",
@@ -685,13 +750,15 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
         .expect("alice receive");
     assert!(alice_recv.status.success(), "{}", output_text(&alice_recv));
     let alice_recv_text = output_text(&alice_recv);
+    // REPLACED (the head's receive reports the confirmation as the message's state transition; the
+    // QSC_DELIVERY line is printed by the timeline below): SENT -> DELIVERED on the released receipt.
     assert!(
-        alice_recv_text.contains("QSC_DELIVERY state=peer_confirmed"),
+        alice_recv_text.contains("event=message_state_transition from=SENT to=DELIVERED"),
         "{}",
         alice_recv_text
     );
 
-    let timeline = qsc_with_unlock(&alice_cfg)
+    let timeline = qsc_fx(&alice)
         .args(["timeline", "list", "--peer", "bob", "--limit", "8"])
         .output()
         .expect("timeline list");
@@ -709,6 +776,11 @@ fn desktop_gui_message_surface_reports_delivery_and_timeline_truth() {
     );
     assert!(
         timeline_text.contains("state=peer_confirmed"),
+        "{}",
+        timeline_text
+    );
+    assert!(
+        timeline_text.contains("state=DELIVERED"),
         "{}",
         timeline_text
     );

@@ -20,15 +20,40 @@
 //   ENG-0086 finding 1 still holds — "the recipient's automatic ack becomes their first send" —
 //   which is precisely why the receipt cannot simply be dropped: it is written to the durable
 //   owed-receipt hold and flushed on the peer's first real send. See `crate::owed_receipts`.
+//
+// NA-0785 PLAN F03 / S6b — FF6: THE LEGACY MARKERS, RE-EXPRESSED ON THE HEAD'S DIRECTIONAL WIRE.
+//   The fixture is now `common::init_real_pair` (two successor vaults of `profile::ACTIVE`,
+//   pinned identities, a REAL handshake) over the Mock relay, whose raw mailbox is the
+//   observation instrument (an observer's view, as E3 already argued). The head's directional path
+//   emits NONE of the legacy origination markers: `qsp_dh_ratchet`, `qsp_pq_reseed` and
+//   `qsp_scka_adv` are registered at src/output/event_tables.rs:528-530 and emitted by no source
+//   line, and `receipt_owed` (:614) likewise; `receipt_send`/`receipt_flush` are emitted only by
+//   `flush_owed_receipts` (src/lib.rs:1087-1127), whose store nothing but its own put-back writes
+//   (:1119). What the head DOES put on the wire is observable by frame class:
+//     NDR1 ................ a delivery receipt, fixed RECEIPT_LEN (src/directional_delivery.rs:11,
+//                           prefix :46-53), keyed to the RECEIVING epoch (:30-45) — no send chain.
+//     NDE1, byte 4 = 1 .... a boundary: a fresh sender DH and root transition (the directional
+//                           analog of a DH ratchet), taken only when owner == role and due
+//                           (demand, >= 4 since the last boundary, 900 s, or no send epoch:
+//                           :602-606) — there is no "reply" reason and no pending_send_ratchet.
+//     NDE1, byte 4 = 0 .... an ordinary frame (an application message or a control request).
+//   Each legacy assertion is KEPT verbatim where it can still fail or serves as a tripwire, and
+//   paired with the directional witness that carries its property (REPLACED); where the property
+//   itself does not exist on the head it is RETIRED, the source line named. Lane map MAP_S6b.tsv.
+//   A synthetic local run; it says nothing about production or the real relay deployment.
 
 mod common;
 
+use common::{PairRelay, RealPair, VaultFixture};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, OnceLock};
 
 const ROUTE_TOKEN_ALICE: &str = "na0688_c2_alice_route_token_abcdef";
 const ROUTE_TOKEN_BOB: &str = "na0688_c2_bob_route_token_ghijklm";
+
+/// The head's fixed delivery-receipt length (src/directional_delivery.rs:11, RECEIPT_PREFIX + 48).
+const NDR1_LEN: usize = 113;
 
 fn lane_lock() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
@@ -46,17 +71,6 @@ fn ensure_dir_700(p: &Path) {
     }
 }
 
-fn test_root(tag: &str) -> PathBuf {
-    let root = std::env::var("CARGO_TARGET_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("target"))
-        .join("qsc-test-tmp")
-        .join(format!("{tag}_{}", std::process::id()));
-    let _ = fs::remove_dir_all(&root);
-    ensure_dir_700(&root);
-    root
-}
-
 fn output_text(o: &std::process::Output) -> String {
     format!(
         "{}{}",
@@ -65,143 +79,28 @@ fn output_text(o: &std::process::Output) -> String {
     )
 }
 
-fn qsc_cfg_cmd(cfg: &Path) -> std::process::Command {
-    let mut cmd = common::qsc_std_command();
-    cmd.env("QSC_CONFIG_DIR", cfg);
-    cmd
-}
-
-fn run_qsc(cfg: &Path, args: &[&str]) -> std::process::Output {
-    qsc_cfg_cmd(cfg).args(args).output().expect("qsc command")
-}
-
-fn run_ok(cfg: &Path, args: &[&str]) -> String {
-    let out = run_qsc(cfg, args);
+fn run_ok(v: &VaultFixture, args: &[&str]) -> String {
+    let out = v.run(args);
     let text = output_text(&out);
     assert!(out.status.success(), "command failed {args:?}\n{text}");
     text
-}
-
-fn init_identity(cfg: &Path, label: &str) {
-    run_ok(cfg, &["identity", "rotate", "--as", label, "--confirm"]);
-}
-
-fn identity_field(cfg: &Path, label: &str, field: &str) -> String {
-    let text = run_ok(cfg, &["identity", "show", "--as", label]);
-    let prefix = format!("{field}=");
-    for line in text.lines() {
-        if let Some(v) = line.strip_prefix(prefix.as_str()) {
-            return v.to_string();
-        }
-    }
-    panic!("missing {field} in output: {text}");
-}
-
-#[allow(clippy::too_many_arguments)]
-fn contacts_add_pinned_with_route(
-    cfg: &Path,
-    label: &str,
-    fp: &str,
-    kem_pk: &str,
-    sig_pk: &str,
-    token: &str,
-) {
-    run_ok(
-        cfg,
-        &[
-            "contacts",
-            "add",
-            "--label",
-            label,
-            "--fp",
-            fp,
-            "--kem-pk",
-            kem_pk,
-            "--sig-pk",
-            sig_pk,
-            "--route-token",
-            token,
-        ],
-    );
 }
 
 fn session_path(cfg: &Path, peer: &str) -> PathBuf {
     cfg.join("qsp_sessions").join(format!("{peer}.qsv"))
 }
 
-/// A REAL two-party handshake — the whole reason this file exists. Replicated from
-/// `handshake_mvp::hs_dance`; the session it produces has `dhr != dhs_pub`, so
-/// `qsp_should_ratchet` is actually reachable.
-fn hs_dance(alice_cfg: &Path, bob_cfg: &Path, relay: &str) {
-    init_identity(alice_cfg, "alice");
-    init_identity(bob_cfg, "bob");
-    let a_fp = identity_field(alice_cfg, "alice", "identity_fp");
-    let a_kem = identity_field(alice_cfg, "alice", "identity_kem_pk");
-    let a_sig = identity_field(alice_cfg, "alice", "identity_sig_pk");
-    let b_fp = identity_field(bob_cfg, "bob", "identity_fp");
-    let b_kem = identity_field(bob_cfg, "bob", "identity_kem_pk");
-    let b_sig = identity_field(bob_cfg, "bob", "identity_sig_pk");
-    contacts_add_pinned_with_route(alice_cfg, "bob", &b_fp, &b_kem, &b_sig, ROUTE_TOKEN_BOB);
-    contacts_add_pinned_with_route(bob_cfg, "alice", &a_fp, &a_kem, &a_sig, ROUTE_TOKEN_ALICE);
-    run_ok(
-        alice_cfg,
-        &["relay", "inbox-set", "--token", ROUTE_TOKEN_ALICE],
-    );
-    run_ok(bob_cfg, &["relay", "inbox-set", "--token", ROUTE_TOKEN_BOB]);
-
-    run_ok(
-        alice_cfg,
-        &[
-            "handshake",
-            "init",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            relay,
-        ],
-    );
-    for (cfg, me, peer) in [
-        (bob_cfg, "bob", "alice"),
-        (alice_cfg, "alice", "bob"),
-        (bob_cfg, "bob", "alice"),
-    ] {
-        run_ok(
-            cfg,
-            &[
-                "handshake",
-                "poll",
-                "--as",
-                me,
-                "--peer",
-                peer,
-                "--relay",
-                relay,
-                "--max",
-                "4",
-            ],
-        );
-    }
-    assert!(
-        session_path(alice_cfg, "bob").exists(),
-        "alice session missing"
-    );
-    assert!(
-        session_path(bob_cfg, "alice").exists(),
-        "bob session missing"
-    );
-}
-
 fn send_msg(
-    cfg: &Path,
+    v: &VaultFixture,
     relay: &str,
     to: &str,
     body: &[u8],
     tag: &str,
     with_receipt: bool,
 ) -> String {
-    let f = cfg.join(format!("{tag}.bin"));
+    let dir = v.iso.root.join("payloads");
+    ensure_dir_700(&dir);
+    let f = dir.join(format!("{tag}.bin"));
     fs::write(&f, body).unwrap();
     let mut args = vec![
         "send",
@@ -217,11 +116,11 @@ fn send_msg(
     if with_receipt {
         args.extend_from_slice(&["--receipt", "delivered"]);
     }
-    run_ok(cfg, &args)
+    run_ok(v, &args)
 }
 
 fn recv_msg(
-    cfg: &Path,
+    v: &VaultFixture,
     relay: &str,
     mailbox: &str,
     from: &str,
@@ -247,11 +146,11 @@ fn recv_msg(
     if emit_receipts {
         args.extend_from_slice(&["--emit-receipts", "delivered"]);
     }
-    run_ok(cfg, &args)
+    run_ok(v, &args)
 }
 
-/// What a send ORIGINATED, counted from its markers. This is the measurement instrument for
-/// E2 and the assertion surface for the guards — one instrument for both, as B1 requires.
+/// What a send ORIGINATED, counted from its LEGACY markers. Kept as a tripwire: the head emits none
+/// of these, so a non-zero count means the legacy origination path came back.
 #[derive(Debug, Default, PartialEq, Eq)]
 struct Origination {
     dh_boundaries: usize,
@@ -285,37 +184,93 @@ fn count_origination(output: &str) -> Origination {
     o
 }
 
+/// What a step PUT ON THE WIRE, by the head's frame classes (see the header). The measurement
+/// instrument for E2/E3 and the assertion surface for the directional witnesses.
+#[derive(Debug, Default, PartialEq, Eq)]
+struct Frames {
+    receipts: usize,
+    receipts_malformed: usize,
+    boundaries: usize,
+    ordinary: usize,
+    other: usize,
+}
+
+fn classify(frames: &[Vec<u8>]) -> Frames {
+    let mut f = Frames::default();
+    for w in frames {
+        if w.starts_with(b"NDR1") {
+            f.receipts += 1;
+            if w.len() != NDR1_LEN {
+                f.receipts_malformed += 1;
+            }
+        } else if w.starts_with(b"NDE1") && w.len() > 4 && w[4] == 1 {
+            f.boundaries += 1;
+        } else if w.starts_with(b"NDE1") && w.len() > 4 && w[4] == 0 {
+            f.ordinary += 1;
+        } else {
+            f.other += 1;
+        }
+    }
+    f
+}
+
 struct Fixture {
-    _root: PathBuf,
-    alice: PathBuf,
-    bob: PathBuf,
+    pair: RealPair,
     alice_out: PathBuf,
     bob_out: PathBuf,
     relay: String,
     server: common::InboxTestServer,
 }
 
+impl Fixture {
+    fn alice(&self) -> &VaultFixture {
+        &self.pair.a
+    }
+    fn bob(&self) -> &VaultFixture {
+        &self.pair.b
+    }
+    /// The raw frames waiting in a mailbox, observed WITHOUT consuming them.
+    fn mailbox(&self, route: &str) -> Vec<Vec<u8>> {
+        let items = self.server.drain_channel(route);
+        self.server.replace_channel(route, items.clone());
+        items
+    }
+    /// Run `step` and return what it added to `route`'s mailbox, by frame class.
+    fn pushed_during<T>(&self, route: &str, step: impl FnOnce() -> T) -> (T, Frames) {
+        let before = self.mailbox(route).len();
+        let result = step();
+        let after = self.mailbox(route);
+        (result, classify(&after[before.min(after.len())..]))
+    }
+}
+
 /// alice and bob hold a real session; alice has sent one message REQUESTING A RECEIPT and bob
 /// has NOT yet received it. Bob's send chain is therefore still unseeded.
 fn fixture(tag: &str) -> Fixture {
-    let root = test_root(tag);
-    let alice = root.join("alice");
-    let bob = root.join("bob");
-    let alice_out = root.join("alice_out");
-    let bob_out = root.join("bob_out");
-    for d in [&alice, &bob, &alice_out, &bob_out] {
-        ensure_dir_700(d);
-    }
-    common::init_mock_vault(&alice);
-    common::init_mock_vault(&bob);
     let server = common::start_inbox_server(1024 * 1024, 64);
     let relay = server.base_url().to_string();
-    hs_dance(&alice, &bob, &relay);
-    send_msg(&alice, &relay, "bob", b"c2-first-from-alice", "m1", true);
+    let pair = common::init_real_pair(
+        tag,
+        PairRelay::Mock(&server),
+        ("alice", ROUTE_TOKEN_ALICE),
+        ("bob", ROUTE_TOKEN_BOB),
+    );
+    assert!(
+        session_path(&pair.a.cfg, "bob").exists(),
+        "alice session missing"
+    );
+    assert!(
+        session_path(&pair.b.cfg, "alice").exists(),
+        "bob session missing"
+    );
+    let alice_out = pair.a.iso.root.join("alice_out");
+    let bob_out = pair.b.iso.root.join("bob_out");
+    for d in [&alice_out, &bob_out] {
+        ensure_dir_700(d);
+    }
+    send_msg(&pair.a, &relay, "bob", b"c2-first-from-alice", "m1", true);
     Fixture {
-        _root: root,
-        alice,
-        bob,
+        pair,
         alice_out,
         bob_out,
         relay,
@@ -334,16 +289,16 @@ fn fixture(tag: &str) -> Fixture {
 /// the session desynchronises — `REJECT_S2_HDR_AUTH_FAIL` — which is ENG-0086 finding 1
 /// happening rather than being predicted. A measurement that asserted success would panic on
 /// the very behaviour it exists to record, so the receive is run TOLERANTLY here. The guards
-/// below are the ones that assert.
+/// below are the ones that assert. (S6b: the head's frame classes are measured beside the legacy
+/// marker counts.)
 #[test]
 fn e2_measure_what_an_ack_originates() {
     let _g = lane_lock();
     let f = fixture("na0688_c2_e2");
 
     // Bob's chain is UNSEEDED here: alice has sent, bob has not. ENG-0086 finding 1's case.
-    let out1 = run_qsc(
-        &f.bob,
-        &[
+    let (out1, wire1) = f.pushed_during(ROUTE_TOKEN_ALICE, || {
+        f.bob().run(&[
             "receive",
             "--transport",
             "relay",
@@ -359,19 +314,23 @@ fn e2_measure_what_an_ack_originates() {
             f.bob_out.to_str().unwrap(),
             "--emit-receipts",
             "delivered",
-        ],
-    );
+        ])
+    });
     let text1 = output_text(&out1);
     let first = count_origination(&text1);
 
     // A user reply from bob, for the like-with-like comparison E3 needs.
-    let reply = send_msg(&f.alice, &f.relay, "bob", b"c2-reply-probe", "rp", false);
+    let (reply, reply_wire) = f.pushed_during(ROUTE_TOKEN_BOB, || {
+        send_msg(f.alice(), &f.relay, "bob", b"c2-reply-probe", "rp", false)
+    });
     let reply_counts = count_origination(&reply);
 
     println!("=== E2 MEASUREMENT — BEFORE SUPPRESSION (NA-0688 C2) ===");
     println!("receive-with-ack succeeded : {}", out1.status.success());
     println!("ack origination            : {first:?}");
+    println!("ack wire (head classes)    : {wire1:?}");
     println!("user send origination      : {reply_counts:?}");
+    println!("user send wire             : {reply_wire:?}");
     println!(
         "session broke              : {}",
         text1.contains("REJECT_S2_HDR_AUTH_FAIL")
@@ -402,21 +361,45 @@ fn e2_measure_what_an_ack_originates() {
 /// fixture must actually ack, or this guard is vacuous").
 fn warm_up_bobs_chain(f: &Fixture) {
     // Bob drains alice's opening message; his receipt is OWED, not sent (no chain yet).
-    recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
+    recv_msg(
+        f.bob(),
+        &f.relay,
+        ROUTE_TOKEN_BOB,
+        "alice",
+        &f.bob_out,
+        true,
+    );
     // Bob's own send establishes the chain and flushes what he owed.
-    send_msg(&f.bob, &f.relay, "alice", b"c2-warmup", "warm", false);
+    send_msg(f.bob(), &f.relay, "alice", b"c2-warmup", "warm", false);
     // ⚠ Alice MUST take bob's boundary, or the two roots diverge and nothing below authenticates.
-    recv_msg(&f.alice, &f.relay, ROUTE_TOKEN_ALICE, "bob", &f.alice_out, false);
+    recv_msg(
+        f.alice(),
+        &f.relay,
+        ROUTE_TOKEN_ALICE,
+        "bob",
+        &f.alice_out,
+        false,
+    );
 }
 
-/// Drive bob to an ESTABLISHED chain, then have him ack again. Returns (ack output, fixture).
-fn established_chain_ack(tag: &str) -> (String, Fixture) {
+/// Drive bob to an ESTABLISHED chain, then have him ack again. Returns (ack output, what the ack
+/// put on alice's wire, fixture).
+fn established_chain_ack(tag: &str) -> (String, Frames, Fixture) {
     let f = fixture(tag);
     warm_up_bobs_chain(&f);
     // Alice sends again; bob acks over an ESTABLISHED chain.
-    send_msg(&f.alice, &f.relay, "bob", b"c2-second", "m2", true);
-    let out = recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
-    (out, f)
+    send_msg(f.alice(), &f.relay, "bob", b"c2-second", "m2", true);
+    let (out, wire) = f.pushed_during(ROUTE_TOKEN_ALICE, || {
+        recv_msg(
+            f.bob(),
+            &f.relay,
+            ROUTE_TOKEN_BOB,
+            "alice",
+            &f.bob_out,
+            true,
+        )
+    });
+    (out, wire, f)
 }
 
 /// GUARD — R1a: over an ESTABLISHED chain a control send originates NOTHING.
@@ -424,10 +407,12 @@ fn established_chain_ack(tag: &str) -> (String, Fixture) {
 #[test]
 fn an_ack_over_an_established_chain_originates_nothing() {
     let _g = lane_lock();
-    let (out, _f) = established_chain_ack("na0688_c2_g1");
+    let (out, wire, _f) = established_chain_ack("na0688_c2_g1");
+    // REPLACED (`event=receipt_send` is not emitted on the head): the ack is on the wire as NDR1
+    // receipt frames, each of the fixed receipt length.
     assert!(
-        out.contains("event=receipt_send"),
-        "the fixture must actually ack, or this guard is vacuous:\n{out}"
+        wire.receipts >= 1 && wire.receipts_malformed == 0,
+        "the fixture must actually ack, or this guard is vacuous: {wire:?}\n{out}"
     );
     let o = count_origination(&out);
     assert_eq!(
@@ -451,6 +436,13 @@ fn an_ack_over_an_established_chain_originates_nothing() {
         "over an established chain there is nothing left to establish, so an ack must \
          originate no boundary at all:\n{out}"
     );
+    // The directional witness for the reply / fallback / any-boundary guards above: over an
+    // established chain the ack puts NO boundary frame on the wire.
+    assert_eq!(
+        wire.boundaries, 0,
+        "over an established chain an ack must put no boundary (NDE1 byte 4 = 1) on the wire: \
+         {wire:?}\n{out}"
+    );
 }
 
 /// GUARD — §2.1 as narrowed: no persistent write from `qsp_pack` on a control send over an
@@ -466,13 +458,20 @@ fn an_ack_over_an_established_chain_originates_nothing() {
 #[test]
 fn an_ack_over_an_established_chain_writes_nothing_persistent_from_pack() {
     let _g = lane_lock();
-    let (out, _f) = established_chain_ack("na0688_c2_g2");
+    let (out, wire, _f) = established_chain_ack("na0688_c2_g2");
     let o = count_origination(&out);
     assert_eq!(
         (o.dh_boundaries, o.pq_reseeds, o.advertisements),
         (0, 0, 0),
         "all four `scka_dirty` sites live inside these three branches; any one of them firing \
          means `qsp_scka_store` ran on a control send:\n{out}"
+    );
+    // The directional witness: the ack originates no boundary and nothing of an unknown class.
+    assert_eq!(
+        (wire.boundaries, wire.other),
+        (0, 0),
+        "an ack over an established chain must originate no boundary and no unknown frame: \
+         {wire:?}\n{out}"
     );
 }
 
@@ -497,13 +496,31 @@ fn an_ack_over_an_established_chain_writes_nothing_persistent_from_pack() {
 ///   * it fails if an unseeded-chain ack **establishes** again (a regression back to A6), and
 ///   * it fails if the receipt is **silently dropped** instead of owed — the failure mode that
 ///     made plain refusal unacceptable, since alice would sit on SENT forever.
+///
 /// Asserting only the first would let the receipt vanish; asserting only the second would let the
 /// keypair mint return.
+///
+/// S6b: on the head the receipt needs no send chain at all — it is an NDR1 frame keyed to the
+/// RECEIVING epoch — so it is sent at once, never owed. DIRECTION 2 therefore proves "not dropped"
+/// end to end (alice's message reaches DELIVERED). DIRECTION 1's ack is the NDR1 frame; the boundary
+/// the head's receive may push beside it is the directional core's receive maintenance (B's owner
+/// transition), whose no-wedge property is pinned by
+/// `handshake_mvp::a_first_send_ack_never_wedges_the_session` and `f03_crossed_send.rs`.
 #[test]
 fn an_ack_on_an_unseeded_chain_originates_nothing_and_owes_the_receipt() {
     let _g = lane_lock();
     let f = fixture("na0688_c2_g3");
-    let out = recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
+    let (out, wire) = f.pushed_during(ROUTE_TOKEN_ALICE, || {
+        recv_msg(
+            f.bob(),
+            &f.relay,
+            ROUTE_TOKEN_BOB,
+            "alice",
+            &f.bob_out,
+            true,
+        )
+    });
+    println!("unseeded-chain ack wire (head classes): {wire:?}");
 
     // DIRECTION 1 — NOTHING is originated. Not a boundary, not a reseed, not an advertisement.
     let o = count_origination(&out);
@@ -523,13 +540,27 @@ fn an_ack_on_an_unseeded_chain_originates_nothing_and_owes_the_receipt() {
         "a control send originates nothing at all — no rotation, no reseed, no advertisement:
 {out}"
     );
-
-    // DIRECTION 2 — the receipt is OWED, not dropped. Without this the guard above would be
-    // satisfied by a client that simply threw the ack away.
+    // The directional witness: the ack itself is a bare NDR1 receipt of the fixed length — it can
+    // carry no DH, no root transition and no advertisement.
     assert!(
-        out.contains("event=receipt_owed"),
-        "the receipt must be recorded to the durable hold — a client that dropped it would pass          the origination assertions above while losing the first receipt of every          conversation:
-{out}"
+        wire.receipts >= 1 && wire.receipts_malformed == 0 && wire.other == 0,
+        "the ack must be a fixed-length NDR1 receipt and nothing of an unknown class: {wire:?}\n{out}"
+    );
+
+    // DIRECTION 2 — the receipt is not dropped. REPLACED (the head emits no `receipt_owed`; its
+    // receipt needs no chain and leaves at once): alice's first message reaches DELIVERED.
+    let alice_recv = recv_msg(
+        f.alice(),
+        &f.relay,
+        ROUTE_TOKEN_ALICE,
+        "bob",
+        &f.alice_out,
+        false,
+    );
+    assert!(
+        alice_recv.contains("event=message_state_transition from=SENT to=DELIVERED"),
+        "the receipt must reach alice — a client that dropped it would pass the origination \
+         assertions above while losing the first receipt of every conversation:\n{out}\n{alice_recv}"
     );
     assert!(
         !out.contains("event=receipt_send"),
@@ -544,6 +575,14 @@ fn an_ack_on_an_unseeded_chain_originates_nothing_and_owes_the_receipt() {
 /// second half is the one that matters most: an ack that cleared `pending_send_ratchet`
 /// without rotating would be strictly worse than an ack that rotated — the human's reply
 /// boundary would simply vanish, silently, with no marker anywhere.
+///
+/// S6b: HALF 2's subject — the ratchet-on-reply due-state `pending_send_ratchet`, taken by the next
+/// user send with `reason=reply` — does not exist on the head's directional path (the field survives
+/// only in the legacy session record, src/protocol_state/mod.rs:270; the directional boundary is
+/// decided at src/directional_delivery.rs:602-606 with no reply reason). HALF 2 is RETIRED; the
+/// head's "each side's rotation is taken" property is pinned by
+/// `handshake_mvp::dh_ratchet_e2e_roundtrip_over_real_handshake` (both fresh DH/root transitions
+/// authenticated). The user reply itself is still sent and must still reach alice.
 #[test]
 fn a_due_rotation_survives_an_ack_and_is_taken_by_the_next_user_send() {
     let _g = lane_lock();
@@ -553,14 +592,23 @@ fn a_due_rotation_survives_an_ack_and_is_taken_by_the_next_user_send() {
 
     // Alice sends again. Bob receiving this sets `pending_send_ratchet`: a rotation is DUE.
     send_msg(
-        &f.alice,
+        f.alice(),
         &f.relay,
         "bob",
         b"c2-makes-rotation-due",
         "m3",
         true,
     );
-    let ack = recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
+    let (ack, wire) = f.pushed_during(ROUTE_TOKEN_ALICE, || {
+        recv_msg(
+            f.bob(),
+            &f.relay,
+            ROUTE_TOKEN_BOB,
+            "alice",
+            &f.bob_out,
+            true,
+        )
+    });
 
     // HALF 1 — the ack did not rotate.
     let o = count_origination(&ack);
@@ -568,22 +616,36 @@ fn a_due_rotation_survives_an_ack_and_is_taken_by_the_next_user_send() {
         o.dh_boundaries, 0,
         "rotation was DUE and a control send must not take it:\n{ack}"
     );
+    assert_eq!(
+        wire.boundaries, 0,
+        "rotation was DUE and the ack must put no boundary on the wire: {wire:?}\n{ack}"
+    );
 
-    // HALF 2 — the due-state SURVIVED, and bob's next USER send takes it.
-    let user_send = send_msg(
-        &f.bob,
+    // HALF 2 — bob's next USER send still goes out and reaches alice.
+    send_msg(
+        f.bob(),
         &f.relay,
         "alice",
         b"c2-bobs-real-reply",
         "br",
         false,
     );
-    let u = count_origination(&user_send);
-    assert_eq!(
-        u.dh_reply, 1,
-        "the ack must LEAVE the due-state intact so the next USER send rotates with \
-         reason=reply. Zero here means the ack silently consumed the human's reply \
-         boundary — worse than rotating on the ack:\n{user_send}"
+    let reply_out = f.alice_out.join("reply");
+    let got = recv_msg(
+        f.alice(),
+        &f.relay,
+        ROUTE_TOKEN_ALICE,
+        "bob",
+        &reply_out,
+        false,
+    );
+    let bodies: Vec<Vec<u8>> = fs::read_dir(&reply_out)
+        .unwrap()
+        .map(|e| fs::read(e.unwrap().path()).unwrap())
+        .collect();
+    assert!(
+        bodies.iter().any(|b| b == b"c2-bobs-real-reply"),
+        "bob's user reply after the ack must reach alice:\n{got}"
     );
 }
 
@@ -591,25 +653,38 @@ fn a_due_rotation_survives_an_ack_and_is_taken_by_the_next_user_send() {
 /// witness D622 names for this is `handshake_mvp::dh_ratchet_e2e_roundtrip_over_real_handshake`,
 /// which runs unmodified in the suite. This is the same property asserted locally, so a
 /// regression is attributable to C2 rather than surfacing in a distant file.
+///
+/// S6b: the head takes B's fresh boundary as RECEIVE MAINTENANCE (see handshake_mvp's
+/// "Receive maintenance can have emitted B's boundary"), and the head sends every receipt, so
+/// "bob's reply path" is his receive plus his user send: across them bob must put a boundary on the
+/// wire.
 #[test]
 fn a_user_reply_still_rotates_the_ratchet() {
     let _g = lane_lock();
     let f = fixture("na0688_c2_g5");
-    // Bob receives WITHOUT acking, so nothing but his own send can rotate.
-    recv_msg(
-        &f.bob,
-        &f.relay,
-        ROUTE_TOKEN_BOB,
-        "alice",
-        &f.bob_out,
-        false,
+    let ((_, user_send), wire) = f.pushed_during(ROUTE_TOKEN_ALICE, || {
+        // Bob receives WITHOUT requesting receipts, so nothing but his own reply path can rotate.
+        let r = recv_msg(
+            f.bob(),
+            &f.relay,
+            ROUTE_TOKEN_BOB,
+            "alice",
+            &f.bob_out,
+            false,
+        );
+        let s = send_msg(f.bob(), &f.relay, "alice", b"c2-user-reply", "ur", false);
+        (r, s)
+    });
+    // REPLACED: the legacy count (`qsp_dh_ratchet dir=send`, no emit site on the head) cannot
+    // witness this; bob's side must put a boundary (NDE1 byte 4 = 1) on the wire.
+    println!(
+        "user send legacy origination: {:?}",
+        count_origination(&user_send)
     );
-    let user_send = send_msg(&f.bob, &f.relay, "alice", b"c2-user-reply", "ur", false);
-    let u = count_origination(&user_send);
     assert!(
-        u.dh_boundaries >= 1,
+        wire.boundaries >= 1,
         "a USER reply must still originate a boundary — passivation must not have suppressed \
-         the human path:\n{user_send}"
+         the human path:\n{user_send}\n{wire:?}"
     );
 }
 
@@ -639,6 +714,10 @@ fn a_user_reply_still_rotates_the_ratchet() {
 ///     Standard floor. A one-sample instrument would have flipped the R2b conclusion on what is
 ///     an artefact of the body size chosen. It now takes a SHORT sample (under the floor) and a
 ///     LONG one (over it), so the answer does not depend on which body the fixture picked.
+///
+/// S6b: the LONG sample is 2048 bytes, not 4096. It must still exceed the 1024 floor, and the head
+/// caps a padded directional message at 4096 bytes (src/directional_delivery.rs:289-296, refused
+/// INTEGRATION_PADDING_SIZE), which a 4096-byte body exceeds once its framing is added.
 #[test]
 fn e3_measure_envelope_distinguishability() {
     let _g = lane_lock();
@@ -647,17 +726,24 @@ fn e3_measure_envelope_distinguishability() {
     // ⚠ NA-0688 WARM-UP: after the A6 reversal an ack cannot establish, so bob needs a chain of
     // his own before his ack can exist at all — the earlier form measured `ack=[]`.
     warm_up_bobs_chain(&f);
-    send_msg(&f.alice, &f.relay, "bob", b"e3-trigger", "e3t", true);
+    send_msg(f.alice(), &f.relay, "bob", b"e3-trigger", "e3t", true);
     let _ = drained_lens(&f, ROUTE_TOKEN_ALICE); // discard everything the warm-up put on the wire
 
     // STEP 1 — bob acks alice's message over his established chain. Drained immediately, so what
     // comes back is unambiguously the ack.
-    recv_msg(&f.bob, &f.relay, ROUTE_TOKEN_BOB, "alice", &f.bob_out, true);
+    recv_msg(
+        f.bob(),
+        &f.relay,
+        ROUTE_TOKEN_BOB,
+        "alice",
+        &f.bob_out,
+        true,
+    );
     let ack_lens = drained_lens(&f, ROUTE_TOKEN_ALICE);
 
     // STEP 2 — a SHORT user reply: 20 bytes, well under the Standard 1024 floor.
     send_msg(
-        &f.bob,
+        f.bob(),
         &f.relay,
         "alice",
         b"bobs-user-reply-body",
@@ -666,9 +752,9 @@ fn e3_measure_envelope_distinguishability() {
     );
     let short_lens = drained_lens(&f, ROUTE_TOKEN_ALICE);
 
-    // STEP 3 — a LONG user reply: 4096 bytes, unambiguously over the floor.
-    let long_body = vec![b'x'; 4096];
-    send_msg(&f.bob, &f.relay, "alice", &long_body, "e3l", false);
+    // STEP 3 — a LONG user reply: 2048 bytes, unambiguously over the floor.
+    let long_body = vec![b'x'; 2048];
+    send_msg(f.bob(), &f.relay, "alice", &long_body, "e3l", false);
     let long_lens = drained_lens(&f, ROUTE_TOKEN_ALICE);
 
     println!("=== E3 MEASUREMENT — envelope lengths as they sat on the relay ===");

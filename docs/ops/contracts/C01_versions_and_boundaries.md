@@ -433,3 +433,14 @@ and the text above disagree, the amendment governs.
 | AM-4 (audit S7.4) | DISCRIMINATING CHECKS row "D (no effects)" | After "under the relay source, the item un-ACKed" read the parenthetical "(today's relay source; the successor disposition is C05's)" |
 
 END OF C01 AMENDMENT AM-4
+
+==============================================================================================================
+AMENDMENT AM-5 (appended by D-1439; the text above, C01 FINAL and AM-1..AM-4, is NOT rewritten)
+==============================================================================================================
+Ruled by `RULING_F03_formalization_2026-09-25.md` (`07d8fae5d31da0e47b10445fdc87784efb4cd93946395f9886bc29e99310de75`) on the operator-approved values RBANK_F03_C01_O2_O5_values_2026-09-25
+(ed682274...). Where the amendment and the text above disagree, the amendment governs.
+| Id | Amends | Amendment |
+|---|---|---|
+| AM-5 | T6 O2, T6 O5; T1 rows 2, 3, 17; O8 L1/L2; APPENDIX A A02, A03, A15, A18, A19, A20 | O2 and O5 CLOSED: the values are allocated by DOC-CAN-003 sec 12.9 (rows A02-V1, A03-V1, A15-V1, A18-V1, A19-V1, A20-V1, O5-01, A21-AM1; C07-01-V1). Row 2 stays CRYPTO-TOUCHING: the implementing PR of A02-V1 carries an SR-15 independent sensitive review. The CENSUS V7 resolver home and the rest of O6 stay OPEN (F04) |
+
+END OF C01 AMENDMENT AM-5

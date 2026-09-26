@@ -8935,3 +8935,62 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
 - Carrier: the next qsl-desktop lane (RULING_TMP_desktop_lock_PR65 R3). Operator act carried beside it, not an ENG item:
   promote the gui-driver CI job to required after its green streak (SR15_PR63 L6-a, R3).
 - Cross-references: ENG-0379 (the lock-truth items from the same read); ENG-0373 (RD-02).
+
+### ENG-0381 -- #1831 CANDIDATE / INTEGRATION HEAD: REGRESSION OF NA-0741 (D-1376); THE RELAY RECEIVE LOOP'S KNOWN-FOREIGN FRAMES COUNT NEITHER controls NOR skipped, SO A HEAD OF THEM ENDS THE BOUNDED PULL WITH HONEST DATA BEHIND IT (PLAN F03 formalization E-2; RULING_F03_formalization V4) -- MAJOR (best known; UNKNOWN until run)
+
+- Type: regression (the #1831 candidate `ffc8fc52`, carried to the F03 integration head by the S1 merge; the qsc
+  client's relay receive loop). Status: open (filed; owner PLAN card F03 subassignment S7; nothing repaired here).
+- Originating lane: the PLAN F03 formalization (its E-2 / F-6), 2026-09-25. Last lane: NA-0785 (filed at its
+  promotion). Last-updated: 2026-09-25. Ruled: RULING_F03_formalization_2026-09-25 (sha256
+  07d8fae5d31da0e47b10445fdc87784efb4cd93946395f9886bc29e99310de75) V4 (E-2 CONFIRMED BY THE DIRECTOR'S READING; not
+  run), R6 (DD-5 ADOPTED: S7 fixes it inside F03, red-first, restoring main's known-foreign arm; ACK policy untouched)
+  and R7 (DD-6: filed by the promotion PR); recorded by D-1439. Source: the formalization REPORT.md (sha256
+  8cf3307c230443621308e5f9338eba4c213af9ea599e0a7fb4bd4d3af50344b1) E-2 and DD-5.
+- Subject revisions: the candidate `ffc8fc52` and qsl-protocol main `63263a06` (the lines below re-read from the mirror
+  at this edit; qsl/qsl-client/qsc/src/frameclass.rs is identical at both).
+- Finding (source reading; NOT RUN): at the candidate, qsl/qsl-client/qsc/src/transport/mod.rs:489 wraps all handling
+  of a pulled item in `if !crate::frameclass::classify(&item.data).is_known_foreign() { ... }` with no else arm, so a
+  known-foreign frame (src/frameclass.rs:51-56: Handshake (QHSM), InviteInit (01 01), InviteResp (01 02) -- frames
+  another consumer on the device is entitled to collect) increments neither `controls` nor `skipped` and emits no
+  marker; a round made only of such frames satisfies `(controls == 0 && skipped == 0)` at :533 and ends the pull
+  (:537). At main, transport/mod.rs:556-576 counts each such frame (`skipped` and `skipped_total`), emits
+  `recv_frame_skipped` with `disposition=left_leased`, and continues, which is the NA-0741 / D-1376 behaviour the
+  candidate's comments at :485-487 and :527-532 still describe.
+- Consequences: the frames are left leased (correctly), so a leasing relay re-offers the same head on every pull; with
+  at least `--max` known-foreign frames at the head of the mailbox, honest messages behind them are never delivered by
+  the bounded re-pull (THE PLAN P2), silently (exit 0). The seven na0741_frame_class_dispatch tests that pin this
+  property fail at SETUP at the trial head (fixture family FF1), so the suite census cannot see the regression.
+- Severity: MAJOR as best known (availability: a persistent under-delivery on a leasing relay); UNKNOWN until S7's
+  red-first test runs.
+- Named repair (NOT repaired here): S7 -- na0741_frame_class_dispatch.rs moved onto a real pair over the leasing relay;
+  `foreign_litter_at_the_head_still_delivers_up_to_max` RED at the integration head for the intended reason
+  (under-delivery), then main's known-foreign arm restored in the receive loop; RECV_CONTROL_ROUNDS_MAX and the ACK
+  disposition of foreign items unchanged (C05 D-R1 / F11 / ENG-0358 own that).
+- Owner: PLAN card F03, subassignment S7 (opus/xhigh read ordered, R1).
+- Cross-references: D-1376 (NA-0741); ENG-0358 (the candidates' receive path: expected non-admissions left un-ACKed,
+  known-foreign frames falling through; the ACK side stays its own); the formalization's INSTRUMENTS FF5.
+
+### ENG-0382 -- TEST HYGIENE HAZARD AT THE IDENTITY FLIP: 126 TEST FILES ISOLATE A CHILD BY QSC_CONFIG_DIR ALONE; A SUCCESSOR BUILD IGNORES IT (C01 O8 L2) AND RESOLVES XDG_CONFIG_HOME/qsc-succ01 -- UNDER AN UNISOLATED HOME, THE DEVELOPER'S REAL CONFIG HOME (PLAN F03 formalization E-4) -- MINOR today, MAJOR at the flip if unhandled
+
+- Type: test-hygiene hazard (the qsc test suite; latent until the C01 identity lands). Status: open (filed; owner the
+  identity-landing assignment (DD-1) and PLAN card F12; nothing repaired here).
+- Originating lane: the PLAN F03 formalization (its E-4 / F-10 and FIXTURE_DESIGN M4), 2026-09-25. Last lane: NA-0785
+  (filed at its promotion). Last-updated: 2026-09-25. Ruled: RULING_F03_formalization_2026-09-25 (sha256
+  07d8fae5d31da0e47b10445fdc87784efb4cd93946395f9886bc29e99310de75) R7 (DD-6: filed by the promotion PR) and R2 (DD-1:
+  the identity landing is not inside F03; its placement is ruled at F04's formalization); recorded by D-1439. Source:
+  the formalization REPORT.md (sha256 8cf3307c230443621308e5f9338eba4c213af9ea599e0a7fb4bd4d3af50344b1) E-4.
+- Subject revisions: the candidate `ffc8fc52` (126 files under qsl/qsl-client/qsc/tests name QSC_CONFIG_DIR) and main
+  `63263a06` (125), counted from the mirror at this edit by `git grep -l QSC_CONFIG_DIR <rev> -- qsl/qsl-client/qsc/tests`;
+  that count is of files NAMING the variable -- "alone" (no HOME / XDG isolation beside it) is the formalization's
+  classification, carried, not re-measured here.
+- Finding (census; NOT RUN): these tests isolate a child process by QSC_CONFIG_DIR alone. The allocated successor
+  location (DOC-CAN-003 12.9 A19-V1 / A20-V1) resolves XDG_CONFIG_HOME/qsc-succ01 with the override
+  QSC_SUCC01_CONFIG_DIR, and QSC_CONFIG_DIR stays unhonoured by a successor build (C01 O8 L2).
+- Consequences: once a successor build is what the tests launch, a test that isolates only by QSC_CONFIG_DIR and not by
+  HOME / XDG_CONFIG_HOME reads and writes the developer's (or the runner's) REAL config home. Nothing implements L2
+  today, so nothing is written there now.
+- Severity: MINOR today; MAJOR at the identity flip if unhandled.
+- Named repair (NOT repaired here): every successor child goes through VaultFixture::command (TestIsolation plus the
+  override); a CI assertion that no test writes under the real HOME.
+- Owner: the identity-landing assignment (DD-1) together with PLAN card F12.
+- Cross-references: C01 O8 (L1/L2); DOC-CAN-003 12.9 (A19-V1, A20-V1); the formalization's FIXTURE_DESIGN M4.

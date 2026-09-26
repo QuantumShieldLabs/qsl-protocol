@@ -26,6 +26,8 @@ use std::time::{Duration, Instant};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::oneshot;
 
+pub mod profile;
+
 pub const TEST_MOCK_VAULT_PASSPHRASE_ENV: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
 pub const TEST_MOCK_VAULT_PASSPHRASE: &str = "qsc-test-mock-vault-passphrase";
 pub const UNSAFE_TEST_SEED_FALLBACK_ENV: &str = "QSC_UNSAFE_TEST_SEED_FALLBACK";
@@ -84,6 +86,12 @@ pub fn add_unsafe_seed_fallback_env(cmd: &mut StdCommand) {
         .env(UNSAFE_TEST_SEED_FALLBACK_ENV, "1");
 }
 
+/// DECLARED MEANING (NA-0785 PLAN F03, FIXTURE_DESIGN sec 2(b), M1): this creates a
+/// SUCCESSOR (directional) vault of the integration head's development profile, not
+/// main's legacy default vault -- the candidate changed its meaning in 7bc002c2, and F03
+/// declares that change rather than reverting it. Meaning UNCHANGED from the head. NO NEW
+/// CALLER: use `init_ordinary_vault`, `init_successor_vault` or `init_real_pair` instead;
+/// `f03_fixture_helpers.rs` holds a caller census that fails if callers grow.
 #[allow(dead_code)]
 pub fn init_mock_vault(cfg: &Path) {
     init_passphrase_vault(cfg, TEST_MOCK_VAULT_PASSPHRASE);
@@ -154,6 +162,11 @@ pub fn add_vault_passphrase_file_arg(
         .arg(passphrase_file.to_str().expect("passphrase file path"));
 }
 
+/// DECLARED MEANING (NA-0785 PLAN F03, FIXTURE_DESIGN sec 2(b), M1): `vault init
+/// --protocol directional-v1` for EVERY caller, i.e. a SUCCESSOR vault of the head's
+/// development profile (7bc002c2), with the passphrase file kept outside `cfg` (the
+/// fresh-directory rule). Meaning UNCHANGED from the head. NO NEW CALLER: use the F03
+/// helpers; the caller census in `f03_fixture_helpers.rs` fails if callers grow.
 #[allow(dead_code)]
 pub fn init_passphrase_vault(cfg: &Path, passphrase: &str) {
     ensure_dir_700(cfg);
@@ -1424,5 +1437,392 @@ impl DirectionalTrace {
     pub fn both_directions(&self) -> bool {
         [0, 1].iter().all(|role| self.emitted.iter().any(|(seq, s)|
             s["core"]["role"] == *role && self.authenticated.contains(seq)))
+    }
+}
+
+// =====================================================================================
+// NA-0785 PLAN F03 / S4 -- FIXTURE HELPERS (FIXTURE_DESIGN secs 1-2).
+// Three helpers split by MEANING: an ordinary vault (storage only, can never establish a
+// directional peer), a successor vault of `profile::ACTIVE`, and a real pair (two
+// successor vaults, pinned identities, trusted devices and a REAL handshake over a chosen
+// relay). No fabricated session keys; no seed fallback; nothing process-wide: every child
+// command carries its own config dir, HOME, XDG_CONFIG_HOME, TMPDIR and working directory.
+// =====================================================================================
+
+/// Ambient variables a fixture child must never inherit from the test process.
+const FIXTURE_AMBIENT_ENV: &[&str] = &[
+    "QSC_CONFIG_DIR",
+    "QSC_PASSPHRASE",
+    TEST_MOCK_VAULT_PASSPHRASE_ENV,
+    "QSC_KEY_SOURCE",
+    "QSC_ALLOW_SEED_FALLBACK",
+    UNSAFE_TEST_SEED_FALLBACK_ENV,
+    "QSC_QSP_SEED",
+    "QSC_SEED",
+    "QSC_SCENARIO",
+];
+
+/// S3 E-7: the F03 helpers' state root. `QSC_TEST_ROOT` when set (it must be absolute),
+/// else the system temp dir -- never a path relative to the test's working directory.
+pub fn fixture_test_root(tag: &str) -> PathBuf {
+    let base = match std::env::var_os("QSC_TEST_ROOT") {
+        Some(root) => {
+            let root = PathBuf::from(root);
+            assert!(
+                root.is_absolute(),
+                "QSC_TEST_ROOT must be absolute for the F03 fixtures"
+            );
+            root
+        }
+        None => std::env::temp_dir(),
+    };
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock")
+        .as_nanos();
+    let seq = TEST_NONCE_COUNTER.fetch_add(1, Ordering::Relaxed);
+    base.join("qsc-f03-fixtures")
+        .join(format!("{tag}_{}_{nonce}_{seq}", std::process::id()))
+}
+
+/// A fresh `TestIsolation` rooted at `fixture_test_root(tag)`.
+pub fn fixture_isolation(tag: &str) -> TestIsolation {
+    let root = fixture_test_root(tag);
+    let home = root.join("home");
+    let xdg_config_home = home.join(".config");
+    let tmpdir = root.join("tmp");
+    for dir in [&root, &home, &xdg_config_home, &tmpdir] {
+        ensure_dir_700(dir);
+    }
+    TestIsolation {
+        root,
+        home,
+        xdg_config_home,
+        tmpdir,
+    }
+}
+
+/// What a `VaultFixture` MEANS (FIXTURE_DESIGN sec 2).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum VaultKind {
+    /// Holds secrets; can never establish a directional peer.
+    Ordinary,
+    /// A messaging vault of `profile::ACTIVE`.
+    Successor,
+}
+
+pub struct VaultFixture {
+    pub cfg: PathBuf,
+    pub iso: TestIsolation,
+    pub passphrase: String,
+    pub kind: VaultKind,
+}
+
+impl VaultFixture {
+    /// The child command WITHOUT the unlock flag (`vault init` refuses it).
+    fn base_command(&self) -> StdCommand {
+        let mut cmd = StdCommand::new(assert_cmd::cargo::cargo_bin!("qsc"));
+        for var in FIXTURE_AMBIENT_ENV {
+            cmd.env_remove(var);
+        }
+        self.iso.apply_to(&mut cmd);
+        cmd.current_dir(&self.iso.root)
+            .env("QSC_DISABLE_KEYCHAIN", "1")
+            .env(profile::ACTIVE.location_env, &self.cfg);
+        cmd
+    }
+
+    /// Every child command goes through here: HOME/XDG_CONFIG_HOME/TMPDIR isolated, the
+    /// working directory inside the fixture root, QSC_DISABLE_KEYCHAIN=1, the ACTIVE location
+    /// variable set to `cfg` (under TARGET, QSC_CONFIG_DIR stays REMOVED, C01 O8 L2), and the
+    /// fixture's own passphrase as the unlock source.
+    pub fn command(&self) -> StdCommand {
+        let mut cmd = self.base_command();
+        cmd.env(TEST_MOCK_VAULT_PASSPHRASE_ENV, &self.passphrase)
+            .arg("--unlock-passphrase-env")
+            .arg(TEST_MOCK_VAULT_PASSPHRASE_ENV);
+        cmd
+    }
+
+    pub fn run(&self, args: &[&str]) -> std::process::Output {
+        self.command().args(args).output().expect("fixture command")
+    }
+
+    /// Run and require success; returns stdout followed by stderr.
+    pub fn run_ok(&self, args: &[&str]) -> String {
+        let out = self.run(args);
+        let text = format!(
+            "{}{}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        );
+        assert!(
+            out.status.success(),
+            "fixture command {args:?} failed: {text}"
+        );
+        text
+    }
+}
+
+/// `vault init` with `selector`, the passphrase file in the fixture root OUTSIDE `cfg`.
+fn fixture_vault_init(fixture: &VaultFixture, selector: &[&str]) -> Result<(), String> {
+    let input = fixture.iso.root.join("input");
+    let passphrase_file = write_passphrase_file(&input, "vault-init", &fixture.passphrase);
+    let out = fixture
+        .base_command()
+        .args(["vault", "init"])
+        .args(selector)
+        .args([
+            "--non-interactive",
+            "--key-source",
+            "passphrase",
+            "--passphrase-file",
+        ])
+        .arg(&passphrase_file)
+        .output()
+        .expect("vault init");
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    if !out.status.success() || !text.contains("event=vault_init") {
+        return Err(format!("vault init failed: {text}"));
+    }
+    Ok(())
+}
+
+/// First-party read of a vault's AUTHENTICATED payload identity `(version, profile)`:
+/// the envelope is opened with the fixture passphrase and its header as associated data,
+/// as the product does. Nothing else is read out of the payload.
+pub fn vault_payload_identity(cfg: &Path, passphrase: &str) -> (u64, String) {
+    use argon2::{Algorithm, Argon2, Params, Version};
+    use chacha20poly1305::{
+        aead::{Aead, Payload},
+        ChaCha20Poly1305, Key, KeyInit, Nonce,
+    };
+    const HEADER_LEN: usize = 53;
+    let bytes = fs::read(cfg.join("vault.qsv")).expect("vault envelope");
+    assert!(
+        bytes.len() > HEADER_LEN,
+        "vault envelope shorter than its header"
+    );
+    let (header, ciphertext) = bytes.split_at(HEADER_LEN);
+    assert_eq!(
+        (header[7], header[8]),
+        (16, 12),
+        "canonical salt and nonce widths"
+    );
+    let word = |at: usize| u32::from_le_bytes(header[at..at + 4].try_into().unwrap());
+    let params = Params::new(word(9), word(13), word(17), Some(32)).expect("vault KDF header");
+    let mut key = [0u8; 32];
+    Argon2::new(Algorithm::Argon2id, Version::V0x13, params)
+        .hash_password_into(passphrase.as_bytes(), &header[25..41], &mut key)
+        .expect("vault key");
+    let clear = ChaCha20Poly1305::new(Key::from_slice(&key))
+        .decrypt(
+            Nonce::from_slice(&header[41..53]),
+            Payload {
+                msg: ciphertext,
+                aad: header,
+            },
+        )
+        .expect("vault payload authenticates under the fixture passphrase");
+    let payload: serde_json::Value = serde_json::from_slice(&clear).expect("vault payload");
+    (
+        payload["version"].as_u64().expect("payload version"),
+        payload["protocol"]
+            .as_str()
+            .expect("payload profile")
+            .to_owned(),
+    )
+}
+
+/// (a) ORDINARY VAULT: holds secrets and can never establish a directional peer
+/// (IMPLEMENTED: owner-free-v1; TARGET: storage-only). Post-check: exit 0 and the
+/// `vault_init` marker. That `handshake init` from it refuses with
+/// `profile::ACTIVE.ordinary_handshake_refusal` is asserted ONCE, in
+/// `f03_fixture_helpers.rs`, not in every caller.
+pub fn init_ordinary_vault(tag: &str, passphrase: &str) -> VaultFixture {
+    let iso = fixture_isolation(tag);
+    let cfg = iso.root.join("cfg");
+    ensure_dir_700(&cfg);
+    let fixture = VaultFixture {
+        cfg,
+        iso,
+        passphrase: passphrase.to_owned(),
+        kind: VaultKind::Ordinary,
+    };
+    if let Err(failure) = fixture_vault_init(&fixture, profile::ACTIVE.ordinary_init_args) {
+        panic!("init_ordinary_vault: {failure}");
+    }
+    fixture
+}
+
+/// (b) SUCCESSOR VAULT of `profile::ACTIVE`, in a fresh fixture root.
+pub fn init_successor_vault(tag: &str, passphrase: &str) -> VaultFixture {
+    let iso = fixture_isolation(tag);
+    let cfg = iso.root.join("cfg");
+    match try_init_successor_vault_at(iso, cfg, passphrase) {
+        Ok(fixture) => fixture,
+        Err(failure) => panic!("init_successor_vault: {failure}"),
+    }
+}
+
+/// (b) at a caller-chosen `cfg`. The fresh-directory rule is the fixture's PRECONDITION,
+/// not a surprise: a non-empty `cfg` is refused as `directional_fresh_vault_required`
+/// BEFORE the product runs, so the directory is left exactly as it was. Post-check: the
+/// authenticated payload's profile equals `profile::ACTIVE.id`.
+pub fn try_init_successor_vault_at(
+    iso: TestIsolation,
+    cfg: PathBuf,
+    passphrase: &str,
+) -> Result<VaultFixture, String> {
+    if cfg.exists() {
+        let entries = fs::read_dir(&cfg)
+            .map_err(|e| format!("cfg unreadable: {e}"))?
+            .count();
+        if entries != 0 {
+            return Err(format!(
+                "directional_fresh_vault_required: fixture precondition refused a cfg holding \
+                 {entries} entries; the product was not run"
+            ));
+        }
+    }
+    ensure_dir_700(&cfg);
+    let fixture = VaultFixture {
+        cfg,
+        iso,
+        passphrase: passphrase.to_owned(),
+        kind: VaultKind::Successor,
+    };
+    fixture_vault_init(&fixture, profile::ACTIVE.init_args)?;
+    let (_, profile_id) = vault_payload_identity(&fixture.cfg, &fixture.passphrase);
+    if profile_id != profile::ACTIVE.id {
+        return Err(format!(
+            "successor vault carries profile {profile_id}, not {}",
+            profile::ACTIVE.id
+        ));
+    }
+    Ok(fixture)
+}
+
+/// The relay a real pair handshakes over. `Leasing` (the real qsl-server) is the DEFAULT
+/// for any property about crossing, loss or redelivery (F00 A1: the delete-on-pull mock
+/// loses the ADV-carrying message); `Mock` only where the property is relay-independent.
+pub enum PairRelay<'a> {
+    Mock(&'a InboxTestServer),
+    Leasing(&'a QslRelayTestServer),
+}
+
+impl PairRelay<'_> {
+    pub fn base_url(&self) -> &str {
+        match self {
+            PairRelay::Mock(server) => server.base_url(),
+            PairRelay::Leasing(server) => server.base_url(),
+        }
+    }
+}
+
+pub struct RealPair {
+    pub a: VaultFixture,
+    pub b: VaultFixture,
+    pub a_label: String,
+    pub b_label: String,
+    pub a_route: String,
+    pub b_route: String,
+}
+
+/// (c) REAL PAIR: two successor vaults with pinned identities and trusted devices, then a
+/// REAL handshake (`--suite-mode suite-required`) over `relay`; both sides must report
+/// `event=handshake_complete`. `a` and `b` are `(label, inbox route token)`; each vault
+/// is unlocked with `TEST_MOCK_VAULT_PASSPHRASE`. Generalises `init_directional_pair`,
+/// which hard-wires its own delete-on-pull mock. QSC_ALLOW_SEED_FALLBACK is never set.
+pub fn init_real_pair(tag: &str, relay: PairRelay, a: (&str, &str), b: (&str, &str)) -> RealPair {
+    fn public_field(text: &str, field: &str) -> String {
+        let value = text
+            .lines()
+            .find_map(|line| line.strip_prefix(field))
+            .expect("identity public field");
+        scraped_marker_value(field, value)
+    }
+    let fa = init_successor_vault(&format!("{tag}_a"), TEST_MOCK_VAULT_PASSPHRASE);
+    let fb = init_successor_vault(&format!("{tag}_b"), TEST_MOCK_VAULT_PASSPHRASE);
+    for (fixture, (label, route)) in [(&fa, a), (&fb, b)] {
+        fixture.run_ok(&["identity", "rotate", "--as", label, "--confirm"]);
+        fixture.run_ok(&["relay", "inbox-set", "--token", route]);
+    }
+    let a_public = fa.run_ok(&["identity", "show", "--as", a.0]);
+    let b_public = fb.run_ok(&["identity", "show", "--as", b.0]);
+    for (fixture, (label, route), public) in [(&fa, b, &b_public), (&fb, a, &a_public)] {
+        fixture.run_ok(&[
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            &public_field(public, "identity_fp="),
+            "--kem-pk",
+            &public_field(public, "identity_kem_pk="),
+            "--sig-pk",
+            &public_field(public, "identity_sig_pk="),
+            "--route-token",
+            route,
+        ]);
+        let devices = fixture.run_ok(&["contacts", "device", "list", "--label", label]);
+        let device = devices
+            .lines()
+            .find_map(|line| line.strip_prefix("device="))
+            .and_then(|line| line.split_whitespace().next())
+            .expect("pair fixture device");
+        let device = scraped_marker_value("device", device);
+        fixture.run_ok(&[
+            "contacts",
+            "device",
+            "trust",
+            "--label",
+            label,
+            "--device",
+            &device,
+            "--confirm",
+        ]);
+    }
+    let url = relay.base_url();
+    let hs = |fixture: &VaultFixture, verb: &str, me: &str, peer: &str| -> String {
+        let mut args = vec![
+            "handshake",
+            verb,
+            "--as",
+            me,
+            "--peer",
+            peer,
+            "--relay",
+            url,
+        ];
+        if verb == "poll" {
+            args.extend(["--max", "4"]);
+        }
+        args.extend(["--suite-mode", "suite-required"]);
+        fixture.run_ok(&args)
+    };
+    hs(&fa, "init", a.0, b.0);
+    hs(&fb, "poll", b.0, a.0);
+    let a_done = hs(&fa, "poll", a.0, b.0);
+    let b_done = hs(&fb, "poll", b.0, a.0);
+    assert!(
+        a_done.contains("event=handshake_complete"),
+        "init_real_pair: initiator has no session (handshake_complete missing): {a_done}"
+    );
+    assert!(
+        b_done.contains("event=handshake_complete"),
+        "init_real_pair: responder has no session (handshake_complete missing): {b_done}"
+    );
+    RealPair {
+        a: fa,
+        b: fb,
+        a_label: a.0.to_owned(),
+        b_label: b.0.to_owned(),
+        a_route: a.1.to_owned(),
+        b_route: b.1.to_owned(),
     }
 }

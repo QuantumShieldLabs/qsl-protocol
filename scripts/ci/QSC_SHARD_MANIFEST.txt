@@ -38,6 +38,7 @@ tests/contacts_verify_block.rs	10
 tests/desktop_gui_contract_na0215b.rs	7
 tests/diagnostics.rs	3
 tests/envelope.rs	9
+tests/f03_fixture_helpers.rs	6
 tests/file_transfer_mvp.rs	6
 tests/fs_store_contract_na0217b.rs	6
 tests/handshake_contract_na0217i.rs	4

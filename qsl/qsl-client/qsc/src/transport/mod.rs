@@ -521,7 +521,31 @@ fn receive_pull_rounds(
                 skipped=skipped.saturating_add(1); skipped_total=skipped_total.saturating_add(1);
                 continue;
             }
-
+            // NA-0785 F03 / S7 (ENG-0381): main's NA-0741 (D-1376) KNOWN-FOREIGN ARM, RESTORED.
+            // The branch above always `continue`s, so only a known-foreign item reaches here. A
+            // handshake or invite frame in this mailbox is ANOTHER CONSUMER'S FRAME: it is left
+            // LEASED and UNACKED -- no ACK is queued for it here -- so its rightful consumer
+            // collects it one lease period later. It must still COUNT as `skipped`: the round
+            // condition below asks "did this round do anything but skip?", and without the count
+            // an all-foreign round ends the pull and `receive --max N` delivers ZERO, exit 0.
+            let frame_class = crate::frameclass::classify(&item.data);
+            // ⚠ NO FIELD DERIVED FROM THE CONTENT OF `item.data`. A length is permitted, but an
+            // invite reply carries the RESPONDER'S ROUTE TOKEN IN THE CLEAR, so any
+            // content-derived field would publish a third party's token.
+            let bytes_s = item.data.len().to_string();
+            emit_marker(
+                "recv_frame_skipped",
+                None,
+                &[
+                    ("class", frame_class.name()),
+                    ("id", item.id.as_str()),
+                    ("bytes", bytes_s.as_str()),
+                    ("disposition", "left_leased"),
+                ],
+            );
+            skipped = skipped.saturating_add(1);
+            skipped_total = skipped_total.saturating_add(1);
+            continue;
         }
         rounds = rounds.saturating_add(1);
         // NA-0741 (D-1376): a skipped frame occupied a slot in `want` and contributed

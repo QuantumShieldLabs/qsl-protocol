@@ -328,7 +328,7 @@ fn read_mock_vault_secret(cfg: &Path, name: &str) -> String {
     let vault_path = cfg.join("vault.qsv");
     let bytes = fs::read(&vault_path).expect("vault read");
     assert!(bytes.len() > 39, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV02");
+    assert_eq!(&bytes[0..6], b"QSCV03");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;
     assert_eq!(salt_len, 16);
@@ -1414,9 +1414,11 @@ fn handshake_fs_identity_compromise_cannot_decrypt_recorded_message() {
 // ratchet-on-reply fires (Bob's first reply is a DH boundary that CREATES his send chain now that
 // the static-rk bootstrap is gone) and both sides decrypt across the ratchet.
 fn hs_dance(alice_cfg: &Path, bob_cfg: &Path, relay: &str) {
+    eprintln!("NA0780_DIAG phase=authenticated_pair begin");
     seed_authenticated_pair(alice_cfg, bob_cfg);
     relay_inbox_set(alice_cfg, ROUTE_TOKEN_ALICE);
     relay_inbox_set(bob_cfg, ROUTE_TOKEN_BOB);
+    eprintln!("NA0780_DIAG phase=handshake_init begin");
     let init = qsc_cfg_cmd(alice_cfg)
         .args([
             "handshake",
@@ -1430,12 +1432,14 @@ fn hs_dance(alice_cfg: &Path, bob_cfg: &Path, relay: &str) {
         ])
         .output()
         .expect("hs init");
+    eprintln!("NA0780_DIAG phase=handshake_init end ok={}", init.status.success());
     assert!(init.status.success(), "{}", output_text(&init));
     for (cfg, me, peer) in [
         (bob_cfg, "bob", "alice"),
         (alice_cfg, "alice", "bob"),
         (bob_cfg, "bob", "alice"),
     ] {
+        eprintln!("NA0780_DIAG phase=handshake_poll role={me} begin");
         let out = qsc_cfg_cmd(cfg)
             .args([
                 "handshake",
@@ -1451,8 +1455,10 @@ fn hs_dance(alice_cfg: &Path, bob_cfg: &Path, relay: &str) {
             ])
             .output()
             .expect("hs poll");
+        eprintln!("NA0780_DIAG phase=handshake_poll role={me} end ok={}", out.status.success());
         assert!(out.status.success(), "{}", output_text(&out));
     }
+    eprintln!("NA0780_DIAG phase=session_file_assertions begin alice={} bob={}", session_path(alice_cfg, "bob").exists(), session_path(bob_cfg, "alice").exists());
     assert!(
         session_path(alice_cfg, "bob").exists(),
         "alice session missing"
@@ -1572,6 +1578,38 @@ fn recv_msg_drain(
 
 #[test]
 fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
+    if !common::directional_case_child("dh_ratchet_e2e_roundtrip_over_real_handshake") { return; }
+    // This fixture receives one application at a time. Validate the complete isolated
+    // directory, then identify exactly one new stable-name output, never an arbitrary file.
+    fn outputs(out: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
+        fs::read_dir(out)
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                assert!(entry.file_type().unwrap().is_file(), "ordinary application output only");
+                let name = entry.file_name();
+                let name = name.to_str().unwrap();
+                let digest = name.strip_prefix("recv_").and_then(|s| s.strip_suffix(".bin"))
+                    .expect("directional application output name");
+                assert!(digest.len() == 64 && digest.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)),
+                    "exact stable application output name");
+                let path = entry.path();
+                let bytes = fs::read(&path).unwrap();
+                (path, bytes)
+            })
+            .collect()
+    }
+    fn new_output(out: &Path, before: &std::collections::BTreeMap<PathBuf, Vec<u8>>) -> Vec<u8> {
+        let after = outputs(out);
+        for (path, bytes) in before {
+            assert_eq!(after.get(path), Some(bytes), "prior application output must be preserved");
+        }
+        let added: Vec<_> = after.iter().filter(|(path, _)| !before.contains_key(*path)).collect();
+        assert_eq!(added.len(), 1, "exactly one intended new application output");
+        assert_eq!(after.len(), before.len() + 1, "no additional output or replacement");
+        added[0].1.clone()
+    }
+
     let base = safe_test_root().join(format!("na0622_dh_e2e_{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     ensure_dir_700(&base);
@@ -1582,64 +1620,121 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
     for d in [&alice_cfg, &bob_cfg, &alice_out, &bob_out] {
         ensure_dir_700(d);
     }
+    eprintln!("NA0780_DIAG phase=vault_setup begin");
     common::init_mock_vault(&alice_cfg);
     common::init_mock_vault(&bob_cfg);
+    eprintln!("NA0780_DIAG phase=relay_readiness begin");
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
+    eprintln!("NA0780_DIAG phase=relay_readiness end ready=true");
     hs_dance(&alice_cfg, &bob_cfg, &relay);
 
-    // Alice (role A) sends first: her send chain is established at the handshake, she has not
-    // received, so this is a NORMAL message (no ratchet).
+    let initial_a = common::directional_state(&alice_cfg, "bob");
+    let initial_b = common::directional_state(&bob_cfg, "alice");
+    common::directional_pair_assert(&initial_a, &initial_b);
+    assert!(initial_a["core"]["seq"] == 0 && initial_a["core"]["owner"] == 1);
+    assert!(initial_a["core"]["send"]["id"] == 0 && initial_b["core"]["send"].is_null());
+    server.record_directional_pushes();
+    let mut trace = common::DirectionalTrace::default();
+
     let m1 = base.join("m1.bin");
     fs::write(&m1, b"hello-from-alice").unwrap();
-    let s1 = send_msg(&alice_cfg, &relay, "bob", &m1);
-    assert!(
-        !s1.contains("event=qsp_dh_ratchet"),
-        "alice's first send must not ratchet: {s1}"
-    );
-    let r1 = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
-    assert!(r1.status.success(), "{}", output_text(&r1));
-    assert_eq!(
-        fs::read(bob_out.join("recv_1.bin")).unwrap(),
-        b"hello-from-alice"
-    );
+    trace.operation(&alice_cfg, "bob", "first_application_send", || {
+        send_msg(&alice_cfg, &relay, "bob", &m1)
+    });
+    let first = common::directional_state(&alice_cfg, "bob");
+    assert!(first["core"]["root"] == initial_a["core"]["root"]);
+    assert!(first["core"]["send"]["id"] == 0 && first["core"]["owner"] == 1);
+    let rows = common::directional_queue_records(&alice_cfg, "bob");
+    assert_eq!(rows.len(), 1);
+    assert!(rows[0].body == b"hello-from-alice");
+    let app: Vec<_> = first["flights"].as_object().unwrap().values()
+        .filter(|f| f["id"] == rows[0].msg_id).collect();
+    assert_eq!(app.len(), 1, "one durable application slot");
+    let wire: Vec<u8> = serde_json::from_value(app[0]["wire"].clone()).unwrap();
+    assert!(wire[4] == 0 && app[0]["epoch"] == 0, "first application is ordinary epoch zero");
+    assert!(server.directional_pushes().iter().any(|p| p.status == 200 && p.response_written && p.body == wire));
+    let before_r1 = outputs(&bob_out);
+    assert!(before_r1.is_empty());
+    trace.operation(&bob_cfg, "alice", "first_application_receive", || {
+        let out = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
+        assert!(out.status.success(), "{}", output_text(&out));
+    });
+    assert_eq!(new_output(&bob_out, &before_r1), b"hello-from-alice");
 
-    // Bob (role B) replies: he RECEIVED, so ratchet-on-reply fires and his reply is a DH boundary
-    // (which also creates his send chain — the static-rk bootstrap is gone).
+    // Receive maintenance can have emitted B's boundary. Authenticate it before
+    // allowing an ordinary application reply to stand in for a boundary reply.
+    trace.operation(&alice_cfg, "bob", "authenticate_b_boundary", || {
+        let out = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out);
+        assert!(out.status.success(), "{}", output_text(&out));
+    });
+    assert!(outputs(&alice_out).is_empty(), "maintenance is not application output");
+    let boundary_a = common::directional_state(&alice_cfg, "bob");
+    let boundary_b = common::directional_state(&bob_cfg, "alice");
+    common::directional_pair_assert(&boundary_a, &boundary_b);
+    assert!(boundary_a["core"]["seq"] == 1 && boundary_a["core"]["owner"] == 0,
+        "B boundary authenticated before ordinary reply");
     let m2 = base.join("m2.bin");
     fs::write(&m2, b"hello-from-bob").unwrap();
-    let s2 = send_msg(&bob_cfg, &relay, "alice", &m2);
-    assert!(
-        s2.contains("event=qsp_dh_ratchet dir=send"),
-        "bob's reply must be a DH boundary (ratchet-on-reply): {s2}"
-    );
-    let r2 = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out);
-    assert!(r2.status.success(), "{}", output_text(&r2));
-    assert!(
-        output_text(&r2).contains("event=qsp_dh_ratchet dir=recv"),
-        "alice must process bob's DH boundary: {}",
-        output_text(&r2)
-    );
-    assert_eq!(
-        fs::read(alice_out.join("recv_1.bin")).unwrap(),
-        b"hello-from-bob"
-    );
+    trace.operation(&bob_cfg, "alice", "bob_reply_send", || send_msg(&bob_cfg, &relay, "alice", &m2));
+    let before_r2 = outputs(&alice_out);
+    assert!(before_r2.is_empty());
+    trace.operation(&alice_cfg, "bob", "alice_reply_receive", || {
+        let out = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out);
+        assert!(out.status.success(), "{}", output_text(&out));
+    });
+    assert_eq!(new_output(&alice_out, &before_r2), b"hello-from-bob");
+    let saved_alice_outputs = outputs(&alice_out);
 
-    // Another round the other way proves the ratchet keeps working: Alice replies (ratchets),
-    // Bob decrypts across the boundary.
+    let prerequisite_a = base.join("prerequisite_a");
+    let prerequisite_b = base.join("prerequisite_b");
+    ensure_dir_700(&prerequisite_a);
+    ensure_dir_700(&prerequisite_b);
+    let mut expected = Vec::new();
+    // At most eight paired control drains and four ordinary A admissions. Every
+    // send/receive is observed; no flags, clocks, ownership or counters are assigned.
+    for round in 0..8 {
+        if trace.both_directions() { break; }
+        let a = common::directional_state(&alice_cfg, "bob");
+        if a["core"]["owner"] == 0 && expected.len() < 4 {
+            let payload = format!("directional-prerequisite-{round}").into_bytes();
+            let path = base.join(format!("prerequisite-{round}.bin"));
+            fs::write(&path, &payload).unwrap();
+            trace.operation(&alice_cfg, "bob", "prerequisite_send", || send_msg(&alice_cfg, &relay, "bob", &path));
+            expected.push(payload);
+        }
+        for (cfg, peer, route, outdir) in [
+            (&bob_cfg, "alice", ROUTE_TOKEN_BOB, &prerequisite_b),
+            (&alice_cfg, "bob", ROUTE_TOKEN_ALICE, &prerequisite_a),
+        ] {
+            trace.operation(cfg, peer, "prerequisite_receive", || {
+                let out = recv_msg_drain(cfg, &relay, route, peer, outdir);
+                assert!(out.status.success(), "{}", output_text(&out));
+            });
+        }
+    }
+    assert!(trace.both_directions(), "both fresh DH/root transitions must be authenticated");
+    let mut actual: Vec<_> = outputs(&prerequisite_b).into_values().collect();
+    actual.sort(); expected.sort();
+    assert!(actual == expected, "complete prerequisite payload inventory");
+    assert!(outputs(&prerequisite_a).is_empty());
+
     let m3 = base.join("m3.bin");
     fs::write(&m3, b"hello-again-alice").unwrap();
-    let s3 = send_msg(&alice_cfg, &relay, "bob", &m3);
-    assert!(
-        s3.contains("event=qsp_dh_ratchet dir=send"),
-        "alice's reply must ratchet: {s3}"
-    );
-    let r3 = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
-    assert!(r3.status.success(), "{}", output_text(&r3));
-    assert_eq!(
-        fs::read(bob_out.join("recv_1.bin")).unwrap(),
-        b"hello-again-alice"
-    );
+    trace.operation(&alice_cfg, "bob", "alice_second_send", || send_msg(&alice_cfg, &relay, "bob", &m3));
+    let before_r3 = outputs(&bob_out);
+    assert_eq!(before_r3.len(), 1);
+    trace.operation(&bob_cfg, "alice", "bob_second_receive", || {
+        let out = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
+        assert!(out.status.success(), "{}", output_text(&out));
+    });
+    assert_eq!(new_output(&bob_out, &before_r3), b"hello-again-alice");
+    let a = common::directional_state(&alice_cfg, "bob");
+    let b = common::directional_state(&bob_cfg, "alice");
+    common::directional_pair_assert(&a, &b);
+    assert!(b["core"]["active_recv"] == a["core"]["send"]["id"]);
+    assert!(outputs(&alice_out) == saved_alice_outputs, "prior Bob payload/path unchanged");
+
 }
 
 #[test]
@@ -2537,4 +2632,45 @@ fn a_wrapped_ack_is_applied_acked_and_provokes_nothing_further() {
         !t2.contains("event=receipt_send"),
         "alice receiving bob's ack must send nothing back — an ack is never itself acked:\n{t2}"
     );
+}
+
+#[test]
+fn directional_isolation_child_probe() {
+    if !common::directional_case_child_bounded("directional_isolation_child_probe", Duration::from_secs(5), Some("success")) { return; }
+    // Every mutation below is inside the spawned exact-case process.
+    std::env::set_var("QSC_CONFIG_DIR", "isolated-probe-only");
+    match std::env::var("QSC_NA0780_OBSERVER_PROBE").unwrap().as_str() {
+        "success" => {},
+        "failure" => std::process::exit(19),
+        "panic" => panic!("intentional isolated child panic"),
+        "timeout" => std::thread::sleep(Duration::from_secs(10)),
+        _ => panic!("unknown isolation probe"),
+    }
+}
+
+#[test]
+fn directional_observer_isolation_controls() {
+    let before: std::collections::BTreeMap<_,_> = std::env::vars_os().collect();
+    assert!(!common::directional_case_child_bounded("directional_isolation_child_probe", Duration::from_secs(5), Some("success")));
+    for mode in ["failure", "panic", "timeout"] {
+        let limit=if mode=="timeout" {Duration::from_millis(500)} else {Duration::from_secs(5)};
+        assert!(std::panic::catch_unwind(||common::directional_case_child_bounded("directional_isolation_child_probe",limit,Some(mode))).is_err());
+        assert!(before==std::env::vars_os().collect(),"child lifetime restored parent isolation");
+    }
+    // Concurrent child success cases do not need or share a parent environment lock.
+    std::thread::scope(|scope| {
+        for _ in 0..2 { scope.spawn(|| assert!(!common::directional_case_child_bounded("directional_isolation_child_probe",Duration::from_secs(5),Some("success")))); }
+    });
+    assert!(before==std::env::vars_os().collect());
+}
+
+#[test]
+fn directional_observer_unrelated_parent_case() {
+    let before: std::collections::BTreeMap<_,_> = std::env::vars_os().collect();
+    // This sibling has no observer/config/unlock work. Run concurrently with the
+    // observer lifecycle controls to detect any leaked parent environment writes.
+    for _ in 0..80 {
+        assert!(before==std::env::vars_os().collect(),"unrelated parent worker environment changed");
+        std::thread::sleep(Duration::from_millis(25));
+    }
 }

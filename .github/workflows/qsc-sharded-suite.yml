@@ -6,7 +6,7 @@ name: qsc-sharded-suite
 # protection's required set; promotion to required is the OPERATOR's
 # branch-protection act (the banked CI Phase 1 ruling, 2026-08-06).
 # STANDARD RUNNERS ONLY (ruled): every runs-on in this file is ubuntu-latest.
-# <=20 SHARDS (ruled): K=12 via scripts/ci/QSC_SHARD_MANIFEST.txt; the manifest
+# <=20 SHARDS (ruled): K=13 via scripts/ci/QSC_SHARD_MANIFEST.txt; the manifest
 # gate enforces the ceiling mechanically AND proves this file's matrix runs
 # exactly the shard ids the manifest assigns and that every runs-on value is
 # ubuntu-latest (--assert-workflow; the matrix check runs in both directions).
@@ -101,7 +101,7 @@ jobs:
             --assert-workflow .github/workflows/qsc-sharded-suite.yml \
             --expect-runners ubuntu-latest \
             --expect-job-runner shard=ubuntu-latest \
-            --max-shards 12
+            --max-shards 13
 
   shard:
     name: qsc-shard-${{ matrix.shard }}
@@ -122,7 +122,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -132,7 +132,28 @@ jobs:
         with:
           shared-key: qsc-sharded-suite
           save-if: ${{ github.ref == 'refs/heads/main' && matrix.shard == 0 }}
+      - uses: actions/setup-python@v5
+        if: matrix.shard == 12
+        with:
+          python-version: '3.12'
+      - name: Run bounded directional target (one exact test, two fresh orderings)
+        if: matrix.shard == 12
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/qsc_directional_ci.py --output "$RUNNER_TEMP/na0780-directional"
+          python3 scripts/ci/qsc_shard_check.py --verify-log 12 "$RUNNER_TEMP/na0780-directional/test.log"
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.shard == 12
+        with:
+          name: na0780-directional-linux-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/na0780-directional/result.json
+            ${{ runner.temp }}/na0780-directional/compile.json
+            ${{ runner.temp }}/na0780-directional/test.log
+          if-no-files-found: error
       - name: Run this shard's targets (own exit; log kept for reconciliation)
+        if: matrix.shard != 12
         shell: bash
         env:
           SHARD: ${{ matrix.shard }}

@@ -860,3 +860,38 @@ SR-15 independent review. This subsection allocates identifiers, not error codes
 
 ---
 End of DOC-CAN-003
+
+
+## NA-0780 first-release directional profile reservation
+
+Goals: G4. Status: draft integration; no release acceptance.
+The project reserves the following exact identifiers for its single intended
+first-release directional protocol. The project-local allocation check found no
+conflicting use or separate allocator in the project namespaces at the reviewed
+base. This is not an external registry allocation.
+
+| Namespace | Exact allocation | Meaning |
+| --- | --- | --- |
+| Handshake critical parameter | `0x7f80`, flag `1`, length `25` | Exact ASCII `NA0780-DIR-INTEGRATION-01`; mandatory with the existing Suite-2 tuple |
+| Directional frame | `NDE1` | Existing directional epoch frame encoding |
+| Inner delivery body | `NDI1` | Existing application/control and closure encoding |
+| Exact-wire receipt | `NDR1` | Existing authenticated receipt encoding |
+| Core profile | `NA0780-DIR-EPOCH-CORE-01` | Existing core KDF context |
+| KMAC customization prefix | `NA0780.DE1/` | Existing label-specific customization, unchanged |
+| Encrypted transaction key | `na0780_directional_transaction/{peer}` | One transaction per single-channel peer alias |
+| Development vault envelope | `QSCV03` | First-release-only vault, authenticated schema 3 and exact integration profile |
+| Packed queue record | schema `1`, protocol `directional-v1` | Exact ciphertext committed in the authoritative vault before queue transport |
+
+These reservations do not change candidate KDF bytes, activation, capacity or
+receipt rules. Unknown, missing, duplicate or changed handshake selection and
+unsupported stored schema/profile MUST refuse without reset or fallback. New
+vault creation requires explicit `directional-v1` selection and an empty development
+configuration. Existing development vaults and fixtures MUST remain untouched.
+Alias/channel divergence MUST refuse before preparation or discard. Fault hooks
+are permitted only in an explicitly enabled non-shipping test configuration.
+
+Actual relay and macOS acceptance remain release gates. This draft establishes
+neither backup-rollback detection nor power-loss resistance. PQ recovery requires
+an unexposed honest target and a delivered honest transition; indefinite denial
+can prevent progress. Canonical security and formal-verification requirements
+remain in force, and no release, default activation or migration is authorized.

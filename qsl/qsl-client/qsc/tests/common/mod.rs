@@ -156,13 +156,17 @@ pub fn add_vault_passphrase_file_arg(
 
 #[allow(dead_code)]
 pub fn init_passphrase_vault(cfg: &Path, passphrase: &str) {
-    let passphrase_file = write_passphrase_file(cfg, "vault-init", passphrase);
+    ensure_dir_700(cfg);
+    let input_dir = tempfile::tempdir().expect("private vault initialization input");
+    let passphrase_file = write_passphrase_file(input_dir.path(), "vault-init", passphrase);
     let out = Command::new(assert_cmd::cargo::cargo_bin!("qsc"))
         .env("QSC_CONFIG_DIR", cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--key-source",
             "passphrase",
@@ -265,6 +269,9 @@ struct InboxStore {
     next_id: u64,
     max_body: usize,
     max_queue: usize,
+    push_journal: Option<Vec<DirectionalPushAttempt>>,
+    review_lease: Option<ReviewLease>,
+    r02_push_plan: VecDeque<u16>,
 }
 
 impl InboxStore {
@@ -274,8 +281,35 @@ impl InboxStore {
             next_id: 1,
             max_body,
             max_queue,
+            push_journal: None,
+            review_lease: None,
+            r02_push_plan: VecDeque::new(),
         }
     }
+}
+
+// Exact R01/R02 allowlisted fixtures only. Pull leases retain bytes until a real ACK; observation
+// never drains, reorders or expires a lease. Existing mock defaults stay unchanged.
+#[derive(Default)]
+struct ReviewLease {
+    until: HashMap<String, Instant>,
+    pulls: Vec<(String, Vec<String>)>,
+    acks: Vec<(String, Vec<String>)>,
+}
+
+#[derive(Clone)]
+pub struct ReviewLeaseSnapshot {
+    pub retained: Vec<(String, Vec<u8>)>,
+    pub pulls: Vec<Vec<String>>,
+    pub acks: Vec<Vec<String>>,
+}
+
+// Opt-in, synthetic-fixture-only observation; no change to readiness or fault selection.
+#[derive(Clone)]
+pub struct DirectionalPushAttempt {
+    pub body: Vec<u8>,
+    pub status: u16,
+    pub response_written: bool,
 }
 
 #[allow(dead_code)]
@@ -322,6 +356,45 @@ impl InboxTestServer {
         store.next_id += 1;
         let queue = store.queues.entry(channel.to_string()).or_default();
         queue.push_back((id, data));
+    }
+
+    pub fn enable_review_leases(&self) {
+        assert!(matches!(std::env::var("QSC_NA0780_ISOLATED_CASE").as_deref(),
+            Ok("directional_review_r01_receive_batch_baseline" | "directional_review_r01_receive_batch_fixed" | "directional_r02_queuefull_matrix")));
+        let mut store = self.store.lock().unwrap();
+        assert!(store.review_lease.is_none());
+        assert!(store.queues.values().all(|queue| queue.is_empty()));
+        store.review_lease = Some(ReviewLease::default());
+        store.push_journal = Some(Vec::new());
+    }
+
+    pub fn review_lease_snapshot(&self, channel: &str) -> ReviewLeaseSnapshot {
+        let store = self.store.lock().unwrap();
+        let lease = store.review_lease.as_ref().expect("review leases enabled");
+        ReviewLeaseSnapshot {
+            retained: store.queues.get(channel).map(|q| q.iter().cloned().collect()).unwrap_or_default(),
+            pulls: lease.pulls.iter().filter(|(c, _)| c == channel).map(|(_, ids)| ids.clone()).collect(),
+            acks: lease.acks.iter().filter(|(c, _)| c == channel).map(|(_, ids)| ids.clone()).collect(),
+        }
+    }
+
+    pub fn record_directional_pushes(&self) {
+        self.store.lock().unwrap().push_journal = Some(Vec::new());
+    }
+
+    pub fn directional_pushes(&self) -> Vec<DirectionalPushAttempt> {
+        self.store.lock().unwrap().push_journal.as_ref().expect("journal enabled").clone()
+    }
+
+    // Exact R02 children only; installed after readiness. Each actual push consumes
+    // one status. 200 delegates to the ordinary mock admission path unchanged.
+    pub fn r02_push_plan(&self, statuses: &[u16]) {
+        assert!(matches!(std::env::var("QSC_NA0780_ISOLATED_CASE").as_deref(),
+            Ok("directional_r02_queuefull_matrix" | "directional_r02_completion_cuts")));
+        assert!(statuses.iter().all(|s| matches!(s, 200 | 429 | 500)));
+        let mut store=self.store.lock().unwrap();
+        assert!(store.r02_push_plan.is_empty(), "previous fault plan not consumed");
+        store.r02_push_plan=statuses.iter().copied().collect();
     }
 
     pub fn set_fail_pushes(&self, count: usize) {
@@ -785,7 +858,10 @@ fn handle_conn(
                 )
                 .is_ok()
         {
-            let _ = write_response(&mut stream, 500, "ERR_PUSH_FAIL_INJECTED");
+            let response_written = write_response(&mut stream, 500, "ERR_PUSH_FAIL_INJECTED").is_ok();
+            if let Some(journal) = &mut store.lock().unwrap().push_journal {
+                journal.push(DirectionalPushAttempt { body, status: 500, response_written });
+            }
             return;
         }
         if has_chunked_transfer_encoding {
@@ -804,6 +880,16 @@ fn handle_conn(
             return;
         }
         let mut store = store.lock().unwrap();
+        if let Some(status) = store.r02_push_plan.pop_front() {
+            if status != 200 {
+                let code=if status==429 {"ERR_QUEUE_FULL"} else {"ERR_PUSH_FAIL_INJECTED"};
+                let response_written=write_response(&mut stream,status,code).is_ok();
+                if let Some(journal)=&mut store.push_journal {
+                    journal.push(DirectionalPushAttempt {body,status,response_written});
+                }
+                return;
+            }
+        }
         if body.len() > store.max_body {
             let _ = write_response(&mut stream, 413, "ERR_TOO_LARGE");
             return;
@@ -820,9 +906,34 @@ fn handle_conn(
         let id = store.next_id.to_string();
         store.next_id += 1;
         let queue = store.queues.entry(channel).or_default();
-        queue.push_back((id.clone(), body));
-        let body = format!("{{\"id\":\"{}\"}}", id);
-        let _ = write_response_json(&mut stream, 200, &body);
+        queue.push_back((id.clone(), body.clone()));
+        let response = format!("{{\"id\":\"{}\"}}", id);
+        let response_written = write_response_json(&mut stream, 200, &response).is_ok();
+        if let Some(journal) = &mut store.push_journal {
+            journal.push(DirectionalPushAttempt { body, status: 200, response_written });
+        }
+        return;
+    }
+
+    if method == "POST" && target == "/v1/pull/ack" && store.lock().unwrap().review_lease.is_some() {
+        let channel = match resolve_route_token(route_token_header.clone()) {
+            Ok(channel) => channel,
+            Err(code) => { let _ = write_response(&mut stream, 400, code); return; }
+        };
+        #[derive(serde::Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Ack { ids: Vec<String> }
+        let ack: Ack = match serde_json::from_slice(&body) {
+            Ok(ack) => ack,
+            Err(_) => { let _ = write_response(&mut stream, 400, "bad ack"); return; }
+        };
+        let mut store = store.lock().unwrap();
+        store.review_lease.as_mut().unwrap().acks.push((channel.clone(), ack.ids.clone()));
+        let queue = store.queues.entry(channel).or_default();
+        let before = queue.len();
+        queue.retain(|(id, _)| !ack.ids.contains(id));
+        let count = before - queue.len();
+        let _ = write_response_json(&mut stream, 200, &format!("{{\"acked\":{count}}}"));
         return;
     }
 
@@ -857,6 +968,20 @@ fn handle_conn(
             return;
         }
         let mut store = store.lock().unwrap();
+        if store.review_lease.is_some() {
+            assert!(target.split('?').nth(1).unwrap_or("").split('&').any(|p| p == "ack=lease"));
+            let now = Instant::now();
+            let lease = store.review_lease.as_ref().unwrap();
+            let items: Vec<InboxPullItem> = store.queues.get(&channel).into_iter().flatten()
+                .filter(|(id, _)| lease.until.get(id).is_none_or(|until| *until <= now))
+                .take(max_n).map(|(id, data)| InboxPullItem { id: id.clone(), data: data.clone() }).collect();
+            let lease = store.review_lease.as_mut().unwrap();
+            for item in &items { lease.until.insert(item.id.clone(), now + Duration::from_secs(600)); }
+            lease.pulls.push((channel, items.iter().map(|item| item.id.clone()).collect()));
+            if items.is_empty() { let _ = write_response_empty(&mut stream, 204); }
+            else { let _ = write_response_json(&mut stream, 200, &serde_json::to_string(&InboxPullResp { items }).unwrap()); }
+            return;
+        }
         let queue = store.queues.entry(channel).or_default();
         if queue.is_empty() {
             let _ = write_response_empty(&mut stream, 204);
@@ -1058,4 +1183,246 @@ pub fn queued_record_count(cfg: &Path) -> usize {
         }
     }
     n
+}
+
+/// Establish fresh, explicitly opted-in peers through the real CLI and handshake.
+/// This supplies a sending precondition for transport tests; it never fabricates
+/// session keys or enables the retired seed fallback.
+pub fn init_directional_pair(
+    left: &Path,
+    left_label: &str,
+    left_route: &str,
+    right: &Path,
+    right_label: &str,
+    right_route: &str,
+) {
+    fn run(cfg: &Path, args: &[&str]) -> String {
+        let out = qsc_std_command()
+            .env("QSC_CONFIG_DIR", cfg)
+            .env("QSC_DISABLE_KEYCHAIN", "1")
+            .args(args)
+            .output()
+            .expect("directional fixture command");
+        assert!(out.status.success(), "directional fixture command failed");
+        String::from_utf8(out.stdout).expect("fixture output UTF-8")
+    }
+    fn public_field<'a>(text: &'a str, field: &str) -> &'a str {
+        let value = text.lines().find_map(|line| line.strip_prefix(field))
+            .expect("identity public field");
+        assert_ne!(value, REDACTION_SENTINEL, "public identity field redacted");
+        value
+    }
+    for (cfg, label, route) in [(left, left_label, left_route), (right, right_label, right_route)] {
+        init_mock_vault(cfg);
+        run(cfg, &["identity", "rotate", "--as", label, "--confirm"]);
+        run(cfg, &["relay", "inbox-set", "--token", route]);
+    }
+    let left_public = run(left, &["identity", "show", "--as", left_label]);
+    let right_public = run(right, &["identity", "show", "--as", right_label]);
+    for (cfg, label, route, public) in [
+        (left, right_label, right_route, right_public.as_str()),
+        (right, left_label, left_route, left_public.as_str()),
+    ] {
+        run(cfg, &["contacts", "add", "--label", label,
+            "--fp", public_field(public, "identity_fp="),
+            "--kem-pk", public_field(public, "identity_kem_pk="),
+            "--sig-pk", public_field(public, "identity_sig_pk="),
+            "--route-token", route]);
+        let devices = run(cfg, &["contacts", "device", "list", "--label", label]);
+        let device = devices.lines().find_map(|line| line.strip_prefix("device="))
+            .and_then(|line| line.split_whitespace().next()).expect("fixture device");
+        assert_ne!(device, REDACTION_SENTINEL);
+        run(cfg, &["contacts", "device", "trust", "--label", label,
+            "--device", device, "--confirm"]);
+    }
+    let relay = start_inbox_server(1024 * 1024, 16);
+    run(left, &["handshake", "init", "--as", left_label, "--peer", right_label,
+        "--relay", relay.base_url(), "--suite-mode", "suite-required"]);
+    run(right, &["handshake", "poll", "--as", right_label, "--peer", left_label,
+        "--relay", relay.base_url(), "--max", "4", "--suite-mode", "suite-required"]);
+    let left_done = run(left, &["handshake", "poll", "--as", left_label, "--peer", right_label,
+        "--relay", relay.base_url(), "--max", "4", "--suite-mode", "suite-required"]);
+    let right_done = run(right, &["handshake", "poll", "--as", right_label, "--peer", left_label,
+        "--relay", relay.base_url(), "--max", "4", "--suite-mode", "suite-required"]);
+    assert!(left_done.contains("event=handshake_complete"), "initiator did not complete");
+    assert!(right_done.contains("event=handshake_complete"), "responder did not complete");
+}
+
+/// Run the exact allowlisted fixtures in their own process. The parent
+/// never selects a vault or unlocks one; unrelated libtest workers remain isolated.
+pub fn directional_case_child(case: &str) -> bool {
+    directional_case_child_bounded(case, Duration::from_secs(590), None)
+}
+
+pub fn directional_case_child_bounded(case: &str, limit: Duration, probe: Option<&str>) -> bool {
+    const GUARD: &str = "QSC_NA0780_ISOLATED_CASE";
+    assert!(matches!(case, "dh_ratchet_e2e_roundtrip_over_real_handshake" | "send_failure_no_commit" | "directional_isolation_child_probe" | "directional_successor_authenticated_malformed_no_mutation" | "directional_review_r01_receive_batch_baseline" | "directional_review_r01_receive_batch_fixed" | "directional_r02_fresh_and_ordinary_writers" | "directional_r02_genuine_receipt_restart" | "directional_r02_funded_release_at_saturation" | "directional_r02_serializer_maintenance" | "directional_r02_repeated_controls" | "directional_r02_queuefull_matrix" | "directional_r02_completion_cuts"));
+    assert!(limit <= Duration::from_secs(590));
+    if let Some(selected) = std::env::var_os(GUARD) {
+        assert_eq!(selected, std::ffi::OsStr::new(case), "exact child case guard");
+        return true;
+    }
+    let parent_env: std::collections::BTreeMap<_, _> = std::env::vars_os().collect();
+    let parent_passphrase_present = qsc::vault::has_process_passphrase();
+    let mut command = StdCommand::new(std::env::current_exe().unwrap());
+    command.args([case, "--exact", "--nocapture", "--test-threads=1"])
+        .env(GUARD, case).env("QSC_DISABLE_KEYCHAIN", "1")
+        .env_remove("QSC_CONFIG_DIR")
+        .env_remove("QSC_PASSPHRASE")
+        .env_remove(TEST_MOCK_VAULT_PASSPHRASE_ENV);
+    if let Some(probe) = probe { command.env("QSC_NA0780_OBSERVER_PROBE", probe); }
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        command.process_group(0);
+    }
+    struct ChildGuard(std::process::Child);
+    impl Drop for ChildGuard {
+        fn drop(&mut self) {
+            // Only this self-child's private process group is owned by this guard.
+            #[cfg(unix)]
+            {
+                unsafe extern "C" { fn kill(pid: i32, sig: i32) -> i32; }
+                unsafe { kill(-(self.0.id() as i32), 9); }
+            }
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+    let mut child = ChildGuard(command.spawn().expect("spawn isolated exact case"));
+    let deadline = Instant::now() + limit;
+    let status = loop {
+        if let Some(status) = child.0.try_wait().expect("observe isolated case") { break status; }
+        assert!(Instant::now() < deadline, "isolated case deadline");
+        thread::sleep(Duration::from_millis(25));
+    };
+    drop(child);
+    assert!(parent_env == std::env::vars_os().collect(), "parent environment unchanged");
+    assert_eq!(qsc::vault::has_process_passphrase(), parent_passphrase_present, "parent unlock state unchanged");
+    assert!(status.success(), "isolated exact case failed");
+    false
+}
+
+/// Authenticated read-only observations, reachable only inside an exact self-child.
+fn directional_observer_session(cfg: &Path) -> qsc::vault::VaultSession {
+    assert!(matches!(std::env::var("QSC_NA0780_ISOLATED_CASE").as_deref(),
+        Ok("dh_ratchet_e2e_roundtrip_over_real_handshake" | "send_failure_no_commit" | "directional_successor_authenticated_malformed_no_mutation" | "directional_review_r01_receive_batch_baseline" | "directional_review_r01_receive_batch_fixed" | "directional_r02_fresh_and_ordinary_writers" | "directional_r02_genuine_receipt_restart" | "directional_r02_funded_release_at_saturation" | "directional_r02_serializer_maintenance" | "directional_r02_repeated_controls" | "directional_r02_queuefull_matrix" | "directional_r02_completion_cuts")),
+        "observer requires isolated exact case");
+    std::env::set_var("QSC_CONFIG_DIR", cfg);
+    qsc::vault::open_session_with_passphrase(TEST_MOCK_VAULT_PASSPHRASE)
+        .expect("authenticated read-only session")
+}
+
+/// Read-only authenticated observations for the exact allowlisted directional cases.
+/// No guarded unlock, failure-counter reset or parent process mutation.
+pub fn directional_state(cfg: &Path, peer: &str) -> serde_json::Value {
+    let session = directional_observer_session(cfg);
+    let raw = qsc::vault::session_get(&session, &format!("na0780_directional_transaction_v2/{peer}"))
+        .unwrap().expect("authenticated directional transaction");
+    let state: serde_json::Value = serde_json::from_str(&raw).unwrap();
+    assert!(state["version"] == "NA0780-DIR-INTEGRATION-03", "exact profile required");
+    state
+}
+
+pub fn directional_pair_assert(a: &serde_json::Value, b: &serde_json::Value) {
+    assert!(a["version"] == b["version"] && a["core"]["sid"] == b["core"]["sid"], "same authenticated profile/session");
+    assert!(a["core"]["root"] == b["core"]["root"], "authenticated roots agree");
+    assert!(a["core"]["seq"] == b["core"]["seq"] && a["core"]["owner"] == b["core"]["owner"], "sequence/owner agree");
+    assert!(a["core"]["role"] == 0 && b["core"]["role"] == 1, "complementary roles");
+}
+
+pub fn directional_queue_records(cfg: &Path, peer: &str) -> Vec<qsc::msgqueue::QueuedMessage> {
+    use chacha20poly1305::{aead::{Aead, Payload}, ChaCha20Poly1305, Key, KeyInit, Nonce};
+    use sha2::{Digest, Sha512};
+    let digest = Sha512::digest(peer.as_bytes());
+    let contact: String = digest[..8].iter().map(|b| format!("{b:02x}")).collect();
+    let entries = match fs::read_dir(cfg.join("msgqueue_v1").join(&contact)) {
+        Ok(entries) => entries,
+        Err(error) if error.kind()==std::io::ErrorKind::NotFound => return Vec::new(),
+        Err(error) => panic!("queue inspection failed: {error}"),
+    };
+    let session = directional_observer_session(cfg);
+    let encoded = qsc::vault::session_get(&session, "msgqueue_store_key_v1").unwrap().unwrap();
+    assert_eq!(encoded.len(), 64);
+    let key: Vec<u8> = encoded.as_bytes().chunks_exact(2).map(|pair| {
+        u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap()
+    }).collect();
+    assert_eq!(key.len(), 32);
+    let mut records = Vec::new();
+    for entry in entries {
+        let path = entry.unwrap().path();
+        if path.extension().and_then(|s| s.to_str()) != Some("rec") { continue; }
+        let filename = path.file_name().unwrap().to_str().unwrap();
+        let (sequence, id) = filename.strip_suffix(".rec").unwrap().split_once('_').unwrap();
+        let sequence: u64 = sequence.parse().unwrap();
+        let aad = format!("qsc.msgqueue.v1|{contact}|{id}|{sequence}");
+        let raw = fs::read(&path).unwrap();
+        let clear = ChaCha20Poly1305::new(Key::from_slice(&key)).decrypt(
+            Nonce::from_slice(&raw[..12]), Payload { msg: &raw[12..], aad: aad.as_bytes() }
+        ).expect("synthetic queue authentication failed");
+        let rec: qsc::msgqueue::QueuedMessage = serde_json::from_slice(&clear).unwrap();
+        assert!(rec.msg_id == id && rec.seq == sequence && rec.peer == peer);
+        records.push(rec);
+    }
+    records.sort_by_key(|rec| rec.seq);
+    records
+}
+
+/// Observe every normal CLI operation, attributing emitted versus authenticated
+/// received boundaries to its actor. No wire-only claim of authentication.
+#[derive(Default)]
+pub struct DirectionalTrace {
+    emitted: std::collections::BTreeMap<u64, serde_json::Value>,
+    authenticated: std::collections::BTreeSet<u64>,
+}
+impl DirectionalTrace {
+    pub fn operation<T>(&mut self, cfg: &Path, peer: &str, phase: &str, run: impl FnOnce() -> T) -> T {
+        eprintln!("NA0780_DIAG phase={phase} begin");
+        let before = directional_state(cfg, peer);
+        let result = run();
+        let after = directional_state(cfg, peer);
+        let b = &before["core"];
+        let a = &after["core"];
+        assert!(b["sid"] == a["sid"] && b["role"] == a["role"], "session/role preserved");
+        let old = b["seq"].as_u64().unwrap();
+        let new = a["seq"].as_u64().unwrap();
+        if new == old {
+            assert!(a["root"] == b["root"] && a["owner"] == b["owner"], "no hidden root/owner transition");
+        } else {
+            assert_eq!(new, old + 1, "observe each individual boundary");
+            assert!(a["root"] != b["root"], "fresh root required");
+            let role = a["role"].as_u64().unwrap();
+            assert_eq!(a["owner"].as_u64().unwrap(), 1 - b["owner"].as_u64().unwrap());
+            if b["owner"] == b["role"] {
+                assert!(before["demand"] == true || before["since_boundary"].as_u64().unwrap() >= 4 || b["send"].is_null(), "normal owner/demand/no-send prerequisite");
+                assert!(a["own_pub"] != b["own_pub"], "fresh sender DH required");
+                assert_eq!(a["send"]["id"].as_u64(), Some(new));
+                let flights: Vec<_> = after["flights"].as_object().unwrap().values()
+                    .filter(|f| f["epoch"].as_u64() == Some(new) && f["slot"] == 0).collect();
+                assert_eq!(flights.len(), 1, "boundary durably retained");
+                let wire: Vec<u8> = serde_json::from_value(flights[0]["wire"].clone()).unwrap();
+                assert!(wire.len() >= 74 && &wire[..4] == b"NDE1" && wire[4] == 1, "actual boundary wire");
+                assert_eq!(wire[21] as u64, role);
+                assert_eq!(u64::from_be_bytes(wire[22..30].try_into().unwrap()), new);
+                assert_eq!(u64::from_be_bytes(wire[66..74].try_into().unwrap()), old);
+                assert!(serde_json::to_value(&wire[5..21]).unwrap() == a["sid"], "wire session binding");
+                assert!(serde_json::to_value(&wire[34..66]).unwrap() == a["own_pub"], "wire sender DH binding");
+                assert!(self.emitted.insert(new, after.clone()).is_none(), "one emission per sequence");
+            } else {
+                let sender = self.emitted.get(&new).expect("observed originating boundary before intake");
+                assert!(a["root"] == sender["core"]["root"] && a["sid"] == sender["core"]["sid"], "authenticated root convergence");
+                assert!(a["peer_pub"] == sender["core"]["own_pub"] && a["peer_pub"] != b["peer_pub"], "authenticated peer DH installed");
+                assert_eq!(a["active_recv"].as_u64(), Some(new));
+                assert!(after["recv"].get(new.to_string()).is_some(), "authenticated receipt context installed");
+                self.authenticated.insert(new);
+            }
+        }
+        eprintln!("NA0780_DIAG phase={phase} end seq={new}");
+        result
+    }
+
+    pub fn both_directions(&self) -> bool {
+        [0, 1].iter().all(|role| self.emitted.iter().any(|(seq, s)|
+            s["core"]["role"] == *role && self.authenticated.contains(seq)))
+    }
 }

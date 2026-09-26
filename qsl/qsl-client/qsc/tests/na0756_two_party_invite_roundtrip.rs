@@ -547,8 +547,6 @@ fn identity_guard_message(sender: &Path, receiver: &Path, base: &str, tag: &str)
             "16",
             "--out",
             out.to_str().unwrap(),
-            "--receipt-mode",
-            "off",
         ],
     );
     assert!(

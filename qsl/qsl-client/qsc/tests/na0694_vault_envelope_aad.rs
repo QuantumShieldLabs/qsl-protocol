@@ -1,7 +1,7 @@
 // NA-0694 (D628, D-1334): ENG-0107 — the vault envelope's entire 53-byte header
 // (magic ‖ key_source ‖ salt_len ‖ nonce_len ‖ KDF M/T/P ‖ ct_len ‖ salt ‖ nonce) is
 // bound as ChaCha20Poly1305 associated data at every encrypt and the decrypt; the magic
-// is QSCV02 (hard break, no migration); a recognized QSCV01 envelope refuses with its
+// is QSCV03 (hard break, no migration); a recognized QSCV01 envelope refuses with its
 // own name at unlock AND status; the KDF-profile check applies to BOTH key sources.
 //
 // The five instruments and their honest red-stories (D628 §4c, Ruling B):
@@ -13,7 +13,7 @@
 // (iii) KDF-param byte tamper — behavior pin: the canonical-profile check fires first;
 //       red only if the profile check AND the AAD binding both vanish.
 // (iv)  ⚠ THE load-bearing Ruling-1 instrument: a structurally canonical, correctly
-//       keyed QSCV02 envelope encrypted with EMPTY AAD must be REFUSED — every
+//       keyed QSCV03 envelope encrypted with EMPTY AAD must be REFUSED — every
 //       pre-AEAD check accepts it, so only the header binding can turn it away
 //       (negative-control A reds exactly this test and nothing else).
 // (v)   the Ruling-3 instrument: a QSCV01-magic envelope refuses with exactly
@@ -28,7 +28,7 @@
 mod common;
 
 use argon2::{Algorithm, Argon2, Params, Version};
-use chacha20poly1305::aead::{Aead, KeyInit};
+use chacha20poly1305::aead::{Aead, KeyInit, Payload};
 use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
 use predicates::prelude::*;
 use std::fs;
@@ -103,12 +103,12 @@ fn unlock_cmd(base: &Path, cfg: &Path, pass: &str) -> assert_cmd::Command {
     cmd
 }
 
-/// (i) The positive control, driven through the pub surface: init writes a QSCV02
+/// (i) The positive control, driven through the pub surface: init writes a QSCV03
 /// envelope, a secret write re-encrypts it (both bound), and unlock + read-back
 /// re-derives the AAD from parsed state. Green only while every serializer and both
 /// AAD sides route through the ONE header builder.
 #[test]
-fn qscv02_roundtrip_unlocks_and_reads_back() {
+fn qscv03_roundtrip_unlocks_and_reads_back() {
     let _g = env_lock();
     let (_base, cfg) = fresh_case("roundtrip");
     std::env::set_var("QSC_CONFIG_DIR", &cfg);
@@ -116,16 +116,16 @@ fn qscv02_roundtrip_unlocks_and_reads_back() {
     qsc::vault::set_process_passphrase(None);
     qsc::set_vault_unlocked(false);
 
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     let bytes = fs::read(cfg.join("vault.qsv")).expect("vault read after init");
-    assert_eq!(&bytes[..6], b"QSCV02", "product-written magic after init");
+    assert_eq!(&bytes[..6], b"QSCV03", "product-written magic after init");
 
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock after init");
     qsc::vault::secret_set("na0694.probe", "roundtrip-value").expect("secret set");
     let bytes = fs::read(cfg.join("vault.qsv")).expect("vault read after set");
     assert_eq!(
         &bytes[..6],
-        b"QSCV02",
+        b"QSCV03",
         "product-written magic after rewrite"
     );
 
@@ -145,7 +145,7 @@ fn qscv02_roundtrip_unlocks_and_reads_back() {
 /// premise, and a future keychain-enabled suite build SHOULD turn this red and force
 /// the re-census.
 #[test]
-fn qscv02_key_source_byte_tamper_fails_closed() {
+fn qscv03_key_source_byte_tamper_fails_closed() {
     let _g = env_lock();
     let (base, cfg) = fresh_case("key_source_tamper");
     common::init_passphrase_vault(&cfg, PASS);
@@ -173,7 +173,7 @@ fn qscv02_key_source_byte_tamper_fails_closed() {
 /// lane, N-06) fires before any derivation; red only if that check AND the AAD both
 /// vanish.
 #[test]
-fn qscv02_kdf_param_byte_tamper_fails_closed() {
+fn qscv03_kdf_param_byte_tamper_fails_closed() {
     let _g = env_lock();
     let (base, cfg) = fresh_case("kdf_param_tamper");
     common::init_passphrase_vault(&cfg, PASS);
@@ -196,12 +196,12 @@ fn qscv02_kdf_param_byte_tamper_fails_closed() {
 }
 
 /// (iv) ⚠ THE load-bearing Ruling-1 instrument (D628 §0.4, Ruling B): a hand-built,
-/// structurally canonical QSCV02 envelope — correct salt-derived key, canonical KDF
+/// structurally canonical QSCV03 envelope — correct salt-derived key, canonical KDF
 /// params, valid payload JSON — encrypted with the two-argument (EMPTY-AAD) form the
 /// product no longer uses. Every pre-AEAD check accepts it; only the header binding
 /// can refuse it. Revert Ruling 1 (negative-control A) and this test goes red alone.
 #[test]
-fn qscv02_unauthenticated_envelope_refused() {
+fn qscv03_unauthenticated_envelope_refused() {
     let _g = env_lock();
     let (base, cfg) = fresh_case("unauthenticated_envelope");
 
@@ -214,13 +214,13 @@ fn qscv02_unauthenticated_envelope_refused() {
         .hash_password_into(PASS.as_bytes(), &salt, &mut key)
         .expect("vault key");
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&key));
-    let plaintext = br#"{"version":1,"secrets":{}}"#;
+    let plaintext = br#"{"version":3,"protocol":"NA0780-DIR-INTEGRATION-02","secrets":{}}"#;
     let ciphertext = cipher
         .encrypt(Nonce::from_slice(&nonce), plaintext.as_slice())
         .expect("empty-aad encrypt");
 
     let mut out = Vec::with_capacity(HEADER_LEN + ciphertext.len());
-    out.extend_from_slice(b"QSCV02");
+    out.extend_from_slice(b"QSCV03");
     out.push(1);
     out.push(16);
     out.push(12);
@@ -247,6 +247,30 @@ fn qscv02_unauthenticated_envelope_refused() {
         .assert()
         .failure()
         .stdout(predicate::str::contains("code=vault_locked"));
+    assert_eq!(fs::read(&vault_file).expect("rejected envelope"), out);
+
+    // Same key, nonce, header and valid current-profile payload: changing only
+    // the AAD binding must admit the positive control. An obsolete payload must
+    // not make the empty-AAD negative pass for an unrelated format rejection.
+    let authenticated = cipher
+        .encrypt(Nonce::from_slice(&nonce), Payload { msg: plaintext, aad: &out[..HEADER_LEN] })
+        .expect("header-bound encrypt");
+    let mut valid = out[..HEADER_LEN].to_vec();
+    valid.extend_from_slice(&authenticated);
+    fs::write(&vault_file, &valid).expect("write positive envelope");
+    unlock_cmd(&base, &cfg, PASS).assert().success();
+    assert_eq!(fs::read(&vault_file).expect("positive envelope"), valid);
+
+    // Authenticated previous integration profile refuses without mutation. A
+    // distinct fresh nonce keeps this fixture separate from both earlier arms.
+    use rand_core::{OsRng, RngCore};
+    let mut old_nonce=[0u8;12];OsRng.fill_bytes(&mut old_nonce);
+    let old_plaintext=br#"{"version":3,"protocol":"NA0780-DIR-INTEGRATION-01","secrets":{}}"#;
+    let mut old_header=valid[..HEADER_LEN].to_vec();old_header[41..53].copy_from_slice(&old_nonce);
+    let old_ciphertext=cipher.encrypt(Nonce::from_slice(&old_nonce),Payload {msg:old_plaintext,aad:&old_header}).unwrap();
+    let mut old=old_header;old.extend(old_ciphertext);fs::write(&vault_file,&old).unwrap();
+    unlock_cmd(&base,&cfg,PASS).assert().failure().stdout(predicate::str::contains("vault_version_unsupported"));
+    assert_eq!(fs::read(&vault_file).unwrap(),old);
 }
 
 /// (v) The Ruling-3 instrument: a recognized-but-old QSCV01 envelope refuses with
@@ -261,7 +285,7 @@ fn qscv01_vault_refused_with_distinct_error() {
 
     let vault_file = cfg.join("vault.qsv");
     let mut bytes = fs::read(&vault_file).expect("vault read");
-    assert_eq!(&bytes[..6], b"QSCV02", "product wrote the current magic");
+    assert_eq!(&bytes[..6], b"QSCV03", "product wrote the current magic");
     bytes[..6].copy_from_slice(b"QSCV01");
     fs::write(&vault_file, &bytes).expect("downgrade write");
 

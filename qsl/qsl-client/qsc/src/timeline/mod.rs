@@ -5,10 +5,9 @@ use crate::store::{FileTransferRecord, TimelineStore, TIMELINE_SECRET_KEY};
 use crate::vault;
 
 use super::{
-    attachment_journal_load, attachment_journal_save, attachment_record_key, channel_label_ok,
-    confirm_target_matches_channel, emit_cli_named_marker, emit_marker, emit_tui_named_marker,
-    file_xfer_store_key, require_unlocked, short_device_marker,
-    short_peer_marker,
+    channel_label_ok,
+    confirm_target_matches_channel, emit_cli_named_marker, emit_marker,
+    file_xfer_store_key, require_unlocked, short_device_marker, short_peer_marker,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -21,6 +20,8 @@ pub(crate) struct TimelineEntry {
     pub(super) ts: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(super) target_device_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    content_commitment: Option<[u8; 32]>,
     #[serde(default)]
     pub(super) state: String,
     #[serde(default)]
@@ -132,23 +133,6 @@ pub(super) fn emit_cli_delivery_state_with_device(
     );
 }
 
-pub(super) fn emit_tui_delivery_state_with_device(
-    thread: &str,
-    state: &'static str,
-    device: Option<&str>,
-) {
-    let safe_thread = short_peer_marker(thread);
-    let safe_device = short_device_marker(device.unwrap_or("unknown"));
-    emit_tui_named_marker(
-        "QSC_TUI_DELIVERY",
-        &[
-            ("state", state),
-            ("policy", CONFIRM_POLICY.as_str()),
-            ("thread", safe_thread.as_str()),
-            ("device", safe_device.as_str()),
-        ],
-    );
-}
 
 pub(super) fn emit_cli_receipt_ignored_wrong_device(peer: &str, device: &str) {
     let safe_peer = short_peer_marker(peer);
@@ -163,18 +147,6 @@ pub(super) fn emit_cli_receipt_ignored_wrong_device(peer: &str, device: &str) {
     );
 }
 
-pub(super) fn emit_tui_receipt_ignored_wrong_device(thread: &str, device: &str) {
-    let safe_thread = short_peer_marker(thread);
-    let safe_device = short_device_marker(device);
-    emit_tui_named_marker(
-        "QSC_TUI_RECEIPT_IGNORED",
-        &[
-            ("reason", "wrong_device"),
-            ("thread", safe_thread.as_str()),
-            ("device", safe_device.as_str()),
-        ],
-    );
-}
 
 pub(super) fn message_state_transition_allowed(
     from: MessageState,
@@ -323,26 +295,6 @@ pub(super) fn emit_cli_file_delivery_with_device(
     );
 }
 
-pub(super) fn emit_tui_file_delivery_with_device(
-    thread: &str,
-    state: &'static str,
-    file_id: &str,
-    device: Option<&str>,
-) {
-    let safe_thread = short_peer_marker(thread);
-    let safe_file = file_delivery_short_id(file_id);
-    let safe_device = short_device_marker(device.unwrap_or("unknown"));
-    emit_tui_named_marker(
-        "QSC_TUI_FILE_CONFIRM",
-        &[
-            ("state", state),
-            ("policy", CONFIRM_POLICY.as_str()),
-            ("thread", safe_thread.as_str()),
-            ("device", safe_device.as_str()),
-            ("file", safe_file.as_str()),
-        ],
-    );
-}
 
 pub(super) fn file_transfer_upsert_outbound_record(
     peer: &str,
@@ -350,6 +302,7 @@ pub(super) fn file_transfer_upsert_outbound_record(
     rec: FileTransferRecord,
 ) -> Result<(), &'static str> {
     let key = file_xfer_store_key(peer, file_id);
+    let _lock = timeline_lock()?;
     let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
     store.file_transfers.insert(key, rec);
     timeline_store_save(&store).map_err(|_| "timeline_unavailable")
@@ -362,6 +315,7 @@ fn file_transfer_apply_confirmation(
     recv_channel: &str,
 ) -> Result<(), &'static str> {
     let key = file_xfer_store_key(peer, file_id);
+    let _lock = timeline_lock()?;
     let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
     let rec = store.file_transfers.get_mut(&key).ok_or("state_unknown")?;
     if !rec.confirm_requested {
@@ -380,34 +334,6 @@ fn file_transfer_apply_confirmation(
     timeline_store_save(&store).map_err(|_| "timeline_unavailable")
 }
 
-fn attachment_transfer_apply_confirmation(
-    peer: &str,
-    attachment_id: &str,
-    confirm_handle: &str,
-    recv_channel: &str,
-) -> Result<(), &'static str> {
-    let key = attachment_record_key("out", peer, attachment_id);
-    let mut journal = attachment_journal_load()?;
-    let rec = journal
-        .records
-        .get_mut(&key)
-        .ok_or("REJECT_ATT_CONFIRM_LINKAGE")?;
-    if !rec.confirm_requested {
-        return Err("REJECT_ATT_CONFIRM_LINKAGE");
-    }
-    if rec.state == "PEER_CONFIRMED" {
-        return Err("REJECT_ATT_CONFIRM_LINKAGE");
-    }
-    if rec.confirm_handle.as_deref() != Some(confirm_handle) {
-        return Err("REJECT_ATT_CONFIRM_LINKAGE");
-    }
-    if !confirm_target_matches_channel(rec.target_device_id.as_deref(), recv_channel) {
-        return Err("confirm_wrong_device");
-    }
-    rec.state = "PEER_CONFIRMED".to_string();
-    attachment_journal_save(&journal)?;
-    Ok(())
-}
 
 fn file_transfer_target_device(peer: &str, file_id: &str) -> Result<Option<String>, &'static str> {
     let key = file_xfer_store_key(peer, file_id);
@@ -423,39 +349,49 @@ pub(super) fn file_transfer_confirm_id(peer: &str, file_id: &str) -> Result<Stri
     rec.confirm_id.clone().ok_or("confirm_id_missing")
 }
 
-fn attachment_transfer_timeline_id(
-    peer: &str,
-    attachment_id: &str,
-) -> Result<String, &'static str> {
-    let key = attachment_record_key("out", peer, attachment_id);
-    let store = attachment_journal_load()?;
-    let rec = store
-        .records
-        .get(&key)
-        .ok_or("REJECT_ATT_CONFIRM_LINKAGE")?;
-    rec.timeline_id.clone().ok_or("REJECT_ATT_CONFIRM_LINKAGE")
-}
 
-pub(super) fn timeline_store_load() -> Result<TimelineStore, &'static str> {
-    let mut store = match vault::secret_get(TIMELINE_SECRET_KEY) {
-        Ok(None) => Ok(TimelineStore::default()),
-        Ok(Some(v)) => serde_json::from_str::<TimelineStore>(&v).map_err(|_| "timeline_tampered"),
-        Err("vault_missing" | "vault_locked") => Err("timeline_unavailable"),
-        Err(_) => Err("timeline_unavailable"),
-    }?;
+// A caller may edit this snapshot, but can never save it over a different current
+// record. Keep this guard at the shared API: attachment callers also use it.
+pub(crate) struct TimelineSnapshot {
+    store: TimelineStore,
+    original: Option<String>,
+}
+impl std::ops::Deref for TimelineSnapshot {
+    type Target = TimelineStore;
+    fn deref(&self) -> &Self::Target {
+        &self.store
+    }
+}
+impl std::ops::DerefMut for TimelineSnapshot {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.store
+    }
+}
+fn timeline_lock() -> Result<crate::model::LockGuard, &'static str> {
+    let (dir, source) = crate::fs_store::config_dir().map_err(|_| "timeline_unavailable")?;
+    crate::fs_store::lock_store_exclusive(&dir, source).map_err(|_| "timeline_unavailable")
+}
+pub(super) fn timeline_store_load() -> Result<TimelineSnapshot, &'static str> {
+    let original = vault::secret_get(TIMELINE_SECRET_KEY).map_err(|_| "timeline_unavailable")?;
+    let mut store = match original.as_deref() {
+        None => TimelineStore::default(),
+        Some(v) => serde_json::from_str::<TimelineStore>(v).map_err(|_| "timeline_tampered")?,
+    };
     if store.next_ts == 0 {
         store.next_ts = 1;
     }
-    Ok(store)
+    Ok(TimelineSnapshot { store, original })
 }
-
-pub(super) fn timeline_store_save(store: &TimelineStore) -> Result<(), &'static str> {
-    let json = serde_json::to_string(store).map_err(|_| "timeline_unavailable")?;
-    match vault::secret_set(TIMELINE_SECRET_KEY, &json) {
-        Ok(()) => Ok(()),
-        Err("vault_missing" | "vault_locked") => Err("timeline_unavailable"),
-        Err(_) => Err("timeline_unavailable"),
+pub(super) fn timeline_store_save(snapshot: &TimelineSnapshot) -> Result<(), &'static str> {
+    let _lock = timeline_lock()?;
+    // Reload after taking the SAME reentrant store lock used by vault writes.
+    // Equality covers every persisted field, including unrelated peers/transfers.
+    let current = vault::secret_get(TIMELINE_SECRET_KEY).map_err(|_| "timeline_unavailable")?;
+    if current != snapshot.original {
+        return Err("timeline_stale_snapshot");
     }
+    let json = serde_json::to_string(&snapshot.store).map_err(|_| "timeline_unavailable")?;
+    vault::secret_set(TIMELINE_SECRET_KEY, &json).map_err(|_| "timeline_unavailable")
 }
 
 pub(super) fn timeline_append_entry(
@@ -477,10 +413,8 @@ pub(super) fn timeline_append_entry(
     )
 }
 
-// NA-0696 (D630 D1(a)/R6, D-1336): the twin locked ingest chain and the save-fn indirection
-// that existed only to carry it are retired — a caller already holding the store lock (the
-// transport send transactions) nests legally through the reentrant registry, so the ONE
-// locking `timeline_store_save` below serves every caller.
+// The existing reentrant store lock spans load, mutation and save. Nested
+// transport transactions acquire no second lock or competing lock order.
 pub(super) fn timeline_append_entry_for_target(
     peer: &str,
     direction: &str,
@@ -489,6 +423,99 @@ pub(super) fn timeline_append_entry_for_target(
     final_state: MessageState,
     forced_id: Option<&str>,
     target_device_id: Option<&str>,
+) -> Result<TimelineEntry, &'static str> {
+    timeline_append_bound_entry(
+        peer,
+        direction,
+        byte_len,
+        kind,
+        final_state,
+        forced_id,
+        target_device_id,
+        None,
+    )
+}
+
+// Candidate projections bind full immutable content, not just its length. The
+// digest remains inside the encrypted timeline and is never emitted in markers.
+pub(crate) fn timeline_project_message(
+    peer: &str,
+    direction: &str,
+    body: &[u8],
+    id: &str,
+) -> Result<TimelineEntry, &'static str> {
+    use sha2::Digest;
+    let _lock=timeline_lock()?;
+    let mut snapshot=timeline_store_load()?;
+    let owner=crate::protocol_state::directional_owner_load()?;
+    // Resolve direction without swallowing any load/auth/storage failure.
+    let peer_state=crate::protocol_state::directional_load(peer)?.ok_or("directional_profile_required")?;
+    let dir=match direction {"in"=>1-peer_state.core.role,"out"=>peer_state.core.role,
+        _=>return Err("timeline_direction_invalid")};
+    let mut matching=owner.entries.values().filter(|e|e.peer==peer && e.sid==peer_state.core.sid
+        && e.operation==id && e.direction==dir);
+    let owned=matching.next().ok_or("directional_projection_credit")?;
+    let commitment: [u8;32]=sha2::Sha256::digest(body).into();
+    if matching.next().is_some() || owned.content!=crate::directional_core::h(body) {
+        return Err("directional_owner_binding");
+    }
+    let final_state=match direction {
+        "in"=>MessageState::Received,
+        "out" if owned.state&2!=0=>MessageState::Delivered,
+        "out"=>MessageState::Sent,
+        _=>return Err("timeline_direction_invalid"),
+    };
+    let mut transitions=Vec::new();
+    let mut matches=snapshot.peers.values_mut().flatten().filter(|e|e.id==id);
+    let entry=if let Some(e)=matches.next() {
+        if matches.next().is_some() || e.peer!=peer || e.direction!=direction || e.kind!="msg"
+            || e.byte_len!=body.len() || e.target_device_id.is_some() || e.content_commitment!=Some(commitment) {
+            return Err("timeline_id_conflict");
+        }
+        let old=MessageState::parse(&e.state).ok_or("state_unknown")?;
+        if final_state==MessageState::Delivered && old==MessageState::Sent {
+            message_state_transition_allowed(old,final_state,direction)?;
+            transitions.push((old,final_state));
+            e.state=final_state.as_str().to_owned();e.status=final_state.as_status().to_owned();
+        }
+        // Preserve advanced/failed states on replay as before.
+        e.clone()
+    } else {
+        if !channel_label_ok(peer) || id.trim().is_empty() {return Err("state_id_invalid");}
+        let initial=if direction=="out" {MessageState::Sent}else{MessageState::Received};
+        message_state_transition_allowed(MessageState::Created,initial,direction)?;
+        transitions.push((MessageState::Created,initial));
+        if final_state!=initial {
+            message_state_transition_allowed(initial,final_state,direction)?;
+            transitions.push((initial,final_state));
+        }
+        let ts=snapshot.next_ts;
+        snapshot.next_ts=ts.checked_add(1).ok_or("timeline_capacity")?;
+        let e=TimelineEntry{id:id.to_owned(),peer:peer.to_owned(),direction:direction.to_owned(),
+            byte_len:body.len(),kind:"msg".to_owned(),ts,target_device_id:None,
+            content_commitment:Some(commitment),state:final_state.as_str().to_owned(),
+            status:final_state.as_status().to_owned()};
+        snapshot.peers.entry(peer.to_owned()).or_default().push(e.clone());e
+    };
+    let json=serde_json::to_string(&snapshot.store).map_err(|_|"timeline_unavailable")?;
+    if snapshot.original.as_deref()!=Some(json.as_str()) {
+        crate::vault::project_owned_secret(&owned.ticket,owner.generation,owned.generation,
+            snapshot.original.as_deref(),&json)?;
+    }
+    for (from,to) in transitions {emit_message_state_transition(from,to);}
+    Ok(entry)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn timeline_append_bound_entry(
+    peer: &str,
+    direction: &str,
+    byte_len: usize,
+    kind: &str,
+    final_state: MessageState,
+    forced_id: Option<&str>,
+    target_device_id: Option<&str>,
+    content_commitment: Option<[u8; 32]>,
 ) -> Result<TimelineEntry, &'static str> {
     if !channel_label_ok(peer) {
         return Err("timeline_peer_invalid");
@@ -499,12 +526,38 @@ pub(super) fn timeline_append_entry_for_target(
         }
     }
     message_state_transition_allowed(MessageState::Created, final_state, direction)?;
+    let _lock = timeline_lock()?;
     let mut store = timeline_store_load()?;
+    if let Some(id) = forced_id {
+        let mut matches = store
+            .peers
+            .values()
+            .flatten()
+            .filter(|entry| entry.id == id);
+        if let Some(entry) = matches.next() {
+            if matches.next().is_some()
+                || entry.peer != peer
+                || entry.direction != direction
+                || entry.byte_len != byte_len
+                || entry.kind != kind
+                || entry.target_device_id != target_device_id.map(short_device_marker)
+                || entry.content_commitment != content_commitment
+            {
+                return Err("timeline_id_conflict");
+            }
+            // Replay is insertion only: never roll back an advanced/failed state.
+            // Status changes go through timeline_transition_entry_state instead.
+            return Ok(entry.clone());
+        }
+    }
     let ts = store.next_ts;
-    store.next_ts = store.next_ts.saturating_add(1);
+    store.next_ts = store.next_ts.checked_add(1).ok_or("timeline_capacity")?;
     let id = forced_id
         .map(|v| v.to_string())
         .unwrap_or_else(|| format!("{}-{}", direction, ts));
+    if store.peers.values().flatten().any(|entry| entry.id == id) {
+        return Err("timeline_id_conflict");
+    }
     let entry = TimelineEntry {
         id: id.clone(),
         peer: peer.to_string(),
@@ -513,6 +566,7 @@ pub(super) fn timeline_append_entry_for_target(
         kind: kind.to_string(),
         ts,
         target_device_id: target_device_id.map(short_device_marker),
+        content_commitment,
         state: final_state.as_str().to_string(),
         status: final_state.as_status().to_string(),
     };
@@ -526,7 +580,7 @@ pub(super) fn timeline_append_entry_for_target(
     Ok(entry)
 }
 
-fn timeline_transition_entry_state(
+pub(crate) fn timeline_transition_entry_state(
     peer: &str,
     id: &str,
     to: MessageState,
@@ -537,6 +591,7 @@ fn timeline_transition_entry_state(
     if id.trim().is_empty() {
         return Err("state_id_invalid");
     }
+    let _lock = timeline_lock()?;
     let mut store = timeline_store_load()?;
     let Some(entries) = store.peers.get_mut(peer) else {
         return Err("state_unknown");
@@ -613,26 +668,6 @@ pub(super) fn apply_file_peer_confirmation(
     Ok((ConfirmApplyOutcome::Confirmed, target))
 }
 
-pub(super) fn apply_attachment_peer_confirmation(
-    peer: &str,
-    attachment_id: &str,
-    confirm_handle: &str,
-    recv_channel: &str,
-) -> Result<(ConfirmApplyOutcome, Option<String>), &'static str> {
-    let key = attachment_record_key("out", peer, attachment_id);
-    let store = attachment_journal_load()?;
-    let Some(rec) = store.records.get(&key) else {
-        return Err("REJECT_ATT_CONFIRM_LINKAGE");
-    };
-    let target = rec.target_device_id.clone();
-    if !confirm_target_matches_channel(target.as_deref(), recv_channel) {
-        return Ok((ConfirmApplyOutcome::IgnoredWrongDevice, target));
-    }
-    attachment_transfer_apply_confirmation(peer, attachment_id, confirm_handle, recv_channel)?;
-    let timeline_id = attachment_transfer_timeline_id(peer, attachment_id)?;
-    timeline_transition_entry_state(peer, timeline_id.as_str(), MessageState::Delivered)?;
-    Ok((ConfirmApplyOutcome::Confirmed, target))
-}
 
 fn timeline_emit_item(entry: &TimelineEntry) {
     let len_s = entry.byte_len.to_string();
@@ -682,8 +717,7 @@ pub(super) fn latest_outbound_file_id(peer: &str) -> Result<String, &'static str
 
 pub fn timeline_list(peer: &str, limit: Option<usize>) -> CliResult {
     require_unlocked("timeline_list")?;
-    let mut entries =
-        timeline_entries_for_peer(peer).map_err(|code| CliError::code(code))?;
+    let mut entries = timeline_entries_for_peer(peer).map_err(CliError::code)?;
     entries.sort_by(|a, b| b.ts.cmp(&a.ts).then_with(|| a.id.cmp(&b.id)));
     let take_n = limit.unwrap_or(entries.len()).min(entries.len());
     let count_s = take_n.to_string();
@@ -700,7 +734,7 @@ pub fn timeline_list(peer: &str, limit: Option<usize>) -> CliResult {
 
 pub fn timeline_show(peer: &str, id: &str) -> CliResult {
     require_unlocked("timeline_show")?;
-    let entries = timeline_entries_for_peer(peer).map_err(|code| CliError::code(code))?;
+    let entries = timeline_entries_for_peer(peer).map_err(CliError::code)?;
     let Some(entry) = entries.into_iter().find(|v| v.id == id) else {
         return Err(CliError::code("timeline_item_missing"));
     };
@@ -721,9 +755,12 @@ pub fn timeline_clear(peer: &str, confirm: bool) -> CliResult {
     if !channel_label_ok(peer) {
         return Err(CliError::code("timeline_peer_invalid"));
     }
-    let mut store = timeline_store_load().map_err(|code| CliError::code(code))?;
+    let _lock = timeline_lock().map_err(CliError::code)?;
+    let mut store = timeline_store_load().map_err(CliError::code)?;
+    #[cfg(test)]
+    na0780_tests::after_clear_load();
     let removed = store.peers.remove(peer).map(|v| v.len()).unwrap_or(0usize);
-    timeline_store_save(&store).map_err(|code| CliError::code(code))?;
+    timeline_store_save(&store).map_err(CliError::code)?;
     let removed_s = removed.to_string();
     emit_marker(
         "timeline_clear",
@@ -735,4 +772,261 @@ pub fn timeline_clear(peer: &str, confirm: bool) -> CliResult {
         ],
     );
     Ok(())
+}
+
+#[cfg(test)]
+mod na0780_tests {
+    use super::*;
+    use std::cell::RefCell;
+    thread_local! { static CLEAR_HOOK: RefCell<Option<Box<dyn FnOnce()>>> = RefCell::new(None); }
+    pub(super) fn after_clear_load() {
+        let hook = CLEAR_HOOK.with(|h| h.borrow_mut().take());
+        if let Some(hook) = hook {
+            hook();
+        }
+    }
+    fn fixture(name: &str) -> Option<tempfile::TempDir> {
+        if std::env::var("NA0780_TIMELINE_CHILD").ok().as_deref() != Some(name) {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    &format!("timeline::na0780_tests::{name}"),
+                    "--nocapture",
+                ])
+                .env("NA0780_TIMELINE_CHILD", name)
+                .status()
+                .unwrap();
+            assert!(status.success(), "isolated timeline fixture failed");
+            return None;
+        }
+        let dir = tempfile::tempdir().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(dir.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
+        }
+        std::env::set_var("QSC_CONFIG_DIR", dir.path());
+        std::env::remove_var("QSC_QSP_SEED");
+        std::env::remove_var("QSC_ALLOW_SEED_FALLBACK");
+        vault::vault_init_directional_with_passphrase("local timeline fixture only").unwrap();
+        vault::protection::unlock_guarded("local timeline fixture only").unwrap();
+        Some(dir)
+    }
+    fn append(peer: &str, id: &str) -> TimelineEntry {
+        timeline_append_entry(peer, "in", 7, "msg", MessageState::Received, Some(id)).unwrap()
+    }
+    #[test]
+    fn duplicate_projection() {
+        let Some(_dir) = fixture("duplicate_projection") else {
+            return;
+        };
+        let first = append("alice", "stable");
+        let second = append("alice", "stable");
+        assert_eq!(
+            timeline_entries_for_peer("alice").unwrap().len(),
+            1,
+            "duplicate stable ID inserted"
+        );
+        assert_eq!(first.ts, second.ts);
+    }
+    #[test]
+    fn stale_clear_projection() {
+        let Some(_dir) = fixture("stale_clear_projection") else {
+            return;
+        };
+        append("bob", "old");
+        CLEAR_HOOK.with(|h| {
+            *h.borrow_mut() = Some(Box::new(|| {
+                append("alice", "new");
+            }))
+        });
+        let result = timeline_clear("bob", true);
+        assert_eq!(
+            timeline_entries_for_peer("alice").unwrap().len(),
+            1,
+            "stale clear erased unrelated projection"
+        );
+        assert!(result.is_err(), "stale snapshot must refuse");
+        timeline_clear("bob", true).unwrap();
+        assert!(timeline_entries_for_peer("bob").unwrap().is_empty());
+    }
+    #[test]
+    fn conflicts_status_and_stale_save() {
+        let Some(_dir) = fixture("conflicts_status_and_stale_save") else {
+            return;
+        };
+        timeline_append_entry("alice", "out", 7, "msg", MessageState::Sent, Some("sent")).unwrap();
+        let before = vault::secret_get(TIMELINE_SECRET_KEY).unwrap();
+        for (peer, dir, len, kind) in [
+            ("bob", "out", 7, "msg"),
+            ("alice", "in", 7, "msg"),
+            ("alice", "out", 8, "msg"),
+            ("alice", "out", 7, "file"),
+        ] {
+            let state = if dir == "in" {
+                MessageState::Received
+            } else {
+                MessageState::Sent
+            };
+            assert_eq!(
+                timeline_append_entry(peer, dir, len, kind, state, Some("sent")).unwrap_err(),
+                "timeline_id_conflict"
+            );
+            assert_eq!(vault::secret_get(TIMELINE_SECRET_KEY).unwrap(), before);
+        }
+        let mut stale = timeline_store_load().unwrap();
+        timeline_transition_entry_state("alice", "sent", MessageState::Delivered).unwrap();
+        let replay =
+            timeline_append_entry("alice", "out", 7, "msg", MessageState::Sent, Some("sent"))
+                .unwrap();
+        assert_eq!(timeline_entry_state(&replay), MessageState::Delivered);
+        let advanced = vault::secret_get(TIMELINE_SECRET_KEY).unwrap();
+        stale.peers.clear();
+        assert_eq!(timeline_store_save(&stale), Err("timeline_stale_snapshot"));
+        assert_eq!(vault::secret_get(TIMELINE_SECRET_KEY).unwrap(), advanced);
+        assert_eq!(
+            timeline_transition_entry_state("alice", "sent", MessageState::Sent).unwrap_err(),
+            "state_invalid_transition"
+        );
+        assert_eq!(
+            timeline_transition_entry_state("alice", "sent", MessageState::Delivered).unwrap_err(),
+            "state_duplicate"
+        );
+    }
+    #[test]
+    fn concurrent_restart_projection() {
+        let Some(dir) = fixture("concurrent_restart_projection") else {
+            return;
+        };
+        // The existing store lock is nonblocking. Competing writers must refuse
+        // without mutation, then exact projection retry succeeds after release.
+        let before = vault::secret_get(TIMELINE_SECRET_KEY).unwrap();
+        let lock = timeline_lock().unwrap();
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(5));
+        let workers: Vec<_> = (0..4)
+            .map(|_| {
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    assert_eq!(
+                        timeline_append_entry(
+                            "alice",
+                            "in",
+                            7,
+                            "msg",
+                            MessageState::Received,
+                            Some("replayed")
+                        )
+                        .unwrap_err(),
+                        "timeline_unavailable"
+                    );
+                })
+            })
+            .collect();
+        barrier.wait();
+        for worker in workers {
+            worker.join().unwrap();
+        }
+        assert_eq!(vault::secret_get(TIMELINE_SECRET_KEY).unwrap(), before);
+        drop(lock);
+        for i in 0..4 {
+            append("alice", "replayed");
+            append("bob", &format!("unique-{i}"));
+        }
+        assert_eq!(timeline_entries_for_peer("alice").unwrap().len(), 1);
+        assert_eq!(timeline_entries_for_peer("bob").unwrap().len(), 4);
+        // A new process authenticates normally and retries after a projection cut.
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "timeline::na0780_tests::restart_worker",
+                "--nocapture",
+            ])
+            .env("NA0780_RESTART_DIR", dir.path())
+            .status()
+            .unwrap();
+        assert!(status.success());
+        assert_eq!(timeline_entries_for_peer("alice").unwrap().len(), 1);
+        assert_eq!(timeline_entries_for_peer("bob").unwrap().len(), 4);
+    }
+    #[test]
+    fn restart_worker() {
+        let Ok(dir) = std::env::var("NA0780_RESTART_DIR") else {
+            return;
+        };
+        std::env::set_var("QSC_CONFIG_DIR", dir);
+        vault::protection::unlock_guarded("local timeline fixture only").unwrap();
+        append("alice", "replayed");
+        timeline_clear("carol", true).unwrap();
+    }
+    #[test]
+    fn full_content_projection() {
+        let Some(_dir) = fixture("full_content_projection") else {
+            return;
+        };
+        let first = timeline_project_message("alice", "in", b"first", "bound").unwrap();
+        let before = vault::secret_get(TIMELINE_SECRET_KEY).unwrap();
+        let replay = timeline_project_message("alice", "in", b"first", "bound").unwrap();
+        assert_eq!(first.ts, replay.ts);
+        assert_eq!(vault::secret_get(TIMELINE_SECRET_KEY).unwrap(), before);
+        // Equal-length content must not pass the metadata-only identity check.
+        assert_eq!(
+            timeline_project_message("alice", "in", b"other", "bound").unwrap_err(),
+            "timeline_id_conflict"
+        );
+        assert_eq!(vault::secret_get(TIMELINE_SECRET_KEY).unwrap(), before);
+        assert_eq!(
+            timeline_append_entry(
+                "alice",
+                "in",
+                5,
+                "msg",
+                MessageState::Received,
+                Some("bound")
+            )
+            .unwrap_err(),
+            "timeline_id_conflict"
+        );
+        assert_eq!(timeline_entries_for_peer("alice").unwrap().len(), 1);
+    }
+}
+
+// Read-only admission check; the authoritative receive commit must precede
+// projection, so validation must never insert a row here.
+pub(crate) fn timeline_validate_projection(peer:&str,body:&[u8],id:&str)->Result<(),&'static str>{
+    use sha2::Digest;
+    let _lock=timeline_lock()?;
+    let store=timeline_store_load()?;
+    let mut matches=store.peers.values().flatten().filter(|e|e.id==id);
+    if let Some(e)=matches.next() {
+        let digest:[u8;32]=sha2::Sha256::digest(body).into();
+        if matches.next().is_some() || e.peer!=peer || e.direction!="in" || e.kind!="msg"
+            || e.byte_len!=body.len() || e.target_device_id.is_some() || e.content_commitment!=Some(digest) {
+            return Err("timeline_id_conflict");
+        }
+    }
+    Ok(())
+}
+
+// Conditional encoded credit for one owned ordinary projection. Include a complete
+// singleton store (so an absent timeline/new peer is covered), widest timestamp,
+// content commitment, and both outgoing publication states. The outer JSON string
+// expansion is bounded by serializing it, not assuming body bytes equal disk bytes.
+pub(crate) fn directional_projection_bound(peer:&str,id:&str,len:usize)->Result<usize,&'static str> {
+    let mut maximum=0usize;
+    for (direction,state) in [("in",MessageState::Received),("out",MessageState::Sent),
+        ("out",MessageState::Delivered)] {
+        let entry=TimelineEntry{id:id.to_owned(),peer:peer.to_owned(),direction:direction.to_owned(),
+            byte_len:len,kind:"msg".to_owned(),ts:u64::MAX,target_device_id:None,
+            content_commitment:Some([255;32]),state:state.as_str().to_owned(),status:state.as_status().to_owned()};
+        let store=TimelineStore{next_ts:u64::MAX,peers:std::collections::BTreeMap::from([
+            (peer.to_owned(),vec![entry])]),file_transfers:std::collections::BTreeMap::new()};
+        let inner=serde_json::to_string(&store).map_err(|_|"timeline_unavailable")?;
+        let outer=serde_json::to_vec(&std::collections::BTreeMap::from([(TIMELINE_SECRET_KEY,inner)]))
+            .map_err(|_|"timeline_unavailable")?.len();
+        maximum=maximum.max(outer);
+    }
+    // Two writes (Sent then Delivered) may materialize independently. Charging
+    // two full singleton records is conservative and includes separators/counters.
+    maximum.checked_mul(2).ok_or("timeline_capacity")
 }

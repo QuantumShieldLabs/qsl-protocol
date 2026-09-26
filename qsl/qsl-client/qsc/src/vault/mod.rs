@@ -46,6 +46,9 @@ const KDF_M_KIB: u32 = 19456;
 const KDF_T: u32 = 2;
 const KDF_P: u32 = 1;
 const RELAY_INBOX_TOKEN_SECRET_KEY: &str = "tui.relay.inbox_token";
+const OWNER_FREE_PROFILE: &str = "NA0780-OWNER-FREE-01";
+const PAYLOAD_VERSION: u8 = 4;
+
 const DESKTOP_PASS_ENV_KEY: &str = "QSC_DESKTOP_SESSION_PASSPHRASE";
 
 #[cfg(qsc_rng_failure_test_seam)]
@@ -84,17 +87,57 @@ const VAULT_KEYCHAIN_SERVICE: &str = "qsc";
 const VAULT_KEYCHAIN_PROBE_ACCOUNT: &str = "qsc-availability-probe";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct VaultPayload {
     version: u8,
+    protocol: String,
+    #[serde(deserialize_with = "unique_secret_map")]
     secrets: BTreeMap<String, String>,
 }
 
-impl VaultPayload {
-    fn empty() -> Self {
-        Self {
-            version: 1,
-            secrets: BTreeMap::new(),
+// A JSON map with repeated keys is contradictory authenticated state, not a
+// last-value-wins update. This only parses; it never repairs or rewrites input.
+fn unique_secret_map<'de, D>(deserializer: D) -> Result<BTreeMap<String, String>, D::Error>
+where D: serde::Deserializer<'de> {
+    struct Unique;
+    impl<'de> serde::de::Visitor<'de> for Unique {
+        type Value = BTreeMap<String, String>;
+        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            f.write_str("a secret map with unique keys")
         }
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where A: serde::de::MapAccess<'de> {
+            let mut entries = BTreeMap::new();
+            while let Some((key,value)) = map.next_entry::<String,String>()? {
+                if entries.insert(key,value).is_some() {
+                    return Err(serde::de::Error::custom("duplicate secret key"));
+                }
+            }
+            Ok(entries)
+        }
+    }
+    deserializer.deserialize_map(Unique)
+}
+
+impl VaultPayload {
+    fn empty(directional: bool) -> Result<Self, &'static str> {
+        let mut payload = Self {
+            version: PAYLOAD_VERSION,
+            protocol: if directional {
+                String::from_utf8(crate::directional_delivery::INTEGRATION_PROFILE.to_vec())
+                    .map_err(|_| "vault_version_unsupported")?
+            } else { OWNER_FREE_PROFILE.to_owned() },
+            secrets: BTreeMap::new(),
+        };
+        if directional {
+            let layout = crate::protocol_state::approved_directional_layout()?;
+            let owner = crate::protocol_state::CapacityOwner {
+                generation: 0, peers: BTreeMap::new(), entries: BTreeMap::new(),
+            };
+            payload.secrets.insert(layout.owner_key.to_owned(),
+                serde_json::to_string(&owner).map_err(|_| "directional_owner_encode")?);
+        }
+        Ok(payload)
     }
 }
 
@@ -110,6 +153,9 @@ pub enum VaultCmd {
 
 #[derive(Debug, Args)]
 pub struct VaultInitArgs {
+    /// Fresh development selection: directional-v1 or storage-only owner-free-v1.
+    #[arg(long, value_name = "PROTOCOL")]
+    protocol: Option<String>,
     /// Noninteractive mode never prompts; fails closed if passphrase not provided.
     #[arg(long)]
     non_interactive: bool,
@@ -265,11 +311,16 @@ fn retain_ownership_in_session(
 /// seeding, same `vault_init` success marker, same error codes returned as values
 /// (`vault_exists`, …). No process unlock-state side effect — init and unlock stay
 /// orthogonal; the caller decides whether to unlock after init.
-pub fn vault_init_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
+pub fn vault_init_with_passphrase(_passphrase: &str) -> Result<(), &'static str> {
+    Err("directional_profile_required")
+}
+
+/// Explicit opt-in for a fresh first-release development vault.
+pub fn vault_init_directional_with_passphrase(passphrase: &str) -> Result<(), &'static str> {
     if passphrase.is_empty() {
         return Err("vault_passphrase_required");
     }
-    vault_init_core(KeySource::Passphrase, Some(passphrase.to_string()))
+    vault_init_core(KeySource::Passphrase, Some(passphrase.to_string()), true)
 }
 
 pub fn secret_get(name: &str) -> Result<Option<String>, &'static str> {
@@ -294,7 +345,9 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
     let _lock = lock_store_exclusive(&cfg_dir, source).map_err(store_err_marker)?;
     let (vault_path, mut env) = load_vault_runtime()?;
     let mut payload = decrypt_payload(&env)?;
+    guard_directional_generic_write(&payload, name)?;
     payload.secrets.insert(name.to_string(), value.to_string());
+    check_directional_aggregate(&payload)?;
     let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
     #[cfg(qsc_rng_failure_test_seam)]
@@ -349,7 +402,9 @@ pub fn secret_set_with_passphrase(
     let _lock = lock_store_exclusive(&cfg_dir, source).map_err(store_err_marker)?;
     let (vault_path, mut env) = load_vault_runtime_with_passphrase(Some(passphrase))?;
     let mut payload = decrypt_payload(&env)?;
+    guard_directional_generic_write(&payload, name)?;
     payload.secrets.insert(name.to_string(), value.to_string());
+    check_directional_aggregate(&payload)?;
     let plaintext = serde_json::to_vec(&payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
     #[cfg(qsc_rng_failure_test_seam)]
@@ -429,11 +484,19 @@ pub fn session_set(
     if name.is_empty() {
         return Err("vault_secret_name_invalid");
     }
-    session
-        .payload
-        .secrets
-        .insert(name.to_string(), value.to_string());
-    persist_session(session)
+    // Named save never overlays a stale session map. Refresh only after success.
+    let (dir, source)=crate::fs_store::config_dir().map_err(store_err_marker)?;
+    let _lock=lock_store_exclusive(&dir,source).map_err(store_err_marker)?;
+    let env=read_session_runtime(session)?;
+    let mut latest=decrypt_payload(&env)?;
+    guard_directional_generic_write(&latest,name)?;
+    latest.secrets.insert(name.to_owned(),value.to_owned());
+    check_directional_aggregate(&latest)?;
+    write_directional_payload(&session.vault_path,source,&env,&latest)?;
+    session.payload=latest;
+    session.envelope=env.envelope.clone();
+    session.write_epoch_seen=VAULT_WRITE_EPOCH.load(Ordering::Relaxed);
+    Ok(())
 }
 
 // D581 KEEP -> NA-0646 (D582): part of the library's pub GUI surface, seeded for the GUI
@@ -469,6 +532,27 @@ fn persist_session_with_ownership(
         envelope: parse_envelope(&bytes)?,
         key: session.key,
     })?;
+    let layout=crate::protocol_state::approved_directional_layout()?;
+    if latest.secrets.contains_key(layout.owner_key) {
+        // Only the already-authorized ownership append is a typed exception.
+        // Discard no live record and never overlay a whole caller snapshot.
+        let Some(history)=ownership_update else {
+            return Err("directional_untyped_snapshot_refused");
+        };
+        let mut named=latest;
+        named.secrets.insert(crate::invite::OWNERSHIP_SECRET_KEY.to_owned(),history);
+        check_directional_aggregate(&named)?;
+        let env=read_session_runtime(session)?;
+        write_directional_payload(&session.vault_path,source,&env,&named)?;
+        session.payload=named;
+        session.envelope=env.envelope.clone();
+        session.write_epoch_seen=VAULT_WRITE_EPOCH.load(Ordering::Relaxed);
+        return Ok(());
+    }
+    if session.payload.version != latest.version || session.payload.protocol != latest.protocol {
+        return Err("vault_version_unsupported");
+    }
+    check_directional_aggregate(&session.payload)?;
     let ownership = latest
         .secrets
         .get(crate::invite::OWNERSHIP_SECRET_KEY)
@@ -491,6 +575,7 @@ fn persist_session_with_ownership(
             .secrets
             .insert(crate::invite::OWNERSHIP_SECRET_KEY.to_string(), history);
     }
+    check_directional_aggregate(&session.payload)?;
     let plaintext =
         serde_json::to_vec(&session.payload).map_err(|_| "vault_payload_serialize_failed")?;
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&session.key));
@@ -538,6 +623,11 @@ fn persist_session_with_ownership(
 }
 
 fn vault_init(args: VaultInitArgs) -> CliResult {
+    let directional = match args.protocol.as_deref() {
+        Some("directional-v1") => true,
+        Some("owner-free-v1") => false,
+        _ => return Err(CliError::code("directional_profile_required")),
+    };
     let noninteractive = args.non_interactive
         || std::env::var("QSC_NONINTERACTIVE").ok().as_deref() == Some("1")
         || !std::io::stdin().is_terminal();
@@ -576,7 +666,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
         }
     }
 
-    vault_init_core(key_source, pass).map_err(CliError::code)
+    vault_init_core(key_source, pass, directional).map_err(CliError::code)
 }
 
 // NA-0649 (D585 B1): the ingress-independent tail of `vault init`, shared verbatim by
@@ -584,7 +674,7 @@ fn vault_init(args: VaultInitArgs) -> CliResult {
 // (`vault_init_with_passphrase`). No argv/env/file/stdin/terminal access here; errors
 // are returned as marker-code values; the only output is the existing `vault_init`
 // success marker.
-fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<(), &'static str> {
+fn vault_init_core(key_source: KeySource, mut pass: Option<String>, directional: bool) -> Result<(), &'static str> {
     let params = match Params::new(KDF_M_KIB, KDF_T, KDF_P, Some(32)) {
         Ok(p) => p,
         Err(_) => {
@@ -639,7 +729,10 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
     #[cfg(not(qsc_rng_failure_test_seam))]
     let default_route_token = generate_default_route_token();
 
-    let mut payload = VaultPayload::empty();
+    let mut payload = match VaultPayload::empty(directional) {
+        Ok(payload) => payload,
+        Err(code) => return Err(fail_core_buffers(code, &mut pass_bytes, &mut key_bytes)),
+    };
     payload.secrets.insert(
         RELAY_INBOX_TOKEN_SECRET_KEY.to_string(),
         default_route_token,
@@ -704,6 +797,15 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>) -> Result<()
 
     if vault_path.exists() {
         return Err(fail_core_buffers("vault_exists", &mut pass_bytes, &mut key_bytes));
+    }
+
+    // The acquired store lock is the sole permitted entry in a fresh config.
+    let entries = fs::read_dir(&cfg_dir).map_err(|_| "vault_read_failed")?;
+    for entry in entries {
+        let entry = entry.map_err(|_| "vault_read_failed")?;
+        if entry.file_name() != ".qsc.lock" {
+            return Err(fail_core_buffers("directional_fresh_vault_required", &mut pass_bytes, &mut key_bytes));
+        }
     }
 
     let parent = match vault_path.parent() {
@@ -1038,7 +1140,9 @@ fn decrypt_payload(env: &VaultRuntime) -> Result<VaultPayload, &'static str> {
             },
         )
         .map_err(|_| "vault_locked")?;
-    serde_json::from_slice(&plaintext).map_err(|_| "vault_parse_failed")
+    let payload: VaultPayload = serde_json::from_slice(&plaintext).map_err(|_| "vault_parse_failed")?;
+    check_directional_aggregate(&payload)?;
+    Ok(payload)
 }
 
 // NA-0694 (D628 §5.2, D-1334): the ONE header serializer — every envelope byte layout in
@@ -1805,5 +1909,329 @@ mod na0695_keychain_refuse_unit {
 
         std::env::remove_var("QSC_KEYCHAIN_TEST_SEAM");
         let _ = fs::remove_dir_all(&dir);
+    }
+}
+
+// R02 integrated UNAPPLIED review: strict fresh schema; no migration/backfill.
+// Application and execution remain gated independently of operator allocation.
+fn read_directional_runtime(path:&Path, authenticated_key:Option<[u8;32]>)
+    ->Result<VaultRuntime,&'static str> {
+    use crate::protocol_state::REVIEW_AGGREGATE_CANDIDATE;
+    // Bound reads on the opened handle, including nonce/tag/header allowance.
+    // This conditional proposal is NOT a claim existing vaults fit this budget.
+    let cap=REVIEW_AGGREGATE_CANDIDATE.checked_add(HEADER_LEN+16)
+        .ok_or("directional_capacity_overflow")?;
+    let file=fs::File::open(path).map_err(|_|"vault_missing")?;
+    let metadata=file.metadata().map_err(|_|"vault_parse_failed")?;
+    if !metadata.is_file() || metadata.len()>cap as u64 {
+        return Err("directional_aggregate_waiting");
+    }
+    let mut bytes=Vec::new();
+    file.take(cap as u64+1).read_to_end(&mut bytes).map_err(|_|"vault_parse_failed")?;
+    if bytes.len()>cap {return Err("directional_aggregate_waiting");}
+    let envelope=parse_envelope(&bytes)?;
+    let mut key=authenticated_key.unwrap_or([0;32]);
+    if authenticated_key.is_none() {derive_runtime_key(&envelope,&mut key,None)?;}
+    Ok(VaultRuntime{envelope,key})
+}
+// Ordinary sessions retain existing storage read behavior; the conditional R02
+// evaluation envelope applies only to authenticated directional state. A schema
+// transition is never legal, so the fresh payload must match the session tuple.
+fn read_session_runtime(session:&VaultSession)->Result<VaultRuntime,&'static str> {
+    let runtime = if session.payload.version == PAYLOAD_VERSION
+        && session.payload.protocol == OWNER_FREE_PROFILE {
+        let bytes = fs::read(&session.vault_path).map_err(|_| "vault_missing")?;
+        VaultRuntime { envelope: parse_envelope(&bytes)?, key: session.key }
+    } else { read_directional_runtime(&session.vault_path,Some(session.key))? };
+    let current = decrypt_payload(&runtime)?;
+    if current.version != session.payload.version || current.protocol != session.payload.protocol {
+        return Err("vault_version_unsupported");
+    }
+    Ok(runtime)
+}
+fn directional_owner(payload:&VaultPayload)
+    ->Result<crate::protocol_state::CapacityOwner,&'static str> {
+    let layout=crate::protocol_state::approved_directional_layout()?;
+    if payload.version != PAYLOAD_VERSION || payload.protocol.as_bytes() != crate::directional_delivery::INTEGRATION_PROFILE {
+        return Err("directional_profile_required");
+    }
+    let raw=payload.secrets.get(layout.owner_key).ok_or("directional_reserve_missing")?;
+    serde_json::from_str(raw).map_err(|_|"directional_owner_tampered")
+}
+fn check_directional_aggregate(payload:&VaultPayload)->Result<(),&'static str> {
+    let layout=crate::protocol_state::approved_directional_layout()?;
+    if payload.version != PAYLOAD_VERSION {
+        return Err("vault_version_unsupported");
+    }
+    // Reject historical and unknown directional schema keys even in ordinary mode.
+    // The exact owner key and exact peer prefix are the only admitted namespaces.
+    for key in payload.secrets.keys() {
+        if key.starts_with("na0780_directional_")
+            && key != layout.owner_key && !key.starts_with(layout.peer_prefix) {
+            return Err("directional_schema_incompatible");
+        }
+    }
+    if payload.protocol == OWNER_FREE_PROFILE {
+        if payload.secrets.keys().any(|k| k == layout.owner_key || k.starts_with(layout.peer_prefix)) {
+            return Err("directional_owner_binding");
+        }
+        return Ok(());
+    }
+    if payload.protocol.as_bytes() != crate::directional_delivery::INTEGRATION_PROFILE {
+        return Err("vault_version_unsupported");
+    }
+    // Owned absence is corruption, including before the first peer. Initialization
+    // creates the discriminator and empty owner in the same encrypted payload.
+    let owner=directional_owner(payload)?;
+    // Authenticated ownership is necessary but not sufficient: recompute stored
+    // liabilities using current bytes, including on generic unrelated writes.
+    for (peer,p) in &owner.peers {
+        crate::directional_single_channel(peer,peer)?;
+        if !crate::channel_label_ok(peer) {return Err("directional_peer_invalid");}
+        let key=format!("{}{}",layout.peer_prefix,peer);
+        let raw=payload.secrets.get(&key).ok_or("directional_reserve_missing")?;
+        let mut state=crate::directional_delivery::Transaction::decode(raw)?;
+        owner.peer(peer,&state.core.sid)?;
+        if p.generation!=state.generation || p.control.generation!=p.generation || p.generation>owner.generation {
+            return Err("directional_stale_generation");
+        }
+        state.hydrate_reserve(p.control.clone())?;
+        state.verify_reservation(p)?;
+    }
+    for key in payload.secrets.keys().filter(|k|k.starts_with(layout.peer_prefix)) {
+        let peer=key.strip_prefix(layout.peer_prefix).ok_or("directional_owner_binding")?;
+        if !owner.peers.contains_key(peer) {return Err("directional_reserve_missing");}
+    }
+    for (ticket, entry) in &owner.entries {
+        let p = owner.peers.get(&entry.peer).ok_or("directional_reserve_missing")?;
+        let canonical = serde_json::to_string(&(&entry.peer,entry.sid,entry.direction,&entry.operation))
+            .map_err(|_| "directional_owner_encode")?;
+        if ticket != &entry.ticket || ticket != &canonical || entry.sid != p.sid
+            || entry.direction > 1 || entry.state & !3 != 0 || entry.reference_state > 1
+            || entry.generation > owner.generation {
+            return Err("directional_owner_binding");
+        }
+    }
+    let actual=serde_json::to_vec(payload).map_err(|_|"vault_payload_serialize_failed")?.len();
+    owner.check_aggregate(actual)
+}
+fn guard_directional_generic_write(payload:&VaultPayload,name:&str)->Result<(),&'static str> {
+    let layout=crate::protocol_state::approved_directional_layout()?;
+    check_directional_aggregate(payload)?;
+    if name.starts_with("na0780_directional_") {
+        return Err("directional_owned_key_requires_pair");
+    }
+    // Unowned growth is charged by check_directional_aggregate AFTER insertion.
+    // It cannot debit any owner's remaining reservation to make the write fit.
+    if payload.secrets.contains_key(layout.owner_key) {
+        directional_owner(payload)?.remaining_vault_bytes()?;
+    }
+    Ok(())
+}
+fn write_directional_payload(path:&Path,source:ConfigSource,env:&VaultRuntime,
+    payload:&VaultPayload)->Result<(),&'static str> {
+    check_directional_aggregate(payload)?;
+    let plaintext=serde_json::to_vec(payload).map_err(|_|"vault_payload_serialize_failed")?;
+    let ct_len=plaintext.len().checked_add(16)
+        .and_then(|n|u32::try_from(n).ok()).ok_or("directional_capacity_overflow")?;
+    let cipher=ChaCha20Poly1305::new(Key::from_slice(&env.key));
+    #[cfg(qsc_rng_failure_test_seam)]
+    let nonce=vault_rng_nonce("QSC.VAULT.SESSION_PERSIST.NONCE")?;
+    #[cfg(not(qsc_rng_failure_test_seam))]
+    let nonce=ChaCha20Poly1305::generate_nonce(&mut OsRng);
+    let aad=envelope_header_bytes(env.envelope.key_source,env.envelope.kdf_m_kib,
+        env.envelope.kdf_t,env.envelope.kdf_p,ct_len,&env.envelope.salt,
+        nonce.as_slice().try_into().map_err(|_|"encrypt_failed")?);
+    let ciphertext=cipher.encrypt(&nonce,Payload{msg:&plaintext,aad:&aad})
+        .map_err(|_|"encrypt_failed")?;
+    let bytes=encode_envelope(env,nonce.as_slice(),&ciphertext);
+    PERF_VAULT_ENCRYPT_WRITES.fetch_add(1,Ordering::Relaxed);
+    write_atomic(path,&bytes,source).map_err(store_err_marker)?;
+    VAULT_WRITE_EPOCH.fetch_add(1,Ordering::Relaxed);
+    Ok(())
+}
+
+// Exactly ONE fresh payload replacement for owner+peer, no session_set pair.
+// Caller supplies only the typed correction transition; projection I/O is a
+// separate already-owned phase and must finish before entering this closure.
+pub(crate) fn commit_directional_pair<T>(peer_key:&str,peer:&str,
+    expected_owner_generation:u64,expected_peer_generation:u64,
+    admission:&std::cell::Cell<bool>,
+    change:impl FnOnce(&mut crate::protocol_state::CapacityOwner,
+        &mut crate::directional_delivery::Transaction)->Result<T,&'static str>)
+    ->Result<T,&'static str> {
+    let layout=crate::protocol_state::approved_directional_layout()?;
+    if peer_key!=format!("{}{}",layout.peer_prefix,peer) || peer_key==layout.owner_key {
+        return Err("directional_owner_binding");
+    }
+    let (dir,path,source)=vault_path_resolved()?;
+    let _lock=lock_store_exclusive(&dir,source).map_err(store_err_marker)?;
+    let mut env=read_directional_runtime(&path,None)?;
+    let mut latest=decrypt_payload(&env)?;
+    let mut owner=directional_owner(&latest)?;
+    let raw=latest.secrets.get(peer_key).ok_or("directional_reserve_missing")?;
+    let mut state=crate::directional_delivery::Transaction::decode(raw)?;
+    let p=owner.peer(peer,&state.core.sid)?;
+    if owner.generation!=expected_owner_generation || state.generation!=expected_peer_generation
+        || p.generation!=state.generation {return Err("directional_stale_generation");}
+    state.hydrate_reserve(p.control.clone())?;
+    state.verify_reservation(p)?;
+    let sid=state.core.sid;
+    let result=change(&mut owner,&mut state).map_err(|e| {
+        // Only the typed staging/accounting decision sets this provenance flag.
+        // Decode, lock, encode and physical-write errors never set it.
+        if e=="TRANSACTION_CAPACITY" {admission.set(true);}
+        e
+    })?;
+    if state.core.sid!=sid {return Err("directional_session_replacement_refused");}
+    // Generation advances for projection/cause changes too, not only core traffic.
+    state.generation=expected_peer_generation.checked_add(1).ok_or("GENERATION_OVERFLOW")?;
+    owner.generation=expected_owner_generation.checked_add(1).ok_or("GENERATION_OVERFLOW")?;
+    let p=owner.peers.get_mut(peer).ok_or("directional_reserve_missing")?;
+    if p.sid!=sid || p.peer!=peer {return Err("directional_owner_binding");}
+    p.generation=state.generation;
+    state.refresh_reservation(p).map_err(|e| {
+        if e=="TRANSACTION_CAPACITY" {admission.set(true);} e
+    })?;
+    p.control.validate()?;
+    latest.secrets.insert(peer_key.to_owned(),state.encode()?);
+    latest.secrets.insert(layout.owner_key.to_owned(),
+        serde_json::to_string(&owner).map_err(|_|"directional_owner_encode")?);
+    // Encoded owner, peer and unrelated content all appear in actual bytes here.
+    // Only unmaterialized liabilities are added; no retained-byte double charge.
+    check_directional_aggregate(&latest).map_err(|e| {
+        if e=="directional_aggregate_waiting" {admission.set(true);} e
+    })?;
+    write_directional_payload(&path,source,&env,&latest)?;
+    env.key.zeroize();
+    // Nothing external (wire/receipt/ACK) may use result before this returns.
+    Ok(result)
+}
+
+// A funded ordinary timeline projection changes only the named existing timeline
+// key and its own credit, with one atomic owner+projection replacement. Peer state
+// remains authoritative until a later fresh pair commit retires its event.
+pub(crate) fn project_owned_secret(ticket:&str,expected_owner_generation:u64,
+    expected_entry_generation:u64,expected_timeline:Option<&str>,new_timeline:&str)
+    ->Result<(),&'static str> {
+    let layout=crate::protocol_state::approved_directional_layout()?;
+    let (dir,path,source)=vault_path_resolved()?;
+    let _lock=lock_store_exclusive(&dir,source).map_err(store_err_marker)?;
+    let mut env=read_directional_runtime(&path,None)?;
+    let mut latest=decrypt_payload(&env)?;
+    let mut owner=directional_owner(&latest)?;
+    if owner.generation!=expected_owner_generation
+        || latest.secrets.get(crate::store::TIMELINE_SECRET_KEY).map(String::as_str)!=expected_timeline {
+        return Err("directional_stale_generation");
+    }
+    let before=serde_json::to_vec(&latest).map_err(|_|"vault_payload_serialize_failed")?.len();
+    latest.secrets.insert(crate::store::TIMELINE_SECRET_KEY.to_owned(),new_timeline.to_owned());
+    let after=serde_json::to_vec(&latest).map_err(|_|"vault_payload_serialize_failed")?.len();
+    let growth=after.saturating_sub(before) as u64;
+    let entry=owner.entries.get_mut(ticket).ok_or("directional_reserve_missing")?;
+    if entry.generation!=expected_entry_generation || growth>entry.projection {
+        return Err("directional_projection_credit");
+    }
+    entry.projection-=growth;
+    entry.charge.vault_bytes=entry.charge.vault_bytes.checked_sub(growth)
+        .ok_or("directional_owner_invariant")?;
+    entry.generation=entry.generation.checked_add(1).ok_or("GENERATION_OVERFLOW")?;
+    owner.generation=owner.generation.checked_add(1).ok_or("GENERATION_OVERFLOW")?;
+    latest.secrets.insert(layout.owner_key.to_owned(),
+        serde_json::to_string(&owner).map_err(|_|"directional_owner_encode")?);
+    // Counter-width/metadata growth is included, never assumed free.
+    check_directional_aggregate(&latest)?;
+    write_directional_payload(&path,source,&env,&latest)?;
+    env.key.zeroize();
+    Ok(())
+}
+
+// Create-only counterpart. Neither old peer state nor missing reservation is
+// backfilled. The approved future-layout gate precedes every read or mutation.
+pub(crate) fn create_directional_pair(peer_key:&str,peer:&str,
+    mut state:crate::directional_delivery::Transaction)->Result<(),&'static str> {
+    use crate::protocol_state::{PeerReserve,SessionControlReserve};
+    let layout=crate::protocol_state::approved_directional_layout()?;
+    if peer_key!=format!("{}{}",layout.peer_prefix,peer) {return Err("directional_owner_binding");}
+    let (dir,path,source)=vault_path_resolved()?;
+    let _lock=lock_store_exclusive(&dir,source).map_err(store_err_marker)?;
+    let mut env=read_directional_runtime(&path,None)?;
+    let mut latest=decrypt_payload(&env)?;
+    if latest.secrets.contains_key(peer_key) {return Err("directional_session_replacement_refused");}
+    let mut owner=directional_owner(&latest)?;
+    if owner.peers.contains_key(peer) {return Err("directional_reserve_missing");}
+    let control=SessionControlReserve::fresh(state.core.sid);
+    state.hydrate_reserve(control.clone())?;
+    // Hypothesis under review, not permission to increase if the derivation fails.
+    let control_bound=36_775u64;
+    let core_future=state.core_context_future()?;
+    let future=control_bound.checked_sub(state.control_retained_encoded()? as u64)
+        .and_then(|n|n.checked_add(core_future)).ok_or("TRANSACTION_CAPACITY")?;
+    owner.peers.insert(peer.to_owned(),PeerReserve{peer:peer.to_owned(),sid:state.core.sid,
+        generation:state.generation,control_bound,peer_future:future,
+        // Transient initializer only; refreshed before any encode/save.
+        vault_future:0,control});
+    state.refresh_reservation(owner.peers.get_mut(peer).ok_or("directional_reserve_missing")?)?;
+    owner.generation=owner.generation.checked_add(1).ok_or("GENERATION_OVERFLOW")?;
+    state.check_reserved_cost(future)?;
+    latest.secrets.insert(peer_key.to_owned(),state.encode()?);
+    latest.secrets.insert(layout.owner_key.to_owned(),serde_json::to_string(&owner)
+        .map_err(|_|"directional_owner_encode")?);
+    check_directional_aggregate(&latest)?;
+    write_directional_payload(&path,source,&env,&latest)?;
+    env.key.zeroize();Ok(())
+}
+
+
+#[cfg(test)]
+mod r02_layout_tests {
+    use super::*;
+
+    // Parser/empty-layout negative controls only: no protocol keys, peer roots,
+    // receipts, clock forcing, or writes are synthesized by these tests.
+    #[test]
+    fn r02_fresh_discriminator_and_owner_are_one_payload() {
+        let layout=crate::protocol_state::approved_directional_layout().unwrap();
+        let owned=VaultPayload::empty(true).unwrap();
+        let encoded=serde_json::to_vec(&owned).unwrap();
+        let loaded:VaultPayload=serde_json::from_slice(&encoded).unwrap();
+        assert_eq!(loaded.version,4);
+        assert_eq!(loaded.protocol.as_bytes(),crate::directional_delivery::INTEGRATION_PROFILE);
+        assert_eq!(check_directional_aggregate(&loaded),Ok(()));
+        let owner=directional_owner(&loaded).unwrap();
+        assert_eq!(owner.generation,0);assert!(owner.peers.is_empty());assert!(owner.entries.is_empty());
+        let mut missing=loaded.clone();missing.secrets.remove(layout.owner_key);
+        assert_eq!(check_directional_aggregate(&missing),Err("directional_reserve_missing"));
+        let ordinary=VaultPayload::empty(false).unwrap();
+        assert_eq!(ordinary.protocol,OWNER_FREE_PROFILE);
+        assert!(ordinary.secrets.is_empty());assert_eq!(check_directional_aggregate(&ordinary),Ok(()));
+        let mut mixed=ordinary.clone();mixed.secrets=owned.secrets.clone();
+        assert_eq!(check_directional_aggregate(&mixed),Err("directional_owner_binding"));
+        let mut corrupt=owned.clone();corrupt.secrets.insert(layout.owner_key.to_owned(),"{".to_owned());
+        assert_eq!(check_directional_aggregate(&corrupt),Err("directional_owner_tampered"));
+        for version in [0,1,2,3,5,u8::MAX] {
+            let mut old=owned.clone();old.version=version;
+            assert_eq!(check_directional_aggregate(&old),Err("vault_version_unsupported"));
+        }
+        for profile in ["","NA0780-DIR-INTEGRATION-01","NA0780-DIR-INTEGRATION-02","unknown"] {
+            let mut old=owned.clone();old.protocol=profile.to_owned();
+            assert_eq!(check_directional_aggregate(&old),Err("vault_version_unsupported"));
+        }
+        for key in ["na0780_directional_transaction/bob","na0780_directional_owner_unknown"] {
+            let mut unknown=ordinary.clone();unknown.secrets.insert(key.to_owned(),"{}".to_owned());
+            assert_eq!(check_directional_aggregate(&unknown),Err("directional_schema_incompatible"));
+        }
+        let mut orphan=owned;orphan.secrets.insert(format!("{}bob",layout.peer_prefix),"{}".to_owned());
+        assert_eq!(check_directional_aggregate(&orphan),Err("directional_reserve_missing"));
+    }
+
+    #[test]
+    fn r02_payload_parser_rejects_ambiguous_or_missing_fields() {
+        for raw in [
+            r#"{"version":4,"secrets":{}}"#,
+            r#"{"version":4,"protocol":"NA0780-OWNER-FREE-01","secrets":{},"extra":0}"#,
+            r#"{"version":4,"protocol":"NA0780-OWNER-FREE-01","secrets":{"name":"first","name":"second"}}"#,
+            r#"{"version":4,"version":3,"protocol":"NA0780-OWNER-FREE-01","secrets":{}}"#,
+        ] { assert!(serde_json::from_str::<VaultPayload>(raw).is_err()); }
     }
 }

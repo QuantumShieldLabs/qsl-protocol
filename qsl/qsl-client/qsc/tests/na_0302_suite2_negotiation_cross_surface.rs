@@ -87,7 +87,7 @@ fn read_mock_vault_secret(cfg: &Path, name: &str) -> String {
     let vault_path = cfg.join("vault.qsv");
     let bytes = fs::read(&vault_path).expect("vault read");
     assert!(bytes.len() > 39, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV02");
+    assert_eq!(&bytes[0..6], b"QSCV03");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;

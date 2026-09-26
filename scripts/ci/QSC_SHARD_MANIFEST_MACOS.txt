@@ -1,4 +1,4 @@
-# QSC_SHARD_MANIFEST_MACOS v1 — target<TAB>shard (K=5) — NA-0724 (D-1360).
+# QSC_SHARD_MANIFEST_MACOS v1 — target<TAB>shard (K=6) — NA-0724 (D-1360).
 # SEED: MEASURED, not estimated. Per-target wall-clock mined from the newest completed
 # macos-qsc-full-serial run at execution time — job 94606278726 (run 31747736537, sha
 # 0ad65a58), 180.95 min, whose log carries 132 `Running`/`Doc-tests` lines and 132
@@ -177,3 +177,5 @@ tests/trust_remediation_ux_na0178.rs	1
 tests/two_client_local_runbook_na0182.rs	0
 tests/unlock_gate.rs	2
 tests/vault.rs	3
+# NA-0780: dedicated bounded fresh-crossed-delivery CI; full acceptance remains separate.
+tests/na0780_directional_integration.rs	5

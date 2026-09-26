@@ -208,6 +208,12 @@ pub struct QueuedMessage {
     /// The routing channel `ciphertext` was packed for.
     #[serde(default)]
     pub channel: Option<String>,
+    // Exact candidate ciphertext identity survives projection/clear_inflight.
+    #[serde(default)]
+    pub directional_wire_hash: Option<[u8;32]>,
+    /// Opaque authenticated successor intent; concrete policy is fixed at enqueue.
+    #[serde(default)]
+    pub directional_intent: Option<Vec<u8>>,
 }
 
 impl QueuedMessage {
@@ -235,6 +241,9 @@ impl QueuedMessage {
     /// All three move together and are committed in ONE atomic write, so a crash can never
     /// leave ciphertext without the ratchet state that must follow it.
     pub fn mark_packed(&mut self, ciphertext: Vec<u8>, next_state: Vec<u8>, channel: String) {
+        if directional_packed_decode(&next_state).is_ok() {
+            self.directional_wire_hash=Some(crate::directional_core::h(&ciphertext));
+        }
         self.ciphertext = Some(ciphertext);
         self.next_state = Some(next_state);
         self.channel = Some(channel);
@@ -554,10 +563,25 @@ pub(crate) fn enqueue_at(
     body: Vec<u8>,
     now: u64,
 ) -> Result<QueuedMessage, &'static str> {
+    enqueue_padded_at(cfg_dir, source, peer, body, now, crate::DirectionalPaddingRequest::default())
+}
+
+pub(crate) fn enqueue_padded_at(
+    cfg_dir: &Path, source: ConfigSource, peer: &str, body: Vec<u8>, now: u64,
+    request: crate::DirectionalPaddingRequest,
+) -> Result<QueuedMessage, &'static str> {
+    let crate::DirectionalPaddingRequest {exact,profile,maximum}=request;
+    let _lock = lock_store_exclusive(cfg_dir, source).map_err(crate::vault::store_err_marker)?;
+    crate::enforce_safe_parents(&cfg_dir.join(crate::CONFIG_FILE_NAME), source)
+        .map_err(|_| "directional_configuration_error")?;
+    let profile = crate::directional_padding_profile(cfg_dir, profile)?;
+    let id = mint_msg_id();
+    let padding = crate::directional_delivery::Padding::resolve(id.len(), body.len(), profile, maximum, exact)?;
+    let intent = crate::directional_delivery::QueuedIntent::message(&id, &body, padding)?.encode()?;
     let seq = next_seq(cfg_dir, peer)?;
     let rec = QueuedMessage {
         v: RECORD_VERSION,
-        msg_id: mint_msg_id(),
+        msg_id: id,
         peer: peer.to_string(),
         seq,
         state: MsgState::Queued,
@@ -575,6 +599,8 @@ pub(crate) fn enqueue_at(
         ciphertext: None,
         next_state: None,
         channel: None,
+        directional_wire_hash: None,
+        directional_intent: Some(intent),
     };
     write_record(cfg_dir, source, &rec)?;
     Ok(rec)
@@ -589,7 +615,17 @@ pub(crate) fn save(
     source: ConfigSource,
     rec: &QueuedMessage,
 ) -> Result<(), &'static str> {
-    write_record(cfg_dir, source, rec)
+    let _lock=lock_store_exclusive(cfg_dir,source).map_err(crate::vault::store_err_marker)?;
+    let mut merged=rec.clone();
+    if let Some(prior)=load_contact(cfg_dir,&rec.peer)?.into_iter().find(|r|r.msg_id==rec.msg_id) {
+        if prior.body!=rec.body || prior.peer!=rec.peer || prior.directional_intent!=rec.directional_intent { return Err("directional_queue_conflict"); }
+        if let Some(hash)=prior.directional_wire_hash {
+            if rec.directional_wire_hash.is_some_and(|h|h!=hash) || rec.ciphertext.as_ref().is_some_and(|raw|crate::directional_core::h(raw)!=hash) {return Err("directional_queue_conflict");}
+            merged.directional_wire_hash=Some(hash);
+        }
+        if prior.state==MsgState::Delivered && rec.state!=MsgState::Delivered { return Ok(()); }
+    }
+    write_record(cfg_dir, source, &merged)
 }
 
 /// Remove a record. Used only for an explicit, named discard of a specifically-identified
@@ -601,6 +637,9 @@ pub(crate) fn remove(
     seq: u64,
     msg_id: &str,
 ) -> Result<(), &'static str> {
+    crate::directional_single_channel(peer,peer)?;
+    if crate::protocol_state::directional_load(peer)?.is_some() { return Err("directional_discard_refused"); }
+
     let path = contact_dir(cfg_dir, peer).join(record_name(seq, msg_id));
     match fs::remove_file(&path) {
         Ok(()) => Ok(()),
@@ -667,23 +706,28 @@ pub(crate) fn arm_immediate(rec: &mut QueuedMessage, now: u64) {
 /// decrypt it as a message and fail the AAD check -- surfacing as
 /// `msgqueue_record_tampered` on the NEXT send to that contact, i.e. as corruption rather
 /// than as the namespace collision it actually was. Different things, different extensions.
+#[cfg(test)]
 const SEEN_INBOUND_FILE: &str = "seen_inbound.dedup";
 
 #[derive(Serialize, Deserialize, Default)]
+#[cfg(test)]
 struct SeenInbound {
     v: u8,
     /// `msg_id` -> first-seen unix seconds.
     ids: BTreeMap<String, u64>,
 }
 
+#[cfg(test)]
 fn seen_inbound_path(cfg_dir: &Path, peer: &str) -> PathBuf {
     contact_dir(cfg_dir, peer).join(SEEN_INBOUND_FILE)
 }
 
+#[cfg(test)]
 fn seen_inbound_aad(ck: &str) -> Vec<u8> {
     format!("qsc.msgqueue.seen.v1|{}", ck).into_bytes()
 }
 
+#[cfg(test)]
 fn load_seen_inbound(cfg_dir: &Path, peer: &str) -> Result<SeenInbound, &'static str> {
     let key = store_key()?;
     let path = seen_inbound_path(cfg_dir, peer);
@@ -715,6 +759,7 @@ fn load_seen_inbound(cfg_dir: &Path, peer: &str) -> Result<SeenInbound, &'static
 }
 
 /// Has this `(peer, msg_id)` already been stored?
+#[cfg(test)]
 pub(crate) fn inbound_already_seen(
     cfg_dir: &Path,
     peer: &str,
@@ -729,6 +774,7 @@ pub(crate) fn inbound_already_seen(
 /// only AFTER the message itself is durably stored. Recording first would let a crash in
 /// between turn a real message into a permanent duplicate-suppression -- a silent loss
 /// dressed as dedup.
+#[cfg(test)]
 pub(crate) fn record_inbound_seen(
     cfg_dir: &Path,
     source: ConfigSource,
@@ -1167,6 +1213,8 @@ mod tests {
             ciphertext: None,
             next_state: None,
             channel: None,
+        directional_wire_hash: None,
+        directional_intent: None,
         }
     }
 
@@ -2046,4 +2094,63 @@ mod tests {
         schedule_retry_at(&mut b, 500, "x");
         assert_eq!(a.next_attempt_at, b.next_attempt_at);
     }
+}
+
+pub(crate) fn directional_project_delivered(peer:&str,id:&str,hash:&[u8;32])->Result<bool,&'static str>{
+    let(dir,source)=config_dir().map_err(|_|"directional_queue_store")?;
+    let Some(mut rec)=load_contact(&dir,peer)?.into_iter().find(|r|r.msg_id==id) else{return Ok(false);};
+    if crate::directional_core::h(&rec.body)!=*hash{return Err("directional_queue_conflict");}
+    crate::timeline::timeline_project_message(peer,"out",&rec.body,id)?;
+    match crate::timeline::timeline_transition_entry_state(peer,id,MessageState::Delivered) {
+        Ok(_) | Err("state_duplicate")=>{}, Err(e)=>return Err(e),
+    }
+    if let Some(raw)=rec.ciphertext.as_ref() {
+        let wire_hash=crate::directional_core::h(raw);
+        if rec.directional_wire_hash.is_some_and(|h|h!=wire_hash){return Err("directional_queue_conflict");}
+        rec.directional_wire_hash=Some(wire_hash);
+    }
+    rec.state=MsgState::Delivered;rec.clear_inflight();rec.last_error=None;rec.paused_cause=None;
+    write_record(&dir,source,&rec)?;Ok(true)
+}
+
+// Called with the shared store lock held. Only an exact completed queue operation
+// may turn a delayed transport commit into a no-op; absence is never success.
+pub(crate) fn directional_completed_commit(rec:&QueuedMessage)->Result<bool,&'static str>{
+    let (dir,_)=config_dir().map_err(|_|"directional_queue_store")?;
+    let Some(current)=load_contact(&dir,&rec.peer)?.into_iter().find(|r|r.msg_id==rec.msg_id) else{return Err("directional_queue_missing");};
+    if current.peer!=rec.peer || current.body!=rec.body || current.seq!=rec.seq || current.directional_intent!=rec.directional_intent {return Err("directional_queue_conflict");}
+    if current.state!=MsgState::Delivered{return Ok(false);}
+    let raw=rec.ciphertext.as_deref().ok_or("directional_flight_missing")?;
+    if current.directional_wire_hash!=Some(crate::directional_core::h(raw)){return Err("directional_queue_conflict");}
+    Ok(true)
+}
+
+
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct DirectionalPackedRecord {
+    schema: u8,
+    protocol: String,
+}
+pub(crate) fn directional_packed_record() -> Vec<u8> {
+    // Constant schema serialization cannot fail; no speculative ratchet state.
+    br#"{"schema":1,"protocol":"directional-v1"}"#.to_vec()
+}
+fn directional_packed_decode(raw: &[u8]) -> Result<(), &'static str> {
+    let value: DirectionalPackedRecord = serde_json::from_slice(raw)
+        .map_err(|_| "directional_packed_invalid")?;
+    if value.schema != 1 || value.protocol != "directional-v1" {
+        return Err("directional_packed_invalid");
+    }
+    Ok(())
+}
+pub(crate) fn directional_packed_validate(rec: &QueuedMessage) -> Result<(), &'static str> {
+    crate::directional_delivery::QueuedIntent::decode(
+        rec.directional_intent.as_deref().ok_or("INTEGRATION_QUEUE_PROFILE")?, &rec.msg_id, &rec.body)?;
+    directional_packed_decode(rec.next_state.as_deref().ok_or("directional_packed_invalid")?)?;
+    let raw = rec.ciphertext.as_deref().ok_or("directional_flight_missing")?;
+    if rec.directional_wire_hash != Some(crate::directional_core::h(raw)) {
+        return Err("directional_queue_conflict");
+    }
+    Ok(())
 }

@@ -395,50 +395,215 @@ fn decode_hex(s: &str) -> Vec<u8> {
     out
 }
 
-fn hs_msg_kind(bytes: &[u8]) -> Option<u8> {
-    if bytes.len() < 7 {
-        return None;
-    }
-    if &bytes[0..4] != b"QHSM" {
-        return None;
-    }
-    if u16::from_be_bytes([bytes[4], bytes[5]]) != 1u16 {
+// =====================================================================================
+// NA-0785 PLAN F03 / S6a -- the G/M/N-class cases (S3 CLASSIFICATION R173, R178, R183-R186,
+// R189) moved onto HONEST fixtures: successor vaults of `profile::ACTIVE` (common S4 helpers)
+// driven through `VaultFixture::command` (isolated HOME/XDG/TMPDIR, no ambient config or seed
+// variable), real pinned identities, and a REAL handshake. No seeded session, no fabricated key.
+// The frame SHAPE under `profile::ACTIVE` (magic, version, type, parameter block, lengths) is
+// pinned in `f03_handshake_vectors.rs`; the helpers below only LOCATE fields in the head's
+// frames, reading the header length each frame declares.
+// =====================================================================================
+
+/// The head's QHSM header length: magic(4) version(2) type(1) block_len(2) block.
+fn hs_active_header_len(bytes: &[u8]) -> usize {
+    assert!(bytes.len() >= 9, "handshake frame shorter than its header");
+    9 + u16::from_be_bytes([bytes[7], bytes[8]]) as usize
+}
+
+/// The frame type of a head frame (explicit-suite QHSM version 2), else None.
+fn hs_active_msg_kind(bytes: &[u8]) -> Option<u8> {
+    if bytes.len() < 9 || &bytes[0..4] != b"QHSM" || u16::from_be_bytes([bytes[4], bytes[5]]) != 2 {
         return None;
     }
     Some(bytes[6])
 }
 
-fn hs_resp_sig_offset() -> usize {
-    4 + 2 + 1 + 16 + kem_ct_len() + 32 + sig_pk_len()
+/// (session_id, dh_pub) of a head A1: payload = sid || kem_pk || sig_pk || dh_pub || resp_kem_ct.
+fn hs_active_init_sid_dh(bytes: &[u8]) -> ([u8; 16], [u8; 32]) {
+    let off = hs_active_header_len(bytes);
+    let mut sid = [0u8; 16];
+    sid.copy_from_slice(&bytes[off..off + 16]);
+    let dh_off = off + 16 + kem_pk_len() + sig_pk_len();
+    let mut dh_pub = [0u8; 32];
+    dh_pub.copy_from_slice(&bytes[dh_off..dh_off + 32]);
+    (sid, dh_pub)
 }
 
-fn hs_confirm_sig_offset() -> usize {
-    4 + 2 + 1 + 16 + 32
+/// B1 payload = sid || kem_ct || mac || sig_pk || sig || dh_pub.
+fn hs_active_resp_sig_offset(bytes: &[u8]) -> usize {
+    hs_active_header_len(bytes) + 16 + kem_ct_len() + 32 + sig_pk_len()
+}
+
+/// A2 payload = sid || mac || sig.
+fn hs_active_confirm_sig_offset(bytes: &[u8]) -> usize {
+    hs_active_header_len(bytes) + 16 + 32
+}
+
+fn fx_public_field(text: &str, field: &str) -> String {
+    let value = text
+        .lines()
+        .find_map(|line| line.strip_prefix(field))
+        .unwrap_or_else(|| panic!("missing {field} in output: {text}"));
+    common::scraped_marker_value(field, value)
+}
+
+/// `init_real_pair`'s setup WITHOUT its handshake, because these cases intercept the handshake
+/// itself: two successor vaults, identities, inbox routes, pinned contacts, trusted devices.
+fn pinned_pair(tag: &str) -> (common::VaultFixture, common::VaultFixture) {
+    let alice =
+        common::init_successor_vault(&format!("{tag}_alice"), common::TEST_MOCK_VAULT_PASSPHRASE);
+    let bob =
+        common::init_successor_vault(&format!("{tag}_bob"), common::TEST_MOCK_VAULT_PASSPHRASE);
+    for (v, label, route) in [
+        (&alice, "alice", ROUTE_TOKEN_ALICE),
+        (&bob, "bob", ROUTE_TOKEN_BOB),
+    ] {
+        v.run_ok(&["identity", "rotate", "--as", label, "--confirm"]);
+        v.run_ok(&["relay", "inbox-set", "--token", route]);
+    }
+    let alice_public = alice.run_ok(&["identity", "show", "--as", "alice"]);
+    let bob_public = bob.run_ok(&["identity", "show", "--as", "bob"]);
+    for (v, label, route, public) in [
+        (&alice, "bob", ROUTE_TOKEN_BOB, &bob_public),
+        (&bob, "alice", ROUTE_TOKEN_ALICE, &alice_public),
+    ] {
+        v.run_ok(&[
+            "contacts",
+            "add",
+            "--label",
+            label,
+            "--fp",
+            &fx_public_field(public, "identity_fp="),
+            "--kem-pk",
+            &fx_public_field(public, "identity_kem_pk="),
+            "--sig-pk",
+            &fx_public_field(public, "identity_sig_pk="),
+            "--route-token",
+            route,
+        ]);
+        let devices = v.run_ok(&["contacts", "device", "list", "--label", label]);
+        let device = devices
+            .lines()
+            .find_map(|line| line.strip_prefix("device="))
+            .and_then(|line| line.split_whitespace().next())
+            .unwrap_or_else(|| panic!("missing device id in output: {devices}"));
+        let device = common::scraped_marker_value("device", device);
+        v.run_ok(&[
+            "contacts",
+            "device",
+            "trust",
+            "--label",
+            label,
+            "--device",
+            &device,
+            "--confirm",
+        ]);
+    }
+    (alice, bob)
+}
+
+fn fx_hs(
+    v: &common::VaultFixture,
+    verb: &str,
+    me: &str,
+    peer: &str,
+    relay: &str,
+) -> std::process::Output {
+    let mut args = vec![
+        "handshake",
+        verb,
+        "--as",
+        me,
+        "--peer",
+        peer,
+        "--relay",
+        relay,
+    ];
+    if verb == "poll" {
+        args.extend(["--max", "4"]);
+    }
+    v.run(&args)
+}
+
+fn fx_send(v: &common::VaultFixture, relay: &str, to: &str, path: &Path) -> String {
+    let out = v.run(&[
+        "send",
+        "--transport",
+        "relay",
+        "--relay",
+        relay,
+        "--to",
+        to,
+        "--file",
+        path.to_str().unwrap(),
+    ]);
+    assert!(out.status.success(), "{}", output_text(&out));
+    output_text(&out)
+}
+
+fn fx_recv(
+    v: &common::VaultFixture,
+    relay: &str,
+    mailbox: &str,
+    from: &str,
+    out_dir: &Path,
+    max: &str,
+) -> std::process::Output {
+    v.run(&[
+        "receive",
+        "--transport",
+        "relay",
+        "--relay",
+        relay,
+        "--mailbox",
+        mailbox,
+        "--from",
+        from,
+        "--max",
+        max,
+        "--out",
+        out_dir.to_str().unwrap(),
+    ])
+}
+
+/// The `recv_*.bin` contents a receive ADDED to `out_dir` (the head names each output
+/// recv_<sha256>.bin, directional_delivery.rs:913-914, instead of overwriting recv_1.bin).
+fn fx_outputs(out_dir: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
+    fs::read_dir(out_dir)
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .filter(|p| {
+            let n = p.file_name().unwrap().to_string_lossy().into_owned();
+            n.starts_with("recv_") && n.ends_with(".bin")
+        })
+        .map(|p| {
+            let bytes = fs::read(&p).unwrap();
+            (p, bytes)
+        })
+        .collect()
+}
+
+fn fx_added(out_dir: &Path, before: &std::collections::BTreeMap<PathBuf, Vec<u8>>) -> Vec<Vec<u8>> {
+    fx_outputs(out_dir)
+        .into_iter()
+        .filter(|(p, _)| !before.contains_key(p))
+        .map(|(_, b)| b)
+        .collect()
 }
 
 #[test]
 fn handshake_seed_env_does_not_steer_session_id() {
-    let base = safe_test_root().join(format!(
-        "na0232_handshake_seed_ignored_{}",
-        std::process::id()
-    ));
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let alice_cfg = base.join("alice");
-    let bob_cfg = base.join("bob");
-    ensure_dir_700(&alice_cfg);
-    ensure_dir_700(&bob_cfg);
-    common::init_mock_vault(&alice_cfg);
-    common::init_mock_vault(&bob_cfg);
-    seed_authenticated_pair(&alice_cfg, &bob_cfg);
-    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+    // Relay-independent (the property is the initiator's session-id source): the Mock relay's
+    // drain is the frame-capture instrument.
+    let (alice, _bob) = pinned_pair("f03_s6a_hs_seed_ignored");
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
     for _ in 0..2 {
-        let out = qsc_cfg_cmd(&alice_cfg)
+        let out = alice
+            .command()
             .env("QSC_HANDSHAKE_SEED", "278")
             .args([
                 "handshake",
@@ -457,8 +622,10 @@ fn handshake_seed_env_does_not_steer_session_id() {
 
     let items = server.drain_channel(ROUTE_TOKEN_BOB);
     assert_eq!(items.len(), 2, "expected two A1 frames");
-    let (sid1, dh1) = parse_hs_init(&items[0]);
-    let (sid2, dh2) = parse_hs_init(&items[1]);
+    // The A1 SHAPE (length/magic/version/type) is pinned under profile::ACTIVE in
+    // f03_handshake_vectors.rs::active_profile_frames_pin_the_implemented_header.
+    let (sid1, dh1) = hs_active_init_sid_dh(&items[0]);
+    let (sid2, dh2) = hs_active_init_sid_dh(&items[1]);
     assert_ne!(
         sid1, sid2,
         "QSC_HANDSHAKE_SEED must not make production handshake session IDs reproducible"
@@ -604,85 +771,33 @@ fn handshake_two_party_establishes_session() {
 
 #[test]
 fn handshake_b1_signature_tamper_rejects_no_mutation() {
-    let base = safe_test_root().join(format!(
-        "na0231_handshake_b1_sig_tamper_{}",
-        std::process::id()
-    ));
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let alice_cfg = base.join("alice");
-    let bob_cfg = base.join("bob");
-    ensure_dir_700(&alice_cfg);
-    ensure_dir_700(&bob_cfg);
-    common::init_mock_vault(&alice_cfg);
-    common::init_mock_vault(&bob_cfg);
-    seed_authenticated_pair(&alice_cfg, &bob_cfg);
-    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+    // Relay-independent (the initiator's refusal of a forged B1): the Mock relay's drain/replace
+    // is the interception instrument.
+    let (alice, bob) = pinned_pair("f03_s6a_hs_b1_sig_tamper");
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = qsc_cfg_cmd(&alice_cfg)
-        .args([
-            "handshake",
-            "init",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-        ])
-        .output()
-        .expect("handshake init");
+    let out_init = fx_hs(&alice, "init", "alice", "bob", &relay);
     assert!(out_init.status.success());
 
-    let out_bob = qsc_cfg_cmd(&bob_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll bob");
+    let out_bob = fx_hs(&bob, "poll", "bob", "alice", &relay);
     assert!(out_bob.status.success());
 
     let mut items = server.drain_channel(ROUTE_TOKEN_ALICE);
     assert_eq!(items.len(), 1, "expected one B1 frame");
     assert_eq!(
-        hs_msg_kind(items[0].as_slice()),
+        hs_active_msg_kind(items[0].as_slice()),
         Some(2),
         "expected B1 response"
     );
-    let sig_off = hs_resp_sig_offset();
+    let sig_off = hs_active_resp_sig_offset(&items[0]);
     items[0][sig_off] ^= 0x01;
     server.replace_channel(ROUTE_TOKEN_ALICE, items);
 
-    let out_alice = qsc_cfg_cmd(&alice_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll alice");
+    let out_alice = fx_hs(&alice, "poll", "alice", "bob", &relay);
     assert!(out_alice.status.success());
-    assert!(!session_path(&alice_cfg, "bob").exists());
+    assert!(!session_path(&alice.cfg, "bob").exists());
 
     let combined = String::from_utf8_lossy(&out_alice.stdout).to_string()
         + &String::from_utf8_lossy(&out_alice.stderr);
@@ -787,102 +902,36 @@ fn handshake_out_of_order_rejects_no_mutation() {
 
 #[test]
 fn handshake_a2_signature_tamper_rejects_no_mutation() {
-    let base = safe_test_root().join(format!(
-        "na0231_handshake_a2_sig_tamper_{}",
-        std::process::id()
-    ));
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let alice_cfg = base.join("alice");
-    let bob_cfg = base.join("bob");
-    ensure_dir_700(&alice_cfg);
-    ensure_dir_700(&bob_cfg);
-    common::init_mock_vault(&alice_cfg);
-    common::init_mock_vault(&bob_cfg);
-    seed_authenticated_pair(&alice_cfg, &bob_cfg);
-    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+    // Relay-independent (the responder's refusal of a forged A2): the Mock relay's drain/replace
+    // is the interception instrument.
+    let (alice, bob) = pinned_pair("f03_s6a_hs_a2_sig_tamper");
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = qsc_cfg_cmd(&alice_cfg)
-        .args([
-            "handshake",
-            "init",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-        ])
-        .output()
-        .expect("handshake init");
+    let out_init = fx_hs(&alice, "init", "alice", "bob", &relay);
     assert!(out_init.status.success());
 
-    let out_bob = qsc_cfg_cmd(&bob_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll bob");
+    let out_bob = fx_hs(&bob, "poll", "bob", "alice", &relay);
     assert!(out_bob.status.success());
 
-    let out_alice = qsc_cfg_cmd(&alice_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll alice");
+    let out_alice = fx_hs(&alice, "poll", "alice", "bob", &relay);
     assert!(out_alice.status.success());
-    assert!(session_path(&alice_cfg, "bob").exists());
-    assert!(!session_path(&bob_cfg, "alice").exists());
+    assert!(session_path(&alice.cfg, "bob").exists());
+    assert!(!session_path(&bob.cfg, "alice").exists());
 
     let mut items = server.drain_channel(ROUTE_TOKEN_BOB);
     let idx = items
         .iter()
-        .position(|wire| hs_msg_kind(wire.as_slice()) == Some(3))
+        .position(|wire| hs_active_msg_kind(wire.as_slice()) == Some(3))
         .expect("expected A2 confirm frame");
-    let sig_off = hs_confirm_sig_offset();
+    let sig_off = hs_active_confirm_sig_offset(&items[idx]);
     items[idx][sig_off] ^= 0x01;
     server.replace_channel(ROUTE_TOKEN_BOB, items);
 
-    let out_bob_confirm = qsc_cfg_cmd(&bob_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll bob confirm");
+    let out_bob_confirm = fx_hs(&bob, "poll", "bob", "alice", &relay);
     assert!(out_bob_confirm.status.success());
-    assert!(!session_path(&bob_cfg, "alice").exists());
+    assert!(!session_path(&bob.cfg, "alice").exists());
 
     let combined = String::from_utf8_lossy(&out_bob_confirm.stdout).to_string()
         + &String::from_utf8_lossy(&out_bob_confirm.stderr);
@@ -892,85 +941,27 @@ fn handshake_a2_signature_tamper_rejects_no_mutation() {
 
 #[test]
 fn handshake_a2_tamper_rejects_no_mutation() {
-    let iso = common::TestIsolation::new("na0099_handshake_a2_tamper");
-    let base = iso.root.join("run");
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let alice_cfg = base.join("alice");
-    let bob_cfg = base.join("bob");
-    ensure_dir_700(&alice_cfg);
-    ensure_dir_700(&bob_cfg);
-    common::init_mock_vault(&alice_cfg);
-    common::init_mock_vault(&bob_cfg);
-    seed_authenticated_pair(&alice_cfg, &bob_cfg);
-    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+    // Relay-independent (the responder's refusal of a tampered A2): the Mock relay's
+    // drain/replace is the interception instrument. The fixture's own isolation replaces the
+    // base's TestIsolation.
+    let (alice, bob) = pinned_pair("f03_s6a_hs_a2_tamper");
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let run = |cfg: &Path, args: &[&str]| {
-        let mut cmd = common::qsc_std_command();
-        iso.apply_to(&mut cmd);
-        cmd.env("QSC_CONFIG_DIR", cfg)
-            .args(args)
-            .output()
-            .expect("handshake command")
-    };
-
-    let out_init = run(
-        &alice_cfg,
-        &[
-            "handshake",
-            "init",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-        ],
-    );
+    let out_init = fx_hs(&alice, "init", "alice", "bob", &relay);
     assert!(out_init.status.success());
 
-    let out_bob = run(
-        &bob_cfg,
-        &[
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ],
-    );
+    let out_bob = fx_hs(&bob, "poll", "bob", "alice", &relay);
     assert!(out_bob.status.success());
     assert!(
-        !session_path(&bob_cfg, "alice").exists(),
+        !session_path(&bob.cfg, "alice").exists(),
         "{}{}",
         String::from_utf8_lossy(&out_bob.stdout),
         String::from_utf8_lossy(&out_bob.stderr)
     );
 
-    let out_alice = run(
-        &alice_cfg,
-        &[
-            "handshake",
-            "poll",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ],
-    );
+    let out_alice = fx_hs(&alice, "poll", "alice", "bob", &relay);
     assert!(out_alice.status.success());
 
     let deadline = Instant::now() + Duration::from_secs(2);
@@ -983,10 +974,14 @@ fn handshake_a2_tamper_rejects_no_mutation() {
         }
         if let Some(idx) = items
             .iter()
-            .position(|wire| hs_msg_kind(wire.as_slice()) == Some(3))
+            .position(|wire| hs_active_msg_kind(wire.as_slice()) == Some(3))
         {
             let mut a2 = items.remove(idx);
-            if let Some(b) = a2.get_mut(10) {
+            // The base tampered byte 10 = session_id[3] under the v1 header; the same field
+            // under the head's header is at header_len + 3. (A tampered PARAMETER-BLOCK byte is
+            // W9, f03_handshake_vectors.rs.)
+            let at = hs_active_header_len(&a2) + 3;
+            if let Some(b) = a2.get_mut(at) {
                 *b = b.wrapping_add(1);
             }
             items.insert(0, a2);
@@ -999,90 +994,27 @@ fn handshake_a2_tamper_rejects_no_mutation() {
     let items = tampered_items.expect("expected A2 confirm frame to tamper");
     server.replace_channel(ROUTE_TOKEN_BOB, items);
 
-    let out_bob_confirm = run(
-        &bob_cfg,
-        &[
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ],
-    );
+    let out_bob_confirm = fx_hs(&bob, "poll", "bob", "alice", &relay);
     assert!(out_bob_confirm.status.success());
-    assert!(!session_path(&bob_cfg, "alice").exists());
+    assert!(!session_path(&bob.cfg, "alice").exists());
 }
 
 #[test]
 fn handshake_a2_replay_rejects_no_mutation() {
-    let base = safe_test_root().join(format!("na0099_handshake_a2_replay_{}", std::process::id()));
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let alice_cfg = base.join("alice");
-    let bob_cfg = base.join("bob");
-    ensure_dir_700(&alice_cfg);
-    ensure_dir_700(&bob_cfg);
-    common::init_mock_vault(&alice_cfg);
-    common::init_mock_vault(&bob_cfg);
-    seed_authenticated_pair(&alice_cfg, &bob_cfg);
-    relay_inbox_set(&alice_cfg, ROUTE_TOKEN_ALICE);
-    relay_inbox_set(&bob_cfg, ROUTE_TOKEN_BOB);
+    // Relay-independent (the responder's refusal of a replayed A2): the Mock relay's
+    // drain/replace/enqueue is the interception instrument.
+    let (alice, bob) = pinned_pair("f03_s6a_hs_a2_replay");
 
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
 
-    let out_init = qsc_cfg_cmd(&alice_cfg)
-        .args([
-            "handshake",
-            "init",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-        ])
-        .output()
-        .expect("handshake init");
+    let out_init = fx_hs(&alice, "init", "alice", "bob", &relay);
     assert!(out_init.status.success());
 
-    let out_bob = qsc_cfg_cmd(&bob_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll bob");
+    let out_bob = fx_hs(&bob, "poll", "bob", "alice", &relay);
     assert!(out_bob.status.success());
 
-    let out_alice = qsc_cfg_cmd(&alice_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "alice",
-            "--peer",
-            "bob",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll alice");
+    let out_alice = fx_hs(&alice, "poll", "alice", "bob", &relay);
     assert!(out_alice.status.success());
 
     // Bounded readiness poll: CI/macOS can lag before the A2 frame becomes visible.
@@ -1092,7 +1024,7 @@ fn handshake_a2_replay_rejects_no_mutation() {
         let items = server.drain_channel(ROUTE_TOKEN_BOB);
         if let Some(found) = items
             .into_iter()
-            .find(|wire| hs_msg_kind(wire.as_slice()) == Some(3))
+            .find(|wire| hs_active_msg_kind(wire.as_slice()) == Some(3))
         {
             a2_wire = Some(found);
             break;
@@ -1103,62 +1035,32 @@ fn handshake_a2_replay_rejects_no_mutation() {
     let replay = first.clone();
     server.replace_channel(ROUTE_TOKEN_BOB, vec![first]);
 
-    let out_bob_confirm = qsc_cfg_cmd(&bob_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll bob confirm");
+    let out_bob_confirm = fx_hs(&bob, "poll", "bob", "alice", &relay);
     assert!(out_bob_confirm.status.success());
     let out_bob_confirm_str = String::from_utf8_lossy(&out_bob_confirm.stdout);
     assert!(out_bob_confirm_str.contains("handshake_recv msg=A2 ok=true"));
-    assert!(session_path(&bob_cfg, "alice").exists());
-    let sess_before = fs::read(session_path(&bob_cfg, "alice")).expect("read bob session");
+    assert!(session_path(&bob.cfg, "alice").exists());
+    let sess_before = fs::read(session_path(&bob.cfg, "alice")).expect("read bob session");
 
     server.enqueue_raw(ROUTE_TOKEN_BOB, replay);
-    let out_bob_replay = qsc_cfg_cmd(&bob_cfg)
-        .args([
-            "handshake",
-            "poll",
-            "--as",
-            "bob",
-            "--peer",
-            "alice",
-            "--relay",
-            &relay,
-            "--max",
-            "4",
-        ])
-        .output()
-        .expect("handshake poll bob replay");
+    let out_bob_replay = fx_hs(&bob, "poll", "bob", "alice", &relay);
     assert!(out_bob_replay.status.success());
     let out_bob_replay_str = String::from_utf8_lossy(&out_bob_replay.stdout);
     assert!(out_bob_replay_str.contains("handshake_reject"));
-    // NA-0711 (D647 A4 Δ38): the reason is no longer collapsed to `decode_failed`; it prints the
-    // one the decoder actually produced. ⚠ SAID PLAINLY, BECAUSE IT MATTERS: `handshake_type`
-    // carries NO replay information — a replay and a "no context to decode against" miss are the
-    // SAME branch emitting the SAME reason, and separating them means touching the replay guard,
-    // which this lane refuses as a fourth change (the reject-vocabulary normalisation lane owns
-    // it). What DOES distinguish this case is the state field below.
-    assert!(out_bob_replay_str.contains("reason=handshake_type"));
+    // REPLACED: the base pinned `reason=handshake_type`, the conflated reason NA-0711 documented
+    // (a replay and a no-context miss printed the SAME reason). The head's replay guard names the
+    // replay itself: an explicit-suite A2 for a peer whose session is stored is refused
+    // REJECT_QSC_HS_REPLAY (src/handshake/mod.rs:2500-2509 -> hs_reject_replay :1329-1330).
+    assert!(out_bob_replay_str.contains("reason=REJECT_QSC_HS_REPLAY"));
     // ⚠ THE PART THAT CARRIES THE INFORMATION: this replay follows a COMPLETED handshake, so the
     // pending record was cleared rather than never written. Before NA-0711 the client collapsed
     // "cleared" and "absent" into one unattributable `present=false`.
     assert!(out_bob_replay_str.contains("state=cleared"));
-    assert!(session_path(&bob_cfg, "alice").exists());
-    let sess_after = fs::read(session_path(&bob_cfg, "alice")).expect("read bob session after");
+    assert!(session_path(&bob.cfg, "alice").exists());
+    let sess_after = fs::read(session_path(&bob.cfg, "alice")).expect("read bob session after");
     assert_eq!(sess_before, sess_after);
 
-    let bob_status = run_qsc(&bob_cfg, &["handshake", "status", "--peer", "alice"]);
+    let bob_status = bob.run(&["handshake", "status", "--peer", "alice"]);
     assert!(bob_status.status.success(), "{}", output_text(&bob_status));
     let bob_status_text = output_text(&bob_status);
     assert!(
@@ -1578,7 +1480,9 @@ fn recv_msg_drain(
 
 #[test]
 fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
-    if !common::directional_case_child("dh_ratchet_e2e_roundtrip_over_real_handshake") { return; }
+    if !common::directional_case_child("dh_ratchet_e2e_roundtrip_over_real_handshake") {
+        return;
+    }
     // This fixture receives one application at a time. Validate the complete isolated
     // directory, then identify exactly one new stable-name output, never an arbitrary file.
     fn outputs(out: &Path) -> std::collections::BTreeMap<PathBuf, Vec<u8>> {
@@ -1586,13 +1490,23 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
             .unwrap()
             .map(|entry| {
                 let entry = entry.unwrap();
-                assert!(entry.file_type().unwrap().is_file(), "ordinary application output only");
+                assert!(
+                    entry.file_type().unwrap().is_file(),
+                    "ordinary application output only"
+                );
                 let name = entry.file_name();
                 let name = name.to_str().unwrap();
-                let digest = name.strip_prefix("recv_").and_then(|s| s.strip_suffix(".bin"))
+                let digest = name
+                    .strip_prefix("recv_")
+                    .and_then(|s| s.strip_suffix(".bin"))
                     .expect("directional application output name");
-                assert!(digest.len() == 64 && digest.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)),
-                    "exact stable application output name");
+                assert!(
+                    digest.len() == 64
+                        && digest
+                            .bytes()
+                            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)),
+                    "exact stable application output name"
+                );
                 let path = entry.path();
                 let bytes = fs::read(&path).unwrap();
                 (path, bytes)
@@ -1602,32 +1516,60 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
     fn new_output(out: &Path, before: &std::collections::BTreeMap<PathBuf, Vec<u8>>) -> Vec<u8> {
         let after = outputs(out);
         for (path, bytes) in before {
-            assert_eq!(after.get(path), Some(bytes), "prior application output must be preserved");
+            assert_eq!(
+                after.get(path),
+                Some(bytes),
+                "prior application output must be preserved"
+            );
         }
-        let added: Vec<_> = after.iter().filter(|(path, _)| !before.contains_key(*path)).collect();
-        assert_eq!(added.len(), 1, "exactly one intended new application output");
-        assert_eq!(after.len(), before.len() + 1, "no additional output or replacement");
+        let added: Vec<_> = after
+            .iter()
+            .filter(|(path, _)| !before.contains_key(*path))
+            .collect();
+        assert_eq!(
+            added.len(),
+            1,
+            "exactly one intended new application output"
+        );
+        assert_eq!(
+            after.len(),
+            before.len() + 1,
+            "no additional output or replacement"
+        );
         added[0].1.clone()
     }
 
-    let base = safe_test_root().join(format!("na0622_dh_e2e_{}", std::process::id()));
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let alice_cfg = base.join("alice");
-    let bob_cfg = base.join("bob");
-    let alice_out = base.join("alice_out");
-    let bob_out = base.join("bob_out");
-    for d in [&alice_cfg, &bob_cfg, &alice_out, &bob_out] {
-        ensure_dir_700(d);
-    }
-    eprintln!("NA0780_DIAG phase=vault_setup begin");
-    common::init_mock_vault(&alice_cfg);
-    common::init_mock_vault(&bob_cfg);
+    // Relay-independent (a sequential, drained DH-ratchet roundtrip, no crossing or loss): the
+    // Mock relay's push journal is the instrument that the application wire was accepted as
+    // retained. The pair is REAL (init_real_pair: successor vaults, pinned identities, a real
+    // handshake), replacing the base's init_mock_vault + hs_dance.
     eprintln!("NA0780_DIAG phase=relay_readiness begin");
     let server = common::start_inbox_server(1024 * 1024, 16);
     let relay = server.base_url().to_string();
     eprintln!("NA0780_DIAG phase=relay_readiness end ready=true");
-    hs_dance(&alice_cfg, &bob_cfg, &relay);
+    eprintln!("NA0780_DIAG phase=vault_setup begin");
+    let pair = common::init_real_pair(
+        "f03_s6a_dh_e2e",
+        common::PairRelay::Mock(&server),
+        ("alice", ROUTE_TOKEN_ALICE),
+        ("bob", ROUTE_TOKEN_BOB),
+    );
+    let (alice, bob) = (&pair.a, &pair.b);
+    let (alice_cfg, bob_cfg) = (alice.cfg.clone(), bob.cfg.clone());
+    assert!(
+        session_path(&alice_cfg, "bob").exists(),
+        "alice session missing"
+    );
+    assert!(
+        session_path(&bob_cfg, "alice").exists(),
+        "bob session missing"
+    );
+    let base = alice.iso.root.join("run");
+    let alice_out = base.join("alice_out");
+    let bob_out = base.join("bob_out");
+    for d in [&base, &alice_out, &bob_out] {
+        ensure_dir_700(d);
+    }
 
     let initial_a = common::directional_state(&alice_cfg, "bob");
     let initial_b = common::directional_state(&bob_cfg, "alice");
@@ -1640,7 +1582,7 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
     let m1 = base.join("m1.bin");
     fs::write(&m1, b"hello-from-alice").unwrap();
     trace.operation(&alice_cfg, "bob", "first_application_send", || {
-        send_msg(&alice_cfg, &relay, "bob", &m1)
+        fx_send(alice, &relay, "bob", &m1)
     });
     let first = common::directional_state(&alice_cfg, "bob");
     assert!(first["core"]["root"] == initial_a["core"]["root"]);
@@ -1648,16 +1590,26 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
     let rows = common::directional_queue_records(&alice_cfg, "bob");
     assert_eq!(rows.len(), 1);
     assert!(rows[0].body == b"hello-from-alice");
-    let app: Vec<_> = first["flights"].as_object().unwrap().values()
-        .filter(|f| f["id"] == rows[0].msg_id).collect();
+    let app: Vec<_> = first["flights"]
+        .as_object()
+        .unwrap()
+        .values()
+        .filter(|f| f["id"] == rows[0].msg_id)
+        .collect();
     assert_eq!(app.len(), 1, "one durable application slot");
     let wire: Vec<u8> = serde_json::from_value(app[0]["wire"].clone()).unwrap();
-    assert!(wire[4] == 0 && app[0]["epoch"] == 0, "first application is ordinary epoch zero");
-    assert!(server.directional_pushes().iter().any(|p| p.status == 200 && p.response_written && p.body == wire));
+    assert!(
+        wire[4] == 0 && app[0]["epoch"] == 0,
+        "first application is ordinary epoch zero"
+    );
+    assert!(server
+        .directional_pushes()
+        .iter()
+        .any(|p| p.status == 200 && p.response_written && p.body == wire));
     let before_r1 = outputs(&bob_out);
     assert!(before_r1.is_empty());
     trace.operation(&bob_cfg, "alice", "first_application_receive", || {
-        let out = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
+        let out = fx_recv(bob, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out, "8");
         assert!(out.status.success(), "{}", output_text(&out));
     });
     assert_eq!(new_output(&bob_out, &before_r1), b"hello-from-alice");
@@ -1665,22 +1617,29 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
     // Receive maintenance can have emitted B's boundary. Authenticate it before
     // allowing an ordinary application reply to stand in for a boundary reply.
     trace.operation(&alice_cfg, "bob", "authenticate_b_boundary", || {
-        let out = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out);
+        let out = fx_recv(alice, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out, "8");
         assert!(out.status.success(), "{}", output_text(&out));
     });
-    assert!(outputs(&alice_out).is_empty(), "maintenance is not application output");
+    assert!(
+        outputs(&alice_out).is_empty(),
+        "maintenance is not application output"
+    );
     let boundary_a = common::directional_state(&alice_cfg, "bob");
     let boundary_b = common::directional_state(&bob_cfg, "alice");
     common::directional_pair_assert(&boundary_a, &boundary_b);
-    assert!(boundary_a["core"]["seq"] == 1 && boundary_a["core"]["owner"] == 0,
-        "B boundary authenticated before ordinary reply");
+    assert!(
+        boundary_a["core"]["seq"] == 1 && boundary_a["core"]["owner"] == 0,
+        "B boundary authenticated before ordinary reply"
+    );
     let m2 = base.join("m2.bin");
     fs::write(&m2, b"hello-from-bob").unwrap();
-    trace.operation(&bob_cfg, "alice", "bob_reply_send", || send_msg(&bob_cfg, &relay, "alice", &m2));
+    trace.operation(&bob_cfg, "alice", "bob_reply_send", || {
+        fx_send(bob, &relay, "alice", &m2)
+    });
     let before_r2 = outputs(&alice_out);
     assert!(before_r2.is_empty());
     trace.operation(&alice_cfg, "bob", "alice_reply_receive", || {
-        let out = recv_msg_drain(&alice_cfg, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out);
+        let out = fx_recv(alice, &relay, ROUTE_TOKEN_ALICE, "bob", &alice_out, "8");
         assert!(out.status.success(), "{}", output_text(&out));
     });
     assert_eq!(new_output(&alice_out, &before_r2), b"hello-from-bob");
@@ -1694,38 +1653,51 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
     // At most eight paired control drains and four ordinary A admissions. Every
     // send/receive is observed; no flags, clocks, ownership or counters are assigned.
     for round in 0..8 {
-        if trace.both_directions() { break; }
+        if trace.both_directions() {
+            break;
+        }
         let a = common::directional_state(&alice_cfg, "bob");
         if a["core"]["owner"] == 0 && expected.len() < 4 {
             let payload = format!("directional-prerequisite-{round}").into_bytes();
             let path = base.join(format!("prerequisite-{round}.bin"));
             fs::write(&path, &payload).unwrap();
-            trace.operation(&alice_cfg, "bob", "prerequisite_send", || send_msg(&alice_cfg, &relay, "bob", &path));
+            trace.operation(&alice_cfg, "bob", "prerequisite_send", || {
+                fx_send(alice, &relay, "bob", &path)
+            });
             expected.push(payload);
         }
-        for (cfg, peer, route, outdir) in [
-            (&bob_cfg, "alice", ROUTE_TOKEN_BOB, &prerequisite_b),
-            (&alice_cfg, "bob", ROUTE_TOKEN_ALICE, &prerequisite_a),
+        for (fixture, cfg, peer, route, outdir) in [
+            (bob, &bob_cfg, "alice", ROUTE_TOKEN_BOB, &prerequisite_b),
+            (alice, &alice_cfg, "bob", ROUTE_TOKEN_ALICE, &prerequisite_a),
         ] {
             trace.operation(cfg, peer, "prerequisite_receive", || {
-                let out = recv_msg_drain(cfg, &relay, route, peer, outdir);
+                let out = fx_recv(fixture, &relay, route, peer, outdir, "8");
                 assert!(out.status.success(), "{}", output_text(&out));
             });
         }
     }
-    assert!(trace.both_directions(), "both fresh DH/root transitions must be authenticated");
+    assert!(
+        trace.both_directions(),
+        "both fresh DH/root transitions must be authenticated"
+    );
     let mut actual: Vec<_> = outputs(&prerequisite_b).into_values().collect();
-    actual.sort(); expected.sort();
-    assert!(actual == expected, "complete prerequisite payload inventory");
+    actual.sort();
+    expected.sort();
+    assert!(
+        actual == expected,
+        "complete prerequisite payload inventory"
+    );
     assert!(outputs(&prerequisite_a).is_empty());
 
     let m3 = base.join("m3.bin");
     fs::write(&m3, b"hello-again-alice").unwrap();
-    trace.operation(&alice_cfg, "bob", "alice_second_send", || send_msg(&alice_cfg, &relay, "bob", &m3));
+    trace.operation(&alice_cfg, "bob", "alice_second_send", || {
+        fx_send(alice, &relay, "bob", &m3)
+    });
     let before_r3 = outputs(&bob_out);
     assert_eq!(before_r3.len(), 1);
     trace.operation(&bob_cfg, "alice", "bob_second_receive", || {
-        let out = recv_msg_drain(&bob_cfg, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out);
+        let out = fx_recv(bob, &relay, ROUTE_TOKEN_BOB, "alice", &bob_out, "8");
         assert!(out.status.success(), "{}", output_text(&out));
     });
     assert_eq!(new_output(&bob_out, &before_r3), b"hello-again-alice");
@@ -1733,8 +1705,10 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
     let b = common::directional_state(&bob_cfg, "alice");
     common::directional_pair_assert(&a, &b);
     assert!(b["core"]["active_recv"] == a["core"]["send"]["id"]);
-    assert!(outputs(&alice_out) == saved_alice_outputs, "prior Bob payload/path unchanged");
-
+    assert!(
+        outputs(&alice_out) == saved_alice_outputs,
+        "prior Bob payload/path unchanged"
+    );
 }
 
 #[test]
@@ -2427,39 +2401,80 @@ fn dh_ratchet_e2e_bounded_fallback_fires_over_real_handshake() {
 /// defect rather than fixing it.**
 #[test]
 fn a_first_send_ack_never_wedges_the_session() {
-    let base = safe_test_root().join(format!("na0688_wedge_{}", std::process::id()));
-    let _ = fs::remove_dir_all(&base);
-    ensure_dir_700(&base);
-    let (a, b, bo) = (base.join("a"), base.join("b"), base.join("bo"));
-    for d in [&a, &b, &bo] { ensure_dir_700(d); }
-    common::init_mock_vault(&a);
-    common::init_mock_vault(&b);
-    let server = common::start_inbox_server(1024 * 1024, 32);
+    // Over the real LEASING relay (a wedge is a delivery property): a REAL pair replaces the base's
+    // init_mock_vault + hs_dance.
+    let server = common::start_qsl_server(1024 * 1024, 32, None);
     let relay = server.base_url().to_string();
-    hs_dance(&a, &b, &relay);
-    let mk = |n: &str, v: &[u8]| { let p = base.join(n); fs::write(&p, v).unwrap(); p };
+    let pair = common::init_real_pair(
+        "f03_s6a_wedge",
+        common::PairRelay::Leasing(&server),
+        ("alice", ROUTE_TOKEN_ALICE),
+        ("bob", ROUTE_TOKEN_BOB),
+    );
+    let (a, b) = (&pair.a, &pair.b);
+    assert!(
+        session_path(&a.cfg, "bob").exists(),
+        "alice session missing"
+    );
+    assert!(
+        session_path(&b.cfg, "alice").exists(),
+        "bob session missing"
+    );
+    let base = a.iso.root.join("run");
+    let bo = base.join("bo");
+    for d in [&base, &bo] {
+        ensure_dir_700(d);
+    }
+    let mk = |n: &str, v: &[u8]| {
+        let p = base.join(n);
+        fs::write(&p, v).unwrap();
+        p
+    };
 
-    for (n, v) in [("m1", &b"f1"[..]), ("m2", b"f2"), ("m3", b"f3"), ("m4", b"f4")] {
-        let o = send_msg(&a, &relay, "bob", &mk(n, v));
-        assert!(o.contains("event=send_attempt ok=true") || !o.is_empty(), "send {n}: {o}");
+    for (n, v) in [
+        ("m1", &b"f1"[..]),
+        ("m2", b"f2"),
+        ("m3", b"f3"),
+        ("m4", b"f4"),
+    ] {
+        let o = fx_send(a, &relay, "bob", &mk(n, v));
+        assert!(
+            o.contains("event=send_attempt ok=true") || !o.is_empty(),
+            "send {n}: {o}"
+        );
     }
     for i in 1..=3 {
-        let r = recv_msg(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+        let r = fx_recv(b, &relay, ROUTE_TOKEN_BOB, "alice", &bo, "1");
         assert!(r.status.success(), "bob recv#{i}: {}", output_text(&r));
     }
     // THE ASSERTION: alice's fallback boundary must decrypt.
-    let r4 = recv_msg(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
+    let before_r4 = fx_outputs(&bo);
+    let r4 = fx_recv(b, &relay, ROUTE_TOKEN_BOB, "alice", &bo, "1");
     let t4 = output_text(&r4);
-    assert!(r4.status.success(),
+    assert!(
+        r4.status.success(),
         "WEDGE REGRESSION: alice's fallback boundary is undecryptable — an ack moved bob's DH \
-         key without her knowing:\n{t4}");
-    assert_eq!(fs::read(bo.join("recv_1.bin")).unwrap(), b"f4");
+         key without her knowing:\n{t4}"
+    );
+    // REPLACED: the head writes each output as recv_<sha256>.bin (it no longer overwrites
+    // recv_1.bin), so "recv_1.bin holds f4" is "the output this receive added is exactly f4".
+    assert_eq!(fx_added(&bo, &before_r4), vec![b"f4".to_vec()], "{t4}");
 
     // And the session must still work afterwards, not merely survive one message.
-    send_msg(&a, &relay, "bob", &mk("m5", b"f5"));
-    let r5 = recv_msg(&b, &relay, ROUTE_TOKEN_BOB, "alice", &bo);
-    assert!(r5.status.success(), "WEDGED after the boundary: {}", output_text(&r5));
-    assert_eq!(fs::read(bo.join("recv_1.bin")).unwrap(), b"f5");
+    fx_send(a, &relay, "bob", &mk("m5", b"f5"));
+    let before_r5 = fx_outputs(&bo);
+    let r5 = fx_recv(b, &relay, ROUTE_TOKEN_BOB, "alice", &bo, "1");
+    assert!(
+        r5.status.success(),
+        "WEDGED after the boundary: {}",
+        output_text(&r5)
+    );
+    assert_eq!(
+        fx_added(&bo, &before_r5),
+        vec![b"f5".to_vec()],
+        "{}",
+        output_text(&r5)
+    );
 }
 
 /// NA-0688 — **THE FIRST RECEIPT OF A CONVERSATION SURVIVES.** This is what makes the A6 reversal

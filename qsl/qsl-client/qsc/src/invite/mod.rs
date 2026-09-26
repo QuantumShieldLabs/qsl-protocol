@@ -1410,7 +1410,7 @@ fn finish_scan_select_invite_resp(
             scanned += 1;
             let class = crate::frameclass::classify(&item.data);
             let name = class.name();
-            if !classes.iter().any(|c| *c == name) {
+            if !classes.contains(&name) {
                 classes.push(name);
             }
             if class == crate::frameclass::FrameClass::Handshake {

@@ -3,27 +3,6 @@
 use crate::protocol_state::SendOrigination;
 use super::*;
 
-type FileConfirmPayload = adversarial::payload::FileConfirmPayload;
-
-pub(super) fn parse_file_confirm_payload(plaintext: &[u8]) -> Option<FileConfirmPayload> {
-    adversarial::payload::parse_file_confirm_payload(plaintext)
-}
-
-pub(super) fn parse_file_transfer_payload(plaintext: &[u8]) -> Option<FileTransferPayload> {
-    adversarial::payload::parse_file_transfer_payload(plaintext)
-}
-
-pub(super) fn parse_attachment_descriptor_payload(
-    plaintext: &[u8],
-) -> Option<AttachmentDescriptorPayload> {
-    adversarial::payload::parse_attachment_descriptor_payload(plaintext)
-}
-
-pub(super) fn parse_attachment_confirm_payload(
-    plaintext: &[u8],
-) -> Option<AttachmentConfirmPayload> {
-    adversarial::payload::parse_attachment_confirm_payload(plaintext)
-}
 
 pub(super) fn attachment_journal_load() -> Result<AttachmentJournal, &'static str> {
     match vault::secret_get(ATTACHMENT_JOURNAL_SECRET_KEY) {
@@ -96,10 +75,6 @@ fn attachment_staging_dir(cfg_dir: &Path, direction: &str) -> Result<PathBuf, &'
 
 fn attachment_outbound_rel(attachment_id: &str) -> String {
     format!("outbound/{attachment_id}.cipher")
-}
-
-fn attachment_inbound_rel(attachment_id: &str) -> String {
-    format!("inbound/{attachment_id}.cipher")
 }
 
 fn attachment_path_from_rel(cfg_dir: &Path, rel: &str) -> Result<PathBuf, &'static str> {
@@ -375,6 +350,7 @@ fn attachment_confirm_handle(input: AttachmentConfirmHandleInput<'_>) -> String 
     hex_encode(&digest[..12])
 }
 
+#[cfg(test)]
 fn attachment_is_lower_hex_len(value: &str, len: usize) -> bool {
     value.len() == len
         && value
@@ -472,6 +448,7 @@ struct AttachmentServiceErrorBody {
     reason_code: String,
 }
 
+#[cfg(test)]
 fn attachment_now_unix_s() -> u64 {
     // NA-0688 C1 (R4a): delegates to the ONE clock. See `crate::clock`.
     crate::clock::now_unix_s()
@@ -1092,7 +1069,6 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), Attachmen
         payload: descriptor,
         relay,
         injector: transport::fault_injector_from_env()?,
-        pad_cfg: None,
         bucket_max: None,
         meta_seed: None,
         receipt: None,
@@ -1133,29 +1109,7 @@ fn attachment_send_execute(args: AttachmentSendExec<'_>) -> Result<(), Attachmen
     Ok(())
 }
 
-fn attachment_record_matches_descriptor(
-    record: &AttachmentTransferRecord,
-    desc: &AttachmentDescriptorPayload,
-) -> bool {
-    record.attachment_id == desc.attachment_id
-        && record.content_len == desc.content_len
-        && record.plaintext_len == desc.plaintext_len
-        && record.ciphertext_len == desc.ciphertext_len
-        && record.part_size_class == desc.part_size_class
-        && record.part_count == desc.part_count
-        && record.integrity_alg == desc.integrity_alg
-        && record.integrity_root == desc.integrity_root
-        && record.enc_ctx_alg == desc.enc_ctx_alg
-        && record.enc_ctx_b64u == desc.enc_ctx_b64u
-        && record.retention_class == desc.retention_class
-        && record.locator_kind.as_deref() == Some(desc.locator_kind.as_str())
-        && record.locator_ref.as_deref() == Some(desc.locator_ref.as_str())
-        && record.fetch_capability.as_deref() == Some(desc.fetch_capability.as_str())
-        && record.expires_at_unix_s == Some(desc.expires_at_unix_s)
-        && record.confirm_requested == desc.confirm_requested
-        && record.confirm_handle == desc.confirm_handle
-}
-
+#[cfg(test)]
 fn attachment_validate_descriptor(
     desc: &AttachmentDescriptorPayload,
     max_file_size: usize,
@@ -1224,59 +1178,6 @@ fn attachment_validate_descriptor(
         return Err("REJECT_ATT_DESC_INCONSISTENT_SHAPE");
     }
     Ok(())
-}
-
-fn attachment_inbound_record_from_descriptor(
-    peer: &str,
-    service_url: Option<&str>,
-    desc: &AttachmentDescriptorPayload,
-) -> AttachmentTransferRecord {
-    AttachmentTransferRecord {
-        attachment_id: desc.attachment_id.clone(),
-        peer: peer.to_string(),
-        direction: "in".to_string(),
-        service_url: service_url.map(|v| v.to_string()),
-        state: "PENDING_FETCH".to_string(),
-        content_len: desc.content_len,
-        plaintext_len: desc.plaintext_len,
-        ciphertext_len: desc.ciphertext_len,
-        part_size_class: desc.part_size_class.clone(),
-        part_count: desc.part_count,
-        integrity_alg: desc.integrity_alg.clone(),
-        integrity_root: desc.integrity_root.clone(),
-        retention_class: desc.retention_class.clone(),
-        enc_ctx_alg: desc.enc_ctx_alg.clone(),
-        enc_ctx_b64u: desc.enc_ctx_b64u.clone(),
-        locator_kind: Some(desc.locator_kind.clone()),
-        locator_ref: Some(desc.locator_ref.clone()),
-        fetch_capability: Some(desc.fetch_capability.clone()),
-        expires_at_unix_s: Some(desc.expires_at_unix_s),
-        confirm_requested: desc.confirm_requested,
-        confirm_handle: desc.confirm_handle.clone(),
-        filename_hint: desc.filename_hint.clone(),
-        media_type: desc.media_type.clone(),
-        source_path: None,
-        staged_ciphertext_rel: None,
-        session_ref: None,
-        resume_token: None,
-        timeline_id: None,
-        target_device_id: None,
-        uploaded_parts: Vec::new(),
-        downloaded_ciphertext_bytes: 0,
-        download_ciphertext_rel: Some(attachment_inbound_rel(&desc.attachment_id)),
-        download_output_name: Some(
-            desc.filename_hint
-                .as_deref()
-                .and_then(|v| attachment_validate_filename_hint(v).ok())
-                .unwrap_or_else(|| {
-                    format!(
-                        "attachment-{}.bin",
-                        file_delivery_short_id(&desc.attachment_id)
-                    )
-                }),
-        ),
-        last_error: None,
-    }
 }
 
 enum AttachmentFetchOutcome {
@@ -1573,40 +1474,6 @@ fn attachment_process_inbound_record(
     Ok(None)
 }
 
-pub(super) fn attachment_handle_descriptor(
-    ctx: &ReceivePullCtx<'_>,
-    desc: AttachmentDescriptorPayload,
-) -> Result<Option<(String, String)>, &'static str> {
-    attachment_validate_descriptor(&desc, ctx.file_max_size, ctx.file_max_chunks)?;
-    let mut journal = attachment_journal_load()?;
-    let key = attachment_record_key("in", ctx.from, &desc.attachment_id);
-    let mut record = match journal.records.get(&key).cloned() {
-        Some(existing) => {
-            if !attachment_record_matches_descriptor(&existing, &desc) {
-                return Err("REJECT_ATT_DECRYPT_CTX_MISMATCH");
-            }
-            existing
-        }
-        None => attachment_inbound_record_from_descriptor(ctx.from, ctx.attachment_service, &desc),
-    };
-    record.service_url = ctx.attachment_service.map(|v| v.to_string());
-    record.state = "PENDING_FETCH".to_string();
-    journal.records.insert(key.clone(), record);
-    attachment_journal_save(&journal)?;
-    if ctx.attachment_service.is_none() {
-        emit_marker(
-            "attachment_pending_service",
-            None,
-            &[
-                ("id", file_delivery_short_id(&desc.attachment_id).as_str()),
-                ("ok", "true"),
-            ],
-        );
-        return Ok(None);
-    }
-    attachment_process_inbound_record(ctx, &key)
-}
-
 pub(super) fn attachment_resume_pending_for_peer(
     ctx: &ReceivePullCtx<'_>,
     service_url: &str,
@@ -1711,47 +1578,6 @@ fn emit_file_push_retry(attempt: usize, backoff_ms: u64, reason: &str) {
     );
 }
 
-pub(super) fn emit_file_integrity_fail(reason: &str, action: &str) {
-    emit_cli_named_marker(
-        "QSC_FILE_INTEGRITY_FAIL",
-        &[("reason", reason), ("action", action)],
-    );
-    emit_tui_named_marker(
-        "QSC_TUI_FILE_INTEGRITY_FAIL",
-        &[("reason", reason), ("action", action)],
-    );
-}
-
-pub(super) fn file_transfer_fail_clean(
-    peer: &str,
-    file_id: &str,
-    reason: &str,
-) -> Result<(), &'static str> {
-    let key = file_xfer_store_key(peer, file_id);
-    let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
-    if let Some(rec) = store.file_transfers.get_mut(&key) {
-        rec.state = "FAILED".to_string();
-        rec.chunk_hashes.clear();
-        rec.chunks_hex.clear();
-        rec.confirm_requested = false;
-        rec.confirm_id = None;
-        timeline_store_save(&store).map_err(|_| "timeline_unavailable")?;
-        emit_file_integrity_fail(reason, "purge_partials");
-        emit_marker(
-            "file_xfer_fail_clean",
-            None,
-            &[
-                ("id", file_id),
-                ("reason", reason),
-                ("action", "purge_partials"),
-            ],
-        );
-        return Ok(());
-    }
-    emit_file_integrity_fail(reason, "rotate_mailbox_hint");
-    Ok(())
-}
-
 fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -> CliResult<RelaySendOutcome> {
     let mut attempt = 1usize;
     loop {
@@ -1760,8 +1586,7 @@ fn relay_send_file_payload_with_retry(to: &str, payload: Vec<u8>, relay: &str) -
             payload: payload.clone(),
             relay,
             injector: transport::fault_injector_from_env()?,
-            pad_cfg: None,
-            bucket_max: None,
+                bucket_max: None,
             meta_seed: None,
             receipt: None,
             routing_override: None,
@@ -1795,6 +1620,7 @@ pub struct FileSendExec<'a> {
 }
 
 pub fn file_send_execute(args: FileSendExec<'_>) -> CliResult {
+    directional_attachment_preflight()?;
     let FileSendExec {
         transport,
         relay,
@@ -2083,204 +1909,7 @@ pub fn file_send_execute(args: FileSendExec<'_>) -> CliResult {
     Ok(())
 }
 
-pub(super) fn file_transfer_handle_chunk(
-    ctx: &ReceivePullCtx<'_>,
-    chunk: FileTransferChunkPayload,
-) -> Result<(), &'static str> {
-    if chunk.total_size == 0 || chunk.total_size > ctx.file_max_size {
-        return Err("size_exceeds_max");
-    }
-    if chunk.chunk_count == 0 || chunk.chunk_count > ctx.file_max_chunks {
-        return Err("chunk_count_exceeds_max");
-    }
-    if chunk.chunk.len() > FILE_XFER_DEFAULT_CHUNK_SIZE {
-        return Err("chunk_size_exceeds_max");
-    }
-    if chunk.chunk_index >= chunk.chunk_count {
-        return Err("chunk_index_invalid");
-    }
-    if chunk.chunk_hash != file_xfer_chunk_hash(&chunk.chunk) {
-        return Err("chunk_hash_invalid");
-    }
-    let key = file_xfer_store_key(ctx.from, chunk.file_id.as_str());
-    let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
-    let rec = store
-        .file_transfers
-        .entry(key)
-        .or_insert_with(|| FileTransferRecord {
-            id: chunk.file_id.clone(),
-            peer: ctx.from.to_string(),
-            filename: chunk.filename.clone(),
-            total_size: chunk.total_size,
-            chunk_count: chunk.chunk_count,
-            manifest_hash: chunk.manifest_hash.clone(),
-            chunk_hashes: Vec::new(),
-            chunks_hex: Vec::new(),
-            confirm_requested: false,
-            confirm_id: None,
-            target_device_id: None,
-            state: "RECEIVING".to_string(),
-        });
-    if rec.state == "VERIFIED" {
-        return Err("state_invalid_transition");
-    }
-    if chunk.chunk_index == 0 {
-        if rec.state == "FAILED" {
-            rec.filename = chunk.filename.clone();
-            rec.total_size = chunk.total_size;
-            rec.chunk_count = chunk.chunk_count;
-            rec.manifest_hash = chunk.manifest_hash.clone();
-            rec.chunk_hashes.clear();
-            rec.chunks_hex.clear();
-            rec.confirm_requested = false;
-            rec.confirm_id = None;
-            rec.state = "RECEIVING".to_string();
-            emit_marker(
-                "file_xfer_reset",
-                None,
-                &[("id", chunk.file_id.as_str()), ("reason", "rerun_detected")],
-            );
-        }
-    } else if rec.state == "FAILED" {
-        return Err("state_invalid_transition");
-    }
-    if rec.total_size != chunk.total_size
-        || rec.chunk_count != chunk.chunk_count
-        || rec.manifest_hash != chunk.manifest_hash
-    {
-        return Err("chunk_meta_mismatch");
-    }
-    let expected = rec.chunks_hex.len();
-    if chunk.chunk_index != expected {
-        return Err("chunk_order_invalid");
-    }
-    rec.chunk_hashes.push(chunk.chunk_hash.clone());
-    rec.chunks_hex.push(hex_encode(&chunk.chunk));
-    rec.state = "RECEIVING".to_string();
-    timeline_store_save(&store).map_err(|_| "timeline_unavailable")?;
-    let idx_s = chunk.chunk_index.to_string();
-    emit_marker(
-        "file_xfer_chunk",
-        None,
-        &[
-            ("id", chunk.file_id.as_str()),
-            ("idx", idx_s.as_str()),
-            ("ok", "true"),
-        ],
-    );
-    Ok(())
-}
 
-pub(super) fn file_transfer_handle_manifest(
-    ctx: &ReceivePullCtx<'_>,
-    manifest: FileTransferManifestPayload,
-) -> Result<Option<(String, String)>, &'static str> {
-    if manifest.total_size == 0 || manifest.total_size > ctx.file_max_size {
-        return Err("size_exceeds_max");
-    }
-    if manifest.chunk_count == 0 || manifest.chunk_count > ctx.file_max_chunks {
-        return Err("chunk_count_exceeds_max");
-    }
-    let key = file_xfer_store_key(ctx.from, manifest.file_id.as_str());
-    let mut store = timeline_store_load().map_err(|_| "timeline_unavailable")?;
-    let rec = store
-        .file_transfers
-        .get_mut(&key)
-        .ok_or("manifest_missing_chunks")?;
-    if rec.state == "FAILED" || rec.state == "VERIFIED" {
-        return Err("state_invalid_transition");
-    }
-    if rec.total_size != manifest.total_size
-        || rec.chunk_count != manifest.chunk_count
-        || rec.filename != manifest.filename
-    {
-        return Err("manifest_meta_mismatch");
-    }
-    if rec.chunks_hex.len() != rec.chunk_count {
-        return Err("manifest_missing_chunks");
-    }
-    if manifest.chunk_hashes.len() != rec.chunk_count {
-        return Err("manifest_chunk_count_mismatch");
-    }
-    let expected_manifest = file_xfer_manifest_hash(
-        manifest.file_id.as_str(),
-        manifest.total_size,
-        manifest.chunk_count,
-        manifest.chunk_hashes.as_slice(),
-    );
-    if expected_manifest != manifest.manifest_hash || rec.manifest_hash != manifest.manifest_hash {
-        return Err("manifest_mismatch");
-    }
-    if rec.chunk_hashes != manifest.chunk_hashes {
-        return Err("manifest_mismatch");
-    }
-    let mut reconstructed = Vec::new();
-    for (idx, chunk_hex) in rec.chunks_hex.iter().enumerate() {
-        let chunk = hex_decode(chunk_hex).map_err(|_| "chunk_decode_failed")?;
-        if file_xfer_chunk_hash(&chunk) != manifest.chunk_hashes[idx] {
-            return Err("chunk_hash_invalid");
-        }
-        reconstructed.extend_from_slice(&chunk);
-    }
-    if reconstructed.len() != manifest.total_size {
-        return Err("manifest_size_mismatch");
-    }
-    rec.state = "VERIFIED".to_string();
-    rec.confirm_requested = manifest.confirm_requested;
-    rec.confirm_id = if manifest.confirm_requested {
-        Some(manifest.confirm_id.clone())
-    } else {
-        None
-    };
-    timeline_store_save(&store).map_err(|_| "timeline_unavailable")?;
-    timeline_append_entry(
-        ctx.from,
-        "in",
-        reconstructed.len(),
-        "file",
-        MessageState::Received,
-        Some(manifest.file_id.as_str()),
-    )?;
-    emit_marker(
-        "file_xfer_manifest",
-        None,
-        &[("id", manifest.file_id.as_str()), ("ok", "true")],
-    );
-    emit_marker(
-        "file_xfer_complete",
-        None,
-        &[("id", manifest.file_id.as_str()), ("ok", "true")],
-    );
-    if manifest.confirm_requested {
-        if ctx.receipt_policy.file_confirm_mode == FileConfirmEmitMode::CompleteOnly {
-            return Ok(Some((manifest.file_id, manifest.confirm_id)));
-        }
-        emit_cli_receipt_policy_event(
-            ctx.receipt_policy.mode,
-            "skipped",
-            "file_complete",
-            ctx.from,
-        );
-        emit_tui_receipt_policy_event(
-            ctx.receipt_policy.mode,
-            "skipped",
-            "file_complete",
-            ctx.from,
-        );
-    }
-    Ok(None)
-}
-
-pub(super) fn build_file_completion_ack(file_id: &str, confirm_id: &str) -> CliResult<Vec<u8>> {
-    let ack = FileConfirmPayload {
-        v: 1,
-        t: "ack".to_string(),
-        kind: "file_confirmed".to_string(),
-        file_id: file_id.to_string(),
-        confirm_id: confirm_id.to_string(),
-    };
-    serde_json::to_vec(&ack).map_err(|_| CliError::code("receipt_encode_failed"))
-}
 
 pub(super) fn build_attachment_completion_ack(
     attachment_id: &str,
@@ -2304,13 +1933,6 @@ pub(super) fn legacy_in_message_stage_name(stage: LegacyInMessageStage) -> &'sta
     match stage {
         LegacyInMessageStage::W0 => "w0",
         LegacyInMessageStage::W1 | LegacyInMessageStage::W2 => "w2",
-    }
-}
-
-pub(super) fn legacy_receive_mode_name(mode: LegacyReceiveMode) -> &'static str {
-    match mode {
-        LegacyReceiveMode::Coexistence => "coexistence",
-        LegacyReceiveMode::Retired => "retired",
     }
 }
 
@@ -2349,18 +1971,7 @@ pub(super) fn resolve_legacy_in_message_stage(
     Ok(LegacyInMessageStage::W0)
 }
 
-pub(super) fn resolve_legacy_receive_mode(
-    explicit_mode: Option<LegacyReceiveMode>,
-    attachment_service: Option<&str>,
-) -> Result<LegacyReceiveMode, &'static str> {
-    if attachment_service.is_some() {
-        return match explicit_mode {
-            Some(LegacyReceiveMode::Coexistence) => Err("legacy_receive_mode_retired_post_w0"),
-            Some(LegacyReceiveMode::Retired) | None => Ok(LegacyReceiveMode::Retired),
-        };
-    }
-    Ok(explicit_mode.unwrap_or(LegacyReceiveMode::Coexistence))
-}
+
 
 pub(super) fn resolve_large_file_attachment_service(
     explicit_attachment_service: Option<&str>,

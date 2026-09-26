@@ -345,7 +345,7 @@ fn make_code(relay_ep: &str, expiry: u64) -> String {
 
 fn derive_mock_vault_key(bytes: &[u8]) -> ([u8; 32], usize, usize) {
     assert!(bytes.len() > 25, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV02");
+    assert_eq!(&bytes[0..6], b"QSCV03");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
     let nonce_len = bytes[8] as usize;

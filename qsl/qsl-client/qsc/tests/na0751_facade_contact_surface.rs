@@ -64,7 +64,7 @@ fn open_vault(tag: &str) -> PathBuf {
     let cfg = fresh(tag);
     env::set_var("QSC_CONFIG_DIR", &cfg);
     env::set_var("QSC_QSP_SEED", "1");
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
     cfg

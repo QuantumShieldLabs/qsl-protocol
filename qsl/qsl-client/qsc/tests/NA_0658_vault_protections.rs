@@ -25,7 +25,7 @@ use qsc::vault::protection::{
 };
 use qsc::vault::{
     has_process_passphrase, open_session_with_passphrase, secret_get, secret_set,
-    set_process_passphrase, unlock_with_passphrase, vault_init_with_passphrase,
+    set_process_passphrase, unlock_with_passphrase, vault_init_directional_with_passphrase,
 };
 use qsc::{set_vault_unlocked, vault_unlocked};
 use std::fs;
@@ -133,7 +133,7 @@ fn delay_schedule_matches_the_accepted_rails() {
 fn escalating_delay_engages_counts_and_grows() {
     let _g = env_lock();
     fresh_test_env("delay_grows");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
 
     // Failures 1-2 are free: counted, no delay engaged.
     assert_eq!(
@@ -193,7 +193,7 @@ fn escalating_delay_engages_counts_and_grows() {
 fn correct_passphrase_after_window_unlocks_and_resets() {
     let _g = env_lock();
     let cfg = fresh_test_env("delay_reset");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
 
     for _ in 0..3 {
         unlock_guarded_at(WRONG, T0).expect("guarded attempt");
@@ -228,7 +228,7 @@ fn correct_passphrase_after_window_unlocks_and_resets() {
 fn persistence_across_simulated_restart_continues_count_and_delay() {
     let _g = env_lock();
     let cfg = fresh_test_env("delay_restart");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
 
     for _ in 0..3 {
         unlock_guarded_at(WRONG, T0).expect("guarded attempt");
@@ -270,7 +270,7 @@ fn persistence_across_simulated_restart_continues_count_and_delay() {
 fn clock_rollback_fails_safe() {
     let _g = env_lock();
     fresh_test_env("delay_rollback");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
 
     for _ in 0..3 {
         unlock_guarded_at(WRONG, T0).expect("guarded attempt");
@@ -299,7 +299,7 @@ fn clock_rollback_fails_safe() {
 fn unarmed_default_never_wipes() {
     let _g = env_lock();
     let cfg = fresh_test_env("wipe_unarmed");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
     assert_eq!(
         wipe_after_failed_unlocks_limit(),
         Ok(None),
@@ -336,7 +336,7 @@ fn unarmed_default_never_wipes() {
 fn armed_wipe_triggers_exactly_at_threshold_with_restored_marker() {
     let _g = env_lock();
     let cfg = fresh_test_env("wipe_armed");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
     wipe_after_failed_unlocks_arm(3).expect("arm");
     assert_eq!(wipe_after_failed_unlocks_limit(), Ok(Some(3)));
     drain_markers();
@@ -391,7 +391,7 @@ fn armed_wipe_triggers_exactly_at_threshold_with_restored_marker() {
 fn arm_bounds_enforced_and_disarm_persists_off() {
     let _g = env_lock();
     let cfg = fresh_test_env("wipe_bounds");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
 
     // Historical bounds 1..=100 restored and enforced.
     assert_eq!(
@@ -430,7 +430,7 @@ fn arm_bounds_enforced_and_disarm_persists_off() {
 fn lock_is_one_operation_idempotent_and_relockable() {
     let _g = env_lock();
     fresh_test_env("lock_one_op");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
 
     // Unlocked state with a live session: passphrase set, flag true, session open.
     assert_eq!(unlock_guarded(PASS), Ok(GuardedUnlockOutcome::Unlocked));
@@ -467,7 +467,7 @@ fn lock_is_one_operation_idempotent_and_relockable() {
 fn destroy_refuses_wrong_passphrase_empty_passphrase_and_wrong_token() {
     let _g = env_lock();
     let cfg = fresh_test_env("destroy_refusals");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
     unlock_with_passphrase(PASS).expect("unlock");
     secret_set("na0658-k", "na0658-v").expect("seed secret");
 
@@ -504,7 +504,7 @@ fn destroy_refuses_wrong_passphrase_empty_passphrase_and_wrong_token() {
 fn destroy_with_token_is_irreversible_and_leaves_locked() {
     let _g = env_lock();
     let cfg = fresh_test_env("destroy_final");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
     unlock_with_passphrase(PASS).expect("unlock");
     secret_set("na0658-k", "na0658-v").expect("seed secret");
     set_vault_unlocked(true);

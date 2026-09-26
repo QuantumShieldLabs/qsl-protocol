@@ -24,7 +24,7 @@ use qsc::vault::protection::{
     DestroyConfirmToken,
 };
 use qsc::vault::{
-    secret_set, set_process_passphrase, unlock_with_passphrase, vault_init_with_passphrase,
+    secret_set, set_process_passphrase, unlock_with_passphrase, vault_init_directional_with_passphrase,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -93,7 +93,7 @@ fn fresh_test_env(tag: &str) -> PathBuf {
 fn destroy_under_lock_succeeds_with_armed_limit() {
     let _g = env_lock();
     let cfg = fresh_test_env("destroy_under_lock");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
     wipe_after_failed_unlocks_arm(3).expect("arm the wipe-after-N limit");
 
     destroy_with_passphrase(PASS, DestroyConfirmToken::confirm(PASS))
@@ -109,13 +109,13 @@ fn destroy_under_lock_succeeds_with_armed_limit() {
 fn destroy_clears_protection_state_observed_via_pub_surface() {
     let _g = env_lock();
     let _cfg = fresh_test_env("destroy_clears");
+    vault_init_directional_with_passphrase(PASS).expect("init fresh vault");
     wipe_after_failed_unlocks_arm(3).expect("arm the wipe-after-N limit");
     assert_eq!(
         wipe_after_failed_unlocks_limit(),
         Ok(Some(3)),
         "arming must be observable before destroy"
     );
-    vault_init_with_passphrase(PASS).expect("init");
 
     destroy_with_passphrase(PASS, DestroyConfirmToken::confirm(PASS)).expect("destroy");
 
@@ -143,7 +143,7 @@ fn secret_set_fails_closed_while_store_lock_held() {
 
     let _g = env_lock();
     let cfg = fresh_test_env("serialization");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
     unlock_with_passphrase(PASS).expect("unlock");
     secret_set("na0693-pre", "v").expect("an unlocked-store write succeeds");
 

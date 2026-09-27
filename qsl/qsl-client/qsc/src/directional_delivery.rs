@@ -1464,4 +1464,24 @@ mod f03_s9_distinct_codes_tests {
         assert!(body_decode(&frame(0,b"not a file")).is_ok());
         assert!(Apply("INTEGRATION_FILE_GATED").expected_non_admission());
     }
+    /// S9b: the gate's edges -- no kind byte, the kind byte alone, and either side of the cap.
+    #[test]
+    fn s9b_body_decode_prefix_edge_lengths() {
+        let prefix = |len: usize| {
+            let mut raw = b"NDI2\x01".to_vec();
+            raw.resize(len, 0);
+            raw
+        };
+        let got: Vec<_> = [4, 5, 60000, 60001]
+            .iter()
+            .map(|&len| (len, body_decode(&prefix(len)).err()))
+            .collect();
+        let want = vec![
+            (4, Some("INTEGRATION_LENGTH")),
+            (5, Some("INTEGRATION_FILE_GATED")),
+            (60000, Some("INTEGRATION_FILE_GATED")),
+            (60001, Some("INTEGRATION_LENGTH")),
+        ];
+        assert_eq!(got, want);
+    }
 }

@@ -64,6 +64,7 @@ tests/envelope.rs	3
 tests/f03_crossed_send.rs	0
 tests/f03_fixture_helpers.rs	1
 tests/f03_handshake_vectors.rs	3
+tests/f03_o7_attempt_guard.rs	3
 tests/f03_profile_refusal.rs	3
 tests/file_transfer_mvp.rs	3
 tests/fs_store_contract_na0217b.rs	2

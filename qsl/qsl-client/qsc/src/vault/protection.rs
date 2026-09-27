@@ -155,7 +155,17 @@ pub fn unlock_guarded_at(
             retry_after_s: wait,
         });
     }
-    if let Ok(session) = authenticate_with_passphrase(passphrase) {
+    // NA-0785 F03 S8 (C01 O7): only a passphrase-authentication failure counts. Every
+    // other refusal of the unlock path (version, format, KDF header, provider, the
+    // post-AEAD payload checks, the empty passphrase) returns its own unchanged code
+    // BEFORE the counter below: no counter write, no delay, no wipe.
+    let attempt = authenticate_with_passphrase(passphrase);
+    if let Err(refusal) = &attempt {
+        if !refusal.is_passphrase_authentication_failure() {
+            return Err(refusal.code());
+        }
+    }
+    if let Ok(session) = attempt {
         finish_ownership_unlock(session)?;
         // Best-effort reset, the historical semantics: written only when there is
         // something to reset, and a persist failure must not undo the unlock.

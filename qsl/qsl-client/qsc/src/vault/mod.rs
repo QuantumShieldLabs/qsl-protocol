@@ -258,11 +258,49 @@ fn finish_ownership_unlock(mut session: VaultSession) -> Result<(), &'static str
     Ok(())
 }
 
-fn authenticate_with_passphrase(passphrase: &str) -> Result<VaultSession, &'static str> {
-    if passphrase.is_empty() {
-        return Err("vault_locked");
+// NA-0785 F03 S8 (C01 O7): an unlock-path refusal, typed where its cause is known. `code`
+// is the unchanged marker every caller sees; the string alone cannot carry the class
+// ("vault_locked" is overloaded). `aead_key_source` is set at ONE site, the AEAD tag
+// check in `decrypt_payload_typed`, to the key source whose key failed it; every other
+// refusal converts through `From` with None.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct UnlockRefusal {
+    code: &'static str,
+    aead_key_source: Option<u8>,
+}
+
+impl UnlockRefusal {
+    /// The one class the attempt guard counts: the AEAD tag failed under a key derived
+    /// from the passphrase (key_source 1). Guard callers always supply the passphrase.
+    fn is_passphrase_authentication_failure(&self) -> bool {
+        self.aead_key_source == Some(1)
     }
-    let session = open_session(Some(passphrase))?;
+
+    fn code(&self) -> &'static str {
+        self.code
+    }
+}
+
+impl From<&'static str> for UnlockRefusal {
+    fn from(code: &'static str) -> Self {
+        UnlockRefusal {
+            code,
+            aead_key_source: None,
+        }
+    }
+}
+
+impl From<UnlockRefusal> for &'static str {
+    fn from(refusal: UnlockRefusal) -> Self {
+        refusal.code
+    }
+}
+
+fn authenticate_with_passphrase(passphrase: &str) -> Result<VaultSession, UnlockRefusal> {
+    if passphrase.is_empty() {
+        return Err("vault_locked".into());
+    }
+    let session = open_session_typed(Some(passphrase))?;
     set_process_passphrase(Some(passphrase));
     Ok(session)
 }
@@ -442,8 +480,12 @@ pub fn secret_set_with_passphrase(
 // phase; dormant until the GUI consumes it (dead_code allowance retained meanwhile).
 #[allow(dead_code)]
 pub fn open_session(passphrase_override: Option<&str>) -> Result<VaultSession, &'static str> {
+    open_session_typed(passphrase_override).map_err(|refusal| refusal.code())
+}
+
+fn open_session_typed(passphrase_override: Option<&str>) -> Result<VaultSession, UnlockRefusal> {
     let (vault_path, runtime) = load_vault_runtime_with_passphrase(passphrase_override)?;
-    let payload = decrypt_payload(&runtime)?;
+    let payload = decrypt_payload_typed(&runtime)?;
     Ok(VaultSession {
         vault_path,
         envelope: runtime.envelope,
@@ -1112,9 +1154,13 @@ fn derive_runtime_key(
 }
 
 fn decrypt_payload(env: &VaultRuntime) -> Result<VaultPayload, &'static str> {
+    decrypt_payload_typed(env).map_err(|refusal| refusal.code())
+}
+
+fn decrypt_payload_typed(env: &VaultRuntime) -> Result<VaultPayload, UnlockRefusal> {
     PERF_VAULT_DECRYPTS.fetch_add(1, Ordering::Relaxed);
     if env.envelope.ciphertext.len() < 12 {
-        return Err("vault_parse_failed");
+        return Err("vault_parse_failed".into());
     }
     let (nonce_bytes, ciphertext) = env.envelope.ciphertext.split_at(12);
     let cipher = ChaCha20Poly1305::new(Key::from_slice(&env.key));
@@ -1139,7 +1185,11 @@ fn decrypt_payload(env: &VaultRuntime) -> Result<VaultPayload, &'static str> {
                 aad: &aad,
             },
         )
-        .map_err(|_| "vault_locked")?;
+        // C01 O7: the only site that records an AEAD failure, with the key's source.
+        .map_err(|_| UnlockRefusal {
+            code: "vault_locked",
+            aead_key_source: Some(env.envelope.key_source),
+        })?;
     let payload: VaultPayload = serde_json::from_slice(&plaintext).map_err(|_| "vault_parse_failed")?;
     check_directional_aggregate(&payload)?;
     Ok(payload)

@@ -475,3 +475,15 @@ fn o7_control_v1_foreign_ciphertext_counted_and_wiped_at_limit() {
         spliced
     });
 }
+
+// S8b DIAGNOSTIC (scratch only, never committed): the gate's upper edge. A ct_len of exactly
+// 16 is a full-length tag with no plaintext: it reaches the AEAD and must stay COUNTED.
+#[test]
+fn diag_k2s_tag_only_ct_len_16_counted() {
+    assert_counted("diag ct16", "diag_ct16", PASS, |cfg| {
+        let mut bytes = init_good_vault(cfg);
+        bytes[21..25].copy_from_slice(&16u32.to_le_bytes());
+        bytes.truncate(HEADER_LEN + 16);
+        bytes
+    });
+}

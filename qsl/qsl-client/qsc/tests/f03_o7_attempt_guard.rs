@@ -5,13 +5,13 @@
 // empty passphrase) after an on-disk change, with the wipe armed at 1, through ONE
 // unlock_guarded_at call. A version or format refusal must return its own unchanged
 // code and have no effect: no counter write, no delay, no wipe, vault bytes untouched
-// (I03). The two COUNT controls (a wrong passphrase, and C01 V1's foreign ciphertext
-// under intact-looking magic and KDF words) must stay counted, so the guard can still
-// go red.
+// (I03). The three COUNT controls (a wrong passphrase; C01 V1's foreign ciphertext
+// under intact-looking magic and KDF words; and V8's upper edge, a ct_len-16 tag-only
+// file) must stay counted, so the guard can still go red.
 //
 // Harness: the NA-0658 pattern -- the pub library surface only, every test serialised
 // on ENV_LOCK, a fresh QSC_CONFIG_DIR per test under QSC_TEST_ROOT, the clock seam
-// taking a fabricated reading. Arms iv and v re-encrypt a hand-built payload under
+// taking a fabricated reading. Arms iv, v and viii re-encrypt a hand-built payload under
 // Argon2id(PASS, the product vault's own salt) with the 53-byte header as AAD (the
 // na0694 construction); a positive self-check proves the builder authenticates first.
 
@@ -215,7 +215,7 @@ fn assert_refused_uncounted(arm: &str, cfg: &Path, passphrase: &str, code: &'sta
         vault_before,
         "O7 {arm}: vault bytes untouched"
     );
-    // Refused before any key is derived; iv and v are post-AEAD, so Argon2 runs there.
+    // Refused before any key is derived; iv, v and viii are post-AEAD, so Argon2 runs there.
     let pre_kdf = [
         "arm i-a",
         "arm i-b",
@@ -227,6 +227,9 @@ fn assert_refused_uncounted(arm: &str, cfg: &Path, passphrase: &str, code: &'sta
     ];
     if pre_kdf.contains(&arm) {
         assert_eq!(kdf_after, kdf_before, "O7 {arm}: Argon2 not run");
+    }
+    if arm == "arm viii" {
+        assert_eq!(kdf_after - kdf_before, 1, "O7 {arm}: Argon2 run once");
     }
     assert!(!vault_unlocked(), "O7 {arm}: not unlocked");
     assert!(!has_process_passphrase(), "O7 {arm}: no process passphrase");
@@ -387,6 +390,24 @@ fn o7_arm_vii_short_tag_ct_len_15_refused_uncounted() {
     );
 }
 
+/// S10a (S8b F-12), the other half of why 16 is the gate's edge: a ct_len-16 file CAN
+/// authenticate -- a real tag over an EMPTY plaintext under PASS. It is then refused
+/// post-AEAD (the empty payload is no vault document), uncounted, with Argon2 run once.
+#[test]
+fn o7_arm_viii_ct16_authenticated_empty_plaintext_refused_uncounted() {
+    refuse_case(
+        "arm_viii_ct16",
+        "arm viii",
+        "vault_parse_failed",
+        |cfg, bytes| {
+            assert_builder_authenticates(cfg, &bytes);
+            let sealed = authenticated_envelope(&bytes, b"", [0x88; 12]);
+            assert_eq!(sealed.len(), HEADER_LEN + 16, "arm viii: ct_len 16");
+            write_vault(cfg, &sealed);
+        },
+    );
+}
+
 // ---------------------------------------------------------------------------
 // COUNT controls: must stay counted before AND after the fix
 // ---------------------------------------------------------------------------
@@ -476,10 +497,12 @@ fn o7_control_v1_foreign_ciphertext_counted_and_wiped_at_limit() {
     });
 }
 
-// S8b DIAGNOSTIC (scratch only, never committed): the gate's upper edge. A ct_len of exactly
-// 16 is a full-length tag with no plaintext: it reaches the AEAD and must stay COUNTED.
+/// COUNT control, C01 T2 V8's upper edge (committed in S8b c5; named in S10a): a ct_len of
+/// exactly 16 is a full-length tag with no plaintext. It passes the tag-length gate and
+/// reaches the AEAD, which rejects it (these 16 bytes are no tag over this header): an
+/// authentication failure, so it must stay COUNTED. Arm viii is its authenticated twin.
 #[test]
-fn diag_k2s_tag_only_ct_len_16_counted() {
+fn o7_control_ct16_tag_only_counted() {
     assert_counted("diag ct16", "diag_ct16", PASS, |cfg| {
         let mut bytes = init_good_vault(cfg);
         bytes[21..25].copy_from_slice(&16u32.to_le_bytes());

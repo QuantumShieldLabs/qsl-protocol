@@ -14,6 +14,7 @@
 // The authenticated hostile frames come from the existing acceptance seams
 // (na0780_test_hostile_wire, na0780_test_receive_response); the file needs the crate's
 // existing `na0780-test-hooks` feature and is empty without it.
+// compile-only in CI (no hooks-feature job yet; OWED S10): the manifest rows build it empty.
 // A synthetic local run; it says nothing about production or the real relay deployment.
 #![cfg(feature = "na0780-test-hooks")]
 

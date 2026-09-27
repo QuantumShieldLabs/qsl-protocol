@@ -2076,7 +2076,7 @@ fn review_r01_batch(fixed: bool) {
         let lease = server.review_lease_snapshot(ROUTE_TOKEN_BOB);
         assert_eq!(lease.retained, before_retained); assert_eq!(lease.acks, before_acks);
         assert_eq!(server.directional_pushes().iter().filter(|p| p.body.starts_with(b"NDR1")).count(), before_receipts);
-        println!("R01 fixed seven_codes=pass local_write_failure=propagated retained=true no_ack_or_receipt=true");
+        println!("R01 fixed seven_modes_five_codes=pass local_write_failure=propagated retained=true no_ack_or_receipt=true");
     }
 }
 

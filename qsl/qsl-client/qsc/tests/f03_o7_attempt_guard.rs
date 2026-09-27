@@ -1,12 +1,13 @@
 // NA-0785 F03 S8 (C01 O7): the attempt guard counts ONLY a passphrase-authentication
 // failure. C01 T6 O7 makes it a precondition; T2 rows V1, V2, V7 and V8 name the cases.
 //
-// Every arm opens a product-initialised vault with the CORRECT passphrase after an
-// on-disk change, with the wipe armed at 1, through ONE unlock_guarded_at call. A
-// version or format refusal must return its own unchanged code and have no effect: no
-// counter write, no delay, no wipe, vault bytes untouched (I03). The two COUNT
-// controls (a wrong passphrase, and C01 V1's foreign ciphertext under intact-looking
-// magic and KDF words) must stay counted, so the guard can still go red.
+// Every arm opens a product-initialised vault with the CORRECT passphrase (arm vi: the
+// empty passphrase) after an on-disk change, with the wipe armed at 1, through ONE
+// unlock_guarded_at call. A version or format refusal must return its own unchanged
+// code and have no effect: no counter write, no delay, no wipe, vault bytes untouched
+// (I03). The two COUNT controls (a wrong passphrase, and C01 V1's foreign ciphertext
+// under intact-looking magic and KDF words) must stay counted, so the guard can still
+// go red.
 //
 // Harness: the NA-0658 pattern -- the pub library surface only, every test serialised
 // on ENV_LOCK, a fresh QSC_CONFIG_DIR per test under QSC_TEST_ROOT, the clock seam
@@ -214,8 +215,18 @@ fn assert_refused_uncounted(arm: &str, cfg: &Path, passphrase: &str, code: &'sta
         vault_before,
         "O7 {arm}: vault bytes untouched"
     );
-    if arm == "arm iii" {
-        assert_eq!(kdf_after, kdf_before, "O7 arm iii: Argon2 not run");
+    // Refused before any key is derived; iv and v are post-AEAD, so Argon2 runs there.
+    let pre_kdf = [
+        "arm i-a",
+        "arm i-b",
+        "arm ii",
+        "arm iii",
+        "arm vi",
+        "arm vii-a",
+        "arm vii-b",
+    ];
+    if pre_kdf.contains(&arm) {
+        assert_eq!(kdf_after, kdf_before, "O7 {arm}: Argon2 not run");
     }
     assert!(!vault_unlocked(), "O7 {arm}: not unlocked");
     assert!(!has_process_passphrase(), "O7 {arm}: no process passphrase");
@@ -345,6 +356,37 @@ fn o7_arm_vi_empty_passphrase_refused_uncounted() {
     refuse_case("arm_vi_empty", "arm vi", "vault_locked", |_, _| {});
 }
 
+/// C01 T2 V8, S8b: the encrypted part after the nonce is shorter than the 16-byte tag.
+/// Magic, key_source, KDF words, salt and nonce are the product's; ct_len and the file
+/// length agree, so the parser accepts it. It can never authenticate: a format defect.
+fn with_short_tag(ct_len: u32) -> impl FnOnce(&Path, Vec<u8>) {
+    move |cfg, mut bytes| {
+        bytes[21..25].copy_from_slice(&ct_len.to_le_bytes());
+        bytes.truncate(HEADER_LEN + ct_len as usize);
+        write_vault(cfg, &bytes);
+    }
+}
+
+#[test]
+fn o7_arm_vii_short_tag_ct_len_0_refused_uncounted() {
+    refuse_case(
+        "arm_vii_ct0",
+        "arm vii-a",
+        "vault_parse_failed",
+        with_short_tag(0),
+    );
+}
+
+#[test]
+fn o7_arm_vii_short_tag_ct_len_15_refused_uncounted() {
+    refuse_case(
+        "arm_vii_ct15",
+        "arm vii-b",
+        "vault_parse_failed",
+        with_short_tag(15),
+    );
+}
+
 // ---------------------------------------------------------------------------
 // COUNT controls: must stay counted before AND after the fix
 // ---------------------------------------------------------------------------
@@ -431,5 +473,17 @@ fn o7_control_v1_foreign_ciphertext_counted_and_wiped_at_limit() {
         spliced.extend_from_slice(&own[25..41]);
         spliced.extend_from_slice(&foreign[41..]);
         spliced
+    });
+}
+
+// S8b DIAGNOSTIC (scratch only, never committed): the gate's upper edge. A ct_len of exactly
+// 16 is a full-length tag with no plaintext: it reaches the AEAD and must stay COUNTED.
+#[test]
+fn diag_k2s_tag_only_ct_len_16_counted() {
+    assert_counted("diag ct16", "diag_ct16", PASS, |cfg| {
+        let mut bytes = init_good_vault(cfg);
+        bytes[21..25].copy_from_slice(&16u32.to_le_bytes());
+        bytes.truncate(HEADER_LEN + 16);
+        bytes
     });
 }

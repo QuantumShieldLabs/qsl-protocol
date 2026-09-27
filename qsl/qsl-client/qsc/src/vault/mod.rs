@@ -1104,6 +1104,12 @@ fn parse_envelope(bytes: &[u8]) -> Result<VaultRuntimeEnvelope, &'static str> {
     if parsed.kdf_m_kib != KDF_M_KIB || parsed.kdf_t != KDF_T || parsed.kdf_p != KDF_P {
         return Err("vault_parse_failed");
     }
+    // NA-0785 F03 S8b (C01 O7, T2 V8): the ciphertext after the 12-byte nonce must hold at
+    // least the 16-byte tag. A shorter one can never authenticate: a format defect, refused
+    // here before any key is derived, so it is never counted as a wrong passphrase.
+    if parsed.ciphertext.len() < 12 + 16 {
+        return Err("vault_parse_failed");
+    }
     Ok(VaultRuntimeEnvelope {
         key_source: parsed.key_source,
         salt: parsed.salt,

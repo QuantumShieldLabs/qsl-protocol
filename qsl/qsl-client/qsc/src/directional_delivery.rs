@@ -376,6 +376,21 @@ struct TypedBody {
     payload: Vec<u8>,
     closures: Vec<Closure>,
 }
+// The typed-body prefix, named and read in ONE place (F03 S9b): the length cap, the NDI magic
+// and the kind byte. typed_body_decode and body_decode's file gate both read it here, so the
+// gate cannot drift from the decoder.
+const TYPED_BODY_CAP: usize = 60000;
+const TYPED_BODY_MAGIC: &[u8; 4] = b"NDI2";
+const FILE_KINDS: std::ops::RangeInclusive<u8> = 1..=4;
+fn typed_body_prefix(raw: &[u8]) -> R<u8> {
+    if raw.len() > TYPED_BODY_CAP {
+        return Err("INTEGRATION_LENGTH");
+    }
+    if raw.get(..4).ok_or("INTEGRATION_LENGTH")? != TYPED_BODY_MAGIC {
+        return Err("INTEGRATION_MAGIC");
+    }
+    raw.get(4).copied().ok_or("INTEGRATION_LENGTH")
+}
 fn typed_body_decode(raw: &[u8]) -> R<TypedBody> {
     struct Reader<'a>(&'a [u8]);
     impl<'a> Reader<'a> {
@@ -386,10 +401,8 @@ fn typed_body_decode(raw: &[u8]) -> R<TypedBody> {
         fn byte(&mut self) -> R<u8> { Ok(self.take(1)?[0]) }
         fn u32(&mut self) -> R<u32> { Ok(u32::from_be_bytes(self.take(4)?.try_into().unwrap())) }
     }
-    if raw.len() > 60000 { return Err("INTEGRATION_LENGTH"); }
-    let mut r = Reader(raw);
-    if r.take(4)? != b"NDI2" { return Err("INTEGRATION_MAGIC"); }
-    let kind = r.byte()?;
+    let kind = typed_body_prefix(raw)?;
+    let mut r = Reader(&raw[5..]);
     let id_len = r.byte()? as usize;
     if id_len > 64 { return Err("INTEGRATION_ID"); }
     let id = std::str::from_utf8(r.take(id_len)?).map_err(|_| "INTEGRATION_ID")?.to_owned();
@@ -417,14 +430,16 @@ fn typed_body_decode(raw: &[u8]) -> R<TypedBody> {
     Ok(TypedBody { kind, id, payload, closures })
 }
 fn body_decode(raw: &[u8]) -> R<(String, Vec<u8>, bool, Vec<Closure>)> {
-    // Files are gated on the kind byte, before any file-shape validation (C01 O9): the frame
-    // parses exactly as far as typed_body_decode reads its kind. The check after the decode
-    // stays as the backstop.
-    if raw.len() <= 60000 && raw.starts_with(b"NDI2") && raw.get(4).is_some_and(|kind| (1..=4).contains(kind)) {
+    // Files are gated on the kind byte, before any file-shape validation (C01 T2 H, C06 GT1):
+    // the gate reads the prefix through typed_body_prefix, exactly as typed_body_decode does.
+    // The check after the decode stays as the backstop.
+    if typed_body_prefix(raw).is_ok_and(|kind| FILE_KINDS.contains(&kind)) {
         return Err("INTEGRATION_FILE_GATED");
     }
     let body = typed_body_decode(raw)?;
-    if (1..=4).contains(&body.kind) { return Err("INTEGRATION_FILE_GATED"); }
+    if FILE_KINDS.contains(&body.kind) {
+        return Err("INTEGRATION_FILE_GATED");
+    }
     Ok((body.id, body.payload, body.kind == 5, body.closures))
 }
 impl Transaction {
@@ -963,6 +978,7 @@ pub(crate) fn test_body(mode: &str) -> R<Vec<u8>> {
     let size_offset = 12 + id.len() + 45 * closures.len();
     match mode {
         "maintenance" => {},
+        // A wrong NDI magic: refused INTEGRATION_MAGIC since S9 (the mode keeps its name).
         "body_profile" => body[3] = b'1',
         "body_kind" => body[4] = 255,
         "body_padding_profile" => body[7 + id.len()] = 0,
@@ -1397,7 +1413,8 @@ mod r02_intent_profile_tests {
 
 // NA-0785 PLAN F03 / S9 -- C01 O9 distinct codes at the decode entry points. e2 lives here
 // because no seam outside the crate reaches QueuedIntent::decode (tests/f03_distinct_codes.rs
-// drives e1 and e5 through the real receive path).
+// drives e1 and e5 through the real receive path, but only under the na0780-test-hooks
+// feature: no CI job runs it, so this module is the CI guard for e1, e2 and e5).
 #[cfg(test)]
 mod f03_s9_distinct_codes_tests {
     use super::*;
@@ -1463,5 +1480,25 @@ mod f03_s9_distinct_codes_tests {
         assert_eq!(body_decode(&frame(6,b"x")).err(),Some("INTEGRATION_KIND"));
         assert!(body_decode(&frame(0,b"not a file")).is_ok());
         assert!(Apply("INTEGRATION_FILE_GATED").expected_non_admission());
+    }
+    /// S9b: the gate's edges -- no kind byte, the kind byte alone, and either side of the cap.
+    #[test]
+    fn s9b_body_decode_prefix_edge_lengths() {
+        let prefix = |len: usize| {
+            let mut raw = b"NDI2\x01".to_vec();
+            raw.resize(len, 0);
+            raw
+        };
+        let got: Vec<_> = [4, 5, 60000, 60001]
+            .iter()
+            .map(|&len| (len, body_decode(&prefix(len)).err()))
+            .collect();
+        let want = vec![
+            (4, Some("INTEGRATION_LENGTH")),
+            (5, Some("INTEGRATION_FILE_GATED")),
+            (60000, Some("INTEGRATION_FILE_GATED")),
+            (60001, Some("INTEGRATION_LENGTH")),
+        ];
+        assert_eq!(got, want);
     }
 }

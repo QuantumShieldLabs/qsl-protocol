@@ -32,12 +32,32 @@
 //! (`git grep -c 'start_inbox_server'` over this file == 0). The mock always pops on pull and
 //! cannot express a lease, so "the frame is still resident afterwards" would be VACUOUS against
 //! it: the very property E3 exists to prove.
+//!
+//! ## NA-0785 PLAN F03 / S7 -- MOVED ONTO A REAL PAIR, AND THE D-1376 ARM RESTORED
+//!
+//! Every arm used to run over SEEDED parties (`QSC_QSP_SEED` + the seed fallback over
+//! `init_mock_vault`) that the integration head refuses at setup (`directional_profile_required`,
+//! S3 rows R080-R086), which MASKED this file's defect: the head's receive loop had lost main's
+//! known-foreign arm (`transport/mod.rs`, the `for item in items` loop), so an all-foreign round
+//! counted nothing and ended the pull -- the silent under-delivery T7 forbids. Each party is now one
+//! side of `common::init_real_pair` over the REAL leasing relay (a successor vault of
+//! `profile::ACTIVE`, a pinned identity, a trusted device and a REAL handshake); no seeded session,
+//! no seed fallback, no fabricated key. The Mock relay is used by NO arm: every property here is
+//! about lease and residency on the real relay.
+//!
+//! ⚠ WHAT THE HEAD CHANGED UNDER T2's CONTROL AND T3 (not S7's delta; escalated, not repaired here):
+//! an Unknown-class frame no longer ABORTS the batch. It reaches the directional core, whose refusal
+//! of such bytes is an expected non-admission -- counted `skipped`, NO marker, NO ACK
+//! (`transport/mod.rs`, the non-foreign branch). Those arms keep their property -- Unknown is never
+//! class-skipped, it reaches the decoder and is refused there -- and re-express the witness; each
+//! old -> new pair is named at its assertion (lane map MAP_S7.tsv). A synthetic local run; it says
+//! nothing about production or the real relay deployment.
 
 mod common;
 
+use common::{PairRelay, QslRelayTestServer, RealPair, VaultFixture};
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::sync::{Mutex, MutexGuard, OnceLock};
 use std::thread;
 use std::time::Duration;
@@ -84,6 +104,14 @@ const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 /// production figure and the lease-expiry interaction is recorded rather than folded in here.
 const PRODUCTION_PULL_LEASE_SECS: usize = 60;
 
+/// The residency wait for an arm on `PRODUCTION_PULL_LEASE_SECS` (T3). The relay stamps
+/// `leased_until = now + lease` and serves an item only once that has passed, so a residency probe
+/// must wait out the WHOLE production lease; `LEASE_EXPIRY_WAIT` is sized for the 8 s lease and
+/// would probe a still-leased frame (measured: 0 items resident). The 12 s margin is the one
+/// `LEASE_EXPIRY_WAIT` keeps over `TEST_PULL_LEASE_SECS`.
+const PRODUCTION_LEASE_EXPIRY_WAIT: Duration =
+    Duration::from_secs(PRODUCTION_PULL_LEASE_SECS as u64 + 12);
+
 fn guard() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     LOCK.get_or_init(|| Mutex::new(()))
@@ -116,109 +144,50 @@ fn ensure_dir_700(path: &Path) {
     }
 }
 
-fn test_root(tag: &str) -> PathBuf {
-    let root = common::unique_test_root(tag);
-    ensure_dir_700(&root);
-    root
+/// NA-0785 PLAN F03 / S7: this file's relay is always the REAL in-process leasing qsl-server.
+fn start_relay(pull_lease_secs: usize) -> QslRelayTestServer {
+    common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, pull_lease_secs)
 }
 
-fn qsc(cfg: &Path) -> Command {
-    // ⚠ `qsc_std_command()` ALREADY applies the mock-vault unlock args; re-adding them makes clap
-    // reject `--unlock-passphrase-env` as repeated and fails setup before any measurement runs.
-    let mut c = common::qsc_std_command();
-    c.env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain");
-    c
+/// NA-0785 PLAN F03 / S7 -- THE HONEST FIXTURE (replaces `party` / `setup` / `add_contact`, whose
+/// seeded parties the head refuses at setup). Two successor vaults with pinned identities, trusted
+/// devices and a REAL handshake over the leasing relay. `a` and `b` are `(label, inbox route
+/// token)`; each side's peer is the OTHER side's label, so `--from` on Bob's side names `alice`.
+fn pair(tag: &str, relay: &QslRelayTestServer, a: (&str, &str), b: (&str, &str)) -> RealPair {
+    common::init_real_pair(tag, PairRelay::Leasing(relay), a, b)
 }
 
-fn run_ok(cfg: &Path, args: &[&str]) -> String {
-    let out = qsc(cfg).args(args).output().expect("run qsc");
-    let text = output_text(&out);
-    assert!(out.status.success(), "expected success: {args:?}\n{text}");
-    text
-}
-
-fn run_any(cfg: &Path, args: &[&str]) -> (bool, String) {
-    let out = qsc(cfg).args(args).output().expect("run qsc");
+/// Every child goes through the fixture's own isolated command (HOME/XDG/TMPDIR, keychain off,
+/// the ACTIVE location variable, the fixture passphrase as the unlock source).
+fn run_any(v: &VaultFixture, args: &[&str]) -> (bool, String) {
+    let out = v
+        .command()
+        .env("QSC_MARK_FORMAT", "plain")
+        .args(args)
+        .output()
+        .expect("run qsc");
     (out.status.success(), output_text(&out))
 }
 
-fn party(root: &Path, name: &str, inbox: &str) -> PathBuf {
-    let cfg = root.join(name);
-    ensure_dir_700(&cfg);
-    common::init_mock_vault(&cfg);
-    run_ok(&cfg, &["identity", "rotate", "--confirm"]);
-    run_ok(&cfg, &["relay", "inbox-set", "--token", inbox]);
-    cfg
+fn run_ok(v: &VaultFixture, args: &[&str]) -> String {
+    let (ok, text) = run_any(v, args);
+    assert!(ok, "expected success: {args:?}\n{text}");
+    text
 }
 
-fn fingerprint(cfg: &Path) -> String {
-    run_ok(cfg, &["identity", "show"])
-        .lines()
-        .find_map(|l| l.strip_prefix("identity_fp="))
-        .expect("identity_fp")
-        .trim()
-        .to_string()
+/// A private directory inside the fixture's own root.
+fn fixture_dir(v: &VaultFixture, name: &str) -> PathBuf {
+    let dir = v.iso.root.join(name);
+    ensure_dir_700(&dir);
+    dir
 }
 
-/// ⚠ Adding the contact is NOT enough to send: its device must also be TRUSTED.
-fn add_contact(cfg: &Path, label: &str, fp: &str, route_token: &str) {
-    run_ok(
-        cfg,
-        &[
-            "contacts",
-            "add",
-            "--label",
-            label,
-            "--fp",
-            fp,
-            "--route-token",
-            route_token,
-        ],
-    );
-    let list = run_ok(cfg, &["contacts", "device", "list", "--label", label]);
-    let device = list
-        .lines()
-        .find_map(|line| {
-            line.split_whitespace()
-                .find_map(|tok| tok.strip_prefix("device="))
-        })
-        .unwrap_or_else(|| panic!("missing device output: {list}"));
-    run_ok(
-        cfg,
-        &[
-            "contacts",
-            "device",
-            "trust",
-            "--label",
-            label,
-            "--device",
-            device,
-            "--confirm",
-        ],
-    );
-}
-
-/// Alice sends, Bob receives. Both sides label the peer `bob`, exactly as `na0708_ack_flush.rs`
-/// does, so `--from bob` on Bob's side resolves to Alice's identity.
-fn setup(root: &Path, alice_inbox: &str, bob_inbox: &str) -> (PathBuf, PathBuf) {
-    let alice = party(root, "alice", alice_inbox);
-    let bob = party(root, "bob", bob_inbox);
-    let alice_fp = fingerprint(&alice);
-    let bob_fp = fingerprint(&bob);
-    add_contact(&alice, "bob", &bob_fp, bob_inbox);
-    add_contact(&bob, "bob", &alice_fp, alice_inbox);
-    (alice, bob)
-}
-
-fn send_message(alice: &Path, relay: &str, base: &Path, name: &str, bytes: &[u8]) {
-    let msg = base.join(name);
+/// `from` sends `bytes` to its handshaken peer `to`.
+fn send_message(from: &VaultFixture, relay: &str, to: &str, name: &str, bytes: &[u8]) {
+    let msg = fixture_dir(from, "payloads").join(name);
     fs::write(&msg, bytes).expect("write msg");
     let text = run_ok(
-        alice,
+        from,
         &[
             "send",
             "--transport",
@@ -226,7 +195,7 @@ fn send_message(alice: &Path, relay: &str, base: &Path, name: &str, bytes: &[u8]
             "--relay",
             relay,
             "--to",
-            "bob",
+            to,
             "--file",
             msg.to_str().expect("msg path"),
         ],
@@ -276,6 +245,22 @@ fn recv_file_count(out: &Path) -> usize {
             name.starts_with("recv_") && name.ends_with(".bin")
         })
         .count()
+}
+
+/// NA-0785 PLAN F03 / S7: every `recv_*.bin` in `out`, by content. The head names a received body
+/// `recv_<hex(hash)>.bin` (`directional_delivery.rs`, `project_received`), not `recv_1.bin`.
+fn received_bodies(out: &Path) -> Vec<Vec<u8>> {
+    let mut all: Vec<Vec<u8>> = fs::read_dir(out)
+        .expect("read out dir")
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            let name = e.file_name().to_string_lossy().to_string();
+            name.starts_with("recv_") && name.ends_with(".bin")
+        })
+        .map(|e| fs::read(e.path()).expect("read recv body"))
+        .collect();
+    all.sort();
+    all
 }
 
 /// ⚠ **LINE-SCOPED, ON PURPOSE.** A marker assertion written as two independent `contains` calls
@@ -393,34 +378,31 @@ fn handshake_frame() -> Vec<u8> {
 /// invite classes) and T2 (handshake), because the three classes must behave identically and a
 /// per-class copy of this body would let them drift apart silently.
 fn foreign_frame_arm(
-    base: &str,
-    root: &Path,
+    relay: &QslRelayTestServer,
     tag: &str,
     alice_inbox: &str,
     bob_inbox: &str,
     foreign: &[u8],
     expect_class: &str,
 ) {
-    let arm = root.join(tag);
-    ensure_dir_700(&arm);
-    let (alice, bob) = setup(&arm, alice_inbox, bob_inbox);
+    let base = relay.base_url();
+    let p = pair(
+        &format!("na0741_{tag}"),
+        relay,
+        ("alice", alice_inbox),
+        ("bob", bob_inbox),
+    );
+    let (alice, bob) = (&p.a, &p.b);
 
     // ORDER IS THE POINT: the foreign frame is at the HEAD, the real message behind it.
     push_raw(base, bob_inbox, foreign);
     let payload = format!("na0741 {tag} payload").into_bytes();
-    send_message(&alice, base, &arm, "m1.bin", &payload);
+    send_message(alice, base, "bob", "m1.bin", &payload);
 
-    let out = arm.join("out");
-    ensure_dir_700(&out);
+    let out = fixture_dir(bob, "out");
     let (ok, text) = run_any(
-        &bob,
-        &receive_args(
-            base,
-            bob_inbox,
-            "bob",
-            out.to_str().expect("out"),
-            "8",
-        ),
+        bob,
+        &receive_args(base, bob_inbox, "alice", out.to_str().expect("out"), "8"),
     );
 
     assert!(
@@ -437,13 +419,22 @@ fn foreign_frame_arm(
         ),
         "no `recv_frame_skipped class={expect_class} disposition=left_leased` marker:\n{text}"
     );
+    // REPLACED (NA-0785 F03 / S7, map MAP_S7.tsv): the head has no `recv_item` emit site (the
+    // name is only registered, `output/event_tables.rs`). The same property -- the real message
+    // behind the foreign frame WAS delivered -- is read from the output file and the commit marker.
+    assert_eq!(
+        recv_file_count(&out),
+        1,
+        "the real message behind the foreign frame was never delivered:\n{text}"
+    );
     assert!(
-        has_marker_line(&text, "recv_item", &[]),
+        has_marker_line(&text, "recv_commit", &["count=1"]),
         "the real message behind the foreign frame was never delivered:\n{text}"
     );
 
-    // The payload is byte-correct, not merely present.
-    let delivered = fs::read(out.join("recv_1.bin")).expect("recv_1.bin");
+    // The payload is byte-correct, not merely present. (REPLACED lookup only: the head names the
+    // body `recv_<hash>.bin`; the byte-exact comparison is unchanged.)
+    let delivered = received_bodies(&out).remove(0);
     assert_eq!(
         delivered, payload,
         "the delivered payload does not match what was sent:\n{text}"
@@ -466,15 +457,12 @@ fn foreign_frame_arm(
 #[test]
 fn invite_class_frames_at_head_do_not_abort_the_batch() {
     let _g = guard();
-    let relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
+    let relay = start_relay(TEST_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
-    let root = test_root("na0741_t1");
 
     foreign_frame_arm(
-        &base,
-        &root,
-        "resp",
+        &relay,
+        "t1_resp",
         "na0741-t1-resp-alice-tok-aaaaaaaa",
         "na0741-t1-resp-bob-tok-bbbbbbbbbb",
         &invite_resp_frame("na0741-t1-third-party-route-tok-cc"),
@@ -482,9 +470,8 @@ fn invite_class_frames_at_head_do_not_abort_the_batch() {
     );
 
     foreign_frame_arm(
-        &base,
-        &root,
-        "init",
+        &relay,
+        "t1_init",
         "na0741-t1-init-alice-tok-dddddddd",
         "na0741-t1-init-bob-tok-eeeeeeeeee",
         &invite_init_frame("na0741-t1-third-party-route-tok-ff"),
@@ -493,22 +480,27 @@ fn invite_class_frames_at_head_do_not_abort_the_batch() {
 
     // ---- NEGATIVE CONTROL: the same arrangement with NO foreign frame. ----
     // Without this the arms above cannot tell "the skip worked" from "the fixture never landed".
-    let ctrl = root.join("control");
-    ensure_dir_700(&ctrl);
-    let (c_alice, c_bob) = setup(
-        &ctrl,
-        "na0741-t1-ctrl-alice-tok-gggggggg",
-        "na0741-t1-ctrl-bob-tok-hhhhhhhhhh",
+    let c = pair(
+        "na0741_t1_control",
+        &relay,
+        ("alice", "na0741-t1-ctrl-alice-tok-gggggggg"),
+        ("bob", "na0741-t1-ctrl-bob-tok-hhhhhhhhhh"),
     );
-    send_message(&c_alice, &base, &ctrl, "m1.bin", b"na0741 t1 control payload");
-    let c_out = ctrl.join("out");
-    ensure_dir_700(&c_out);
+    let (c_alice, c_bob) = (&c.a, &c.b);
+    send_message(
+        c_alice,
+        &base,
+        "bob",
+        "m1.bin",
+        b"na0741 t1 control payload",
+    );
+    let c_out = fixture_dir(c_bob, "out");
     let (c_ok, c_text) = run_any(
-        &c_bob,
+        c_bob,
         &receive_args(
             &base,
             "na0741-t1-ctrl-bob-tok-hhhhhhhhhh",
-            "bob",
+            "alice",
             c_out.to_str().expect("out"),
             "8",
         ),
@@ -530,15 +522,11 @@ fn invite_class_frames_at_head_do_not_abort_the_batch() {
 #[test]
 fn handshake_class_frame_at_head_does_not_abort_the_batch() {
     let _g = guard();
-    let relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
-    let base = relay.base_url().to_string();
-    let root = test_root("na0741_t2");
+    let relay = start_relay(TEST_PULL_LEASE_SECS);
 
     foreign_frame_arm(
-        &base,
-        &root,
-        "magic",
+        &relay,
+        "t2_magic",
         "na0741-t2-alice-tok-aaaaaaaaaaaa",
         "na0741-t2-bob-tok-bbbbbbbbbbbbbb",
         &handshake_frame(),
@@ -563,29 +551,50 @@ fn handshake_class_frame_at_head_does_not_abort_the_batch() {
         "the control must differ in exactly ONE byte of the magic, or it is testing something else"
     );
 
-    let ctrl = root.join("bent");
-    ensure_dir_700(&ctrl);
     const CTRL_BOB: &str = "na0741-t2-bent-bob-tok-cccccccccc";
-    let (c_alice, c_bob) = setup(&ctrl, "na0741-t2-bent-alice-tok-dddddddd", CTRL_BOB);
-    push_raw(&base, CTRL_BOB, &bent);
-    send_message(&c_alice, &base, &ctrl, "m1.bin", b"na0741 t2 bent payload");
-
-    let c_out = ctrl.join("out");
-    ensure_dir_700(&c_out);
-    let (c_ok, c_text) = run_any(
-        &c_bob,
-        &receive_args(
-            &base,
-            CTRL_BOB,
-            "bob",
-            c_out.to_str().expect("out"),
-            "8",
-        ),
+    // ⚠ PRODUCTION-LENGTH LEASE for the control pair ONLY (NA-0785 F03 / S7, commit 3; ruling
+    // RULING_NA0785_F03_S7_stop R2) — see `PRODUCTION_PULL_LEASE_SECS`, as T7. One debug-build
+    // receive of this pair outlives the 8 s test lease (measured 28.4 s), so a second round re-pulls
+    // the unacked bent frame and counts a second refusal: the exact `count=1` below would measure
+    // lease expiry, not the counting branch. The magic arm above keeps the short lease its E3
+    // residency probe needs.
+    let relay = start_relay(PRODUCTION_PULL_LEASE_SECS);
+    let base = relay.base_url().to_string();
+    let c = pair(
+        "na0741_t2_bent",
+        &relay,
+        ("alice", "na0741-t2-bent-alice-tok-dddddddd"),
+        ("bob", CTRL_BOB),
     );
+    let (c_alice, c_bob) = (&c.a, &c.b);
+    push_raw(&base, CTRL_BOB, &bent);
+    send_message(c_alice, &base, "bob", "m1.bin", b"na0741 t2 bent payload");
+
+    let c_out = fixture_dir(c_bob, "out");
+    let (_c_ok, c_text) = run_any(
+        c_bob,
+        &receive_args(&base, CTRL_BOB, "alice", c_out.to_str().expect("out"), "8"),
+    );
+    // ⚠ RETIRED + REPLACED (NA-0785 F03 / S7, map MAP_S7.tsv). OLD: `assert!(!c_ok, ..)` -- at main
+    // the bent frame reached `qsp_unpack_for_peer` and ABORTED the batch. The integration head has no
+    // legacy unpack: a non-foreign frame goes to the directional core, and its refusal of these bytes
+    // (MAGIC) is an expected non-admission -- `continue`, counted `skipped`, NO marker, NO ACK
+    // (`transport/mod.rs`, the non-foreign branch of the receive loop; `protocol_state/mod.rs`,
+    // `expected_non_admission`). The exit status no longer separates the two polarities; the
+    // COUNTING BRANCH does. The bent frame is counted ONCE by the admission-refusal branch
+    // (`recv_skip_summary count=1`), NOT by the known-foreign arm (no `recv_frame_skipped`, the kept
+    // assertion below), and it is never delivered as content.
     assert!(
-        !c_ok,
-        "CONTROL FAILED: a one-byte-bent magic must classify Unknown and still abort the batch. \
-         If this passes, the classifier is matching something broader than the magic:\n{c_text}"
+        has_marker_line(&c_text, "recv_skip_summary", &["count=1"]),
+        "CONTROL FAILED: a one-byte-bent magic must classify Unknown and reach the directional \
+         admission, which refuses it (counted once by the admission-refusal branch). If this fails, \
+         the classifier is matching something broader than the magic:\n{c_text}"
+    );
+    assert_eq!(
+        received_bodies(&c_out),
+        vec![b"na0741 t2 bent payload".to_vec()],
+        "CONTROL FAILED: the bent frame must be refused, not delivered as content -- only the real \
+         message behind it is:\n{c_text}"
     );
     assert!(
         !c_text.contains("recv_frame_skipped"),
@@ -606,40 +615,68 @@ fn handshake_class_frame_at_head_does_not_abort_the_batch() {
 #[test]
 fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
     let _g = guard();
-    let relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
+    // ⚠ PRODUCTION-LENGTH LEASE (NA-0785 F03 / S7, commit 3; ruling RULING_NA0785_F03_S7_stop R4)
+    // — see `PRODUCTION_PULL_LEASE_SECS`, as T7. A debug-build receive can outlive the 8 s test
+    // lease; the junk would then be re-pulled inside the one receive and counted twice, and the
+    // exact `count=1` below would measure lease expiry, not the admission-refusal branch.
+    let relay = start_relay(PRODUCTION_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
-    let root = test_root("na0741_t3");
     const BOB: &str = "na0741-t3-bob-tok-bbbbbbbbbbbbbb";
-    let (_alice, bob) = setup(&root, "na0741-t3-alice-tok-aaaaaaaaaaaa", BOB);
+    let p = pair(
+        "na0741_t3",
+        &relay,
+        ("alice", "na0741-t3-alice-tok-aaaaaaaaaaaa"),
+        ("bob", BOB),
+    );
+    let bob = &p.b;
 
     // `FF FF …` matches NO discriminator: not the handshake magic, and `FF != 0x01`, so it is
     // none of the three envelope classes either.
     let junk = vec![0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF];
     push_raw(&base, BOB, &junk);
 
-    let out = root.join("out");
-    ensure_dir_700(&out);
-    let (ok, text) = run_any(
-        &bob,
-        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "8"),
+    let out = fixture_dir(bob, "out");
+    let (_ok, text) = run_any(
+        bob,
+        &receive_args(&base, BOB, "alice", out.to_str().expect("out"), "8"),
     );
 
+    // ⚠ RETIRED + REPLACED (NA-0785 F03 / S7, map MAP_S7.tsv). OLD: `assert!(!ok, ..)` and
+    // `qsp_unpack ok=false`. At main the junk reached `qsp_unpack_for_peer`, was rejected there and
+    // ABORTED the batch. The integration head has no legacy unpack and no `qsp_unpack` marker: the
+    // junk reaches the directional core, whose refusal (PARSE) is an expected non-admission --
+    // `continue`, counted `skipped`, NO marker, NO ACK (`transport/mod.rs`, the non-foreign branch
+    // of the receive loop; `protocol_state/mod.rs`, `expected_non_admission`). The property is kept
+    // and re-witnessed: the junk is REFUSED -- never delivered, never consumed (the residency check
+    // at the end) -- and it reached the DECODER rather than the class skip: counted once by the
+    // admission-refusal branch, the only branch an Unknown frame can reach.
     assert!(
-        !ok,
-        "OVER-SKIP: Unknown-class junk must STILL abort the batch. `Unknown` is deliberately not \
-         known-foreign — skipping it would delete six committed assertions and the NA-0187 \
-         onboarding surface:\n{text}"
+        has_marker_line(&text, "recv_none", &[]) && recv_file_count(&out) == 0,
+        "OVER-SKIP: Unknown-class junk must be REFUSED, never delivered. `Unknown` is deliberately \
+         not known-foreign — it must reach the decoder, not the class skip:\n{text}"
     );
     assert!(
-        has_marker_line(&text, "qsp_unpack", &["ok=false"]),
-        "the junk frame must still REACH unpack and be rejected there:\n{text}"
+        has_marker_line(&text, "recv_skip_summary", &["count=1"]),
+        "the junk frame must still REACH the decoder (the directional admission) and be rejected \
+         there -- counted once by the admission-refusal branch:\n{text}"
     );
     assert!(
         !text.contains("recv_frame_skipped"),
         "OVER-SKIP: an Unknown-class frame emitted a skip marker. `class=unknown` and \
          `class=message` cannot appear on `recv_frame_skipped` under N-PRIME — those classes never \
          reach the skip arm:\n{text}"
+    );
+
+    // REPLACED (with the two above): a refusal must not CONSUME the frame. Not acked, so after the
+    // lease it is resident again. The wait is mandatory for the reason E3 states, and it is the
+    // PRODUCTION lease's wait: this arm's relay runs `PRODUCTION_PULL_LEASE_SECS`.
+    thread::sleep(PRODUCTION_LEASE_EXPIRY_WAIT);
+    let resident = raw_pull_lease(&base, BOB, 8);
+    assert!(
+        resident.iter().any(|f| f.as_slice() == junk.as_slice()),
+        "the refused junk frame is GONE from the relay: a refusal must leave it unacked. {} \
+         item(s) resident.\n{text}",
+        resident.len()
     );
 }
 
@@ -669,10 +706,8 @@ fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
 #[test]
 fn lease_skips_the_foreign_frame_and_leaves_it_leased() {
     let _g = guard();
-    let relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
+    let relay = start_relay(TEST_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
-    let root = test_root("na0741_t4");
 
     // ⚠ ONE LEG REMAINS, so the separate-mailbox precaution below is now vestigial — kept because
     // it costs nothing and because a second leg, if one is ever earned back, would need it again.
@@ -682,25 +717,25 @@ fn lease_skips_the_foreign_frame_and_leaves_it_leased() {
     let frame = invite_resp_frame("na0741-t4-third-party-route-tok-a");
 
     // ---- LEG 1: LEASE — skips, exits 0. ----
-    let lease_dir = root.join("lease");
-    ensure_dir_700(&lease_dir);
     const LEASE_BOB: &str = "na0741-t4-lease-bob-tok-aaaaaaaaa";
-    let (l_alice, l_bob) = setup(&lease_dir, "na0741-t4-lease-alice-tok-bbbbbbb", LEASE_BOB);
-    push_raw(&base, LEASE_BOB, &frame);
-    send_message(&l_alice, &base, &lease_dir, "m1.bin", b"na0741 t4 lease payload");
-    let l_out = lease_dir.join("out");
-    ensure_dir_700(&l_out);
-    let (l_ok, l_text) = run_any(
-        &l_bob,
-        &receive_args(
-            &base,
-            LEASE_BOB,
-            "bob",
-            l_out.to_str().expect("out"),
-            "8",
-        ),
+    let l = pair(
+        "na0741_t4_lease",
+        &relay,
+        ("alice", "na0741-t4-lease-alice-tok-bbbbbbb"),
+        ("bob", LEASE_BOB),
     );
-    assert!(l_ok, "under LEASE the foreign frame must be skipped:\n{l_text}");
+    let (l_alice, l_bob) = (&l.a, &l.b);
+    push_raw(&base, LEASE_BOB, &frame);
+    send_message(l_alice, &base, "bob", "m1.bin", b"na0741 t4 lease payload");
+    let l_out = fixture_dir(l_bob, "out");
+    let (l_ok, l_text) = run_any(
+        l_bob,
+        &receive_args(&base, LEASE_BOB, "alice", l_out.to_str().expect("out"), "8"),
+    );
+    assert!(
+        l_ok,
+        "under LEASE the foreign frame must be skipped:\n{l_text}"
+    );
     assert!(
         has_marker_line(
             &l_text,
@@ -710,6 +745,18 @@ fn lease_skips_the_foreign_frame_and_leaves_it_leased() {
         "under LEASE the skip marker must fire:\n{l_text}"
     );
 
+    // NEW (NA-0785 F03 / S7, map MAP_S7.tsv): the half of this test's NAME that no assertion held
+    // -- the skipped frame is LEFT LEASED, i.e. not acked. After the lease expires it is resident
+    // again. (E3 in `foreign_frame_arm` holds the same property for T1/T2; this is the arm that
+    // pins it for the invite reply alone, and the target of the ACK-in-the-arm mutation control.)
+    thread::sleep(LEASE_EXPIRY_WAIT);
+    let resident = raw_pull_lease(&base, LEASE_BOB, 8);
+    assert!(
+        resident.iter().any(|f| f.as_slice() == frame.as_slice()),
+        "the skipped invite_resp frame is GONE from the relay: it must be left leased and unacked \
+         for its rightful consumer. {} item(s) resident.\n{l_text}",
+        resident.len()
+    );
 }
 
 // ===========================================================================
@@ -719,10 +766,8 @@ fn lease_skips_the_foreign_frame_and_leaves_it_leased() {
 #[test]
 fn the_skip_marker_leaks_nothing() {
     let _g = guard();
-    let relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
+    let relay = start_relay(TEST_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
-    let root = test_root("na0741_t5");
 
     // ⚠ A THIRD PARTY'S TOKEN. NA-0740 measured the responder's route token riding an invite reply
     // IN THE CLEAR AT BYTE 5. This value is never passed to any command in this arm, so any
@@ -741,14 +786,19 @@ fn the_skip_marker_leaks_nothing() {
          true of a frame that never carried it"
     );
 
-    let (_alice, bob) = setup(&root, "na0741-t5-alice-tok-aaaaaaaaaaaa", BOB);
+    let p = pair(
+        "na0741_t5",
+        &relay,
+        ("alice", "na0741-t5-alice-tok-aaaaaaaaaaaa"),
+        ("bob", BOB),
+    );
+    let bob = &p.b;
     push_raw(&base, BOB, &frame);
 
-    let out = root.join("out");
-    ensure_dir_700(&out);
+    let out = fixture_dir(bob, "out");
     let (ok, text) = run_any(
-        &bob,
-        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "8"),
+        bob,
+        &receive_args(&base, BOB, "alice", out.to_str().expect("out"), "8"),
     );
     assert!(ok, "the foreign frame must be skipped:\n{text}");
     assert!(
@@ -788,8 +838,29 @@ fn the_skip_marker_leaks_nothing() {
 /// It leaves the arrangement NA-0740 measured: an **A2 handshake frame** in the INVITER's ordinary
 /// inbox (from `invite finish`) and an **invite reply** in the REDEEMER's (from `invite accept`).
 /// Both wedged their mailbox before this lane, in both directions.
-fn drive_invite_to_completion(inviter: &Path, redeemer: &Path, base: &str) {
-    let code = run_ok(inviter, &["invite", "create", "--relay", base, "--ttl-secs", "3600"]);
+///
+/// NA-0785 F03 / S7: the two parties are real-pair sides (`inviter_as` / `redeemer_as` are their
+/// own labels, passed as `--as`); the invite aliases stay `inviter` / `redeemer`.
+fn drive_invite_to_completion(
+    inviter: &VaultFixture,
+    inviter_as: &str,
+    redeemer: &VaultFixture,
+    redeemer_as: &str,
+    base: &str,
+) {
+    let code = run_ok(
+        inviter,
+        &[
+            "invite",
+            "create",
+            "--as",
+            inviter_as,
+            "--relay",
+            base,
+            "--ttl-secs",
+            "3600",
+        ],
+    );
     let code = code
         .lines()
         .find(|l| l.starts_with("QSLI-1-"))
@@ -807,7 +878,16 @@ fn drive_invite_to_completion(inviter: &Path, redeemer: &Path, base: &str) {
 
     run_ok(
         redeemer,
-        &["invite", "redeem", "--code", &code, "--alias", "inviter"],
+        &[
+            "invite",
+            "redeem",
+            "--code",
+            &code,
+            "--alias",
+            "inviter",
+            "--as",
+            redeemer_as,
+        ],
     );
     run_ok(
         inviter,
@@ -818,11 +898,22 @@ fn drive_invite_to_completion(inviter: &Path, redeemer: &Path, base: &str) {
             &invite_id,
             "--alias",
             "redeemer",
+            "--as",
+            inviter_as,
         ],
     );
     let finish = run_ok(
         redeemer,
-        &["invite", "finish", "--alias", "inviter", "--relay", base],
+        &[
+            "invite",
+            "finish",
+            "--alias",
+            "inviter",
+            "--relay",
+            base,
+            "--as",
+            redeemer_as,
+        ],
     );
     assert!(
         finish.contains("invite_finish=ok"),
@@ -833,26 +924,38 @@ fn drive_invite_to_completion(inviter: &Path, redeemer: &Path, base: &str) {
 #[test]
 fn both_mailboxes_of_a_completed_invite_receive_cleanly() {
     let _g = guard();
-    let relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, TEST_PULL_LEASE_SECS);
+    let relay = start_relay(TEST_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
-    let root = test_root("na0741_t6");
 
     const INVITER_INBOX: &str = "na0741-t6-inviter-tok-aaaaaaaaaa";
     const REDEEMER_INBOX: &str = "na0741-t6-redeemer-tok-bbbbbbbbb";
-    let inviter = party(&root, "inviter", INVITER_INBOX);
-    let redeemer = party(&root, "redeemer", REDEEMER_INBOX);
-    drive_invite_to_completion(&inviter, &redeemer, &base);
+    // NA-0785 F03 / S7: `receive --from` must name a REAL directional peer, so each invite party is
+    // one side of its own real pair -- the inviter is alice (peer bob), the redeemer is carol (peer
+    // dave). The invite residue then lands in an ordinary inbox whose owner has real traffic to
+    // receive, which is the arrangement NA-0740 measured.
+    let ab = pair(
+        "na0741_t6_ab",
+        &relay,
+        ("alice", INVITER_INBOX),
+        ("bob", "na0741-t6-bob-tok-cccccccccccccc"),
+    );
+    let cd = pair(
+        "na0741_t6_cd",
+        &relay,
+        ("carol", REDEEMER_INBOX),
+        ("dave", "na0741-t6-dave-tok-dddddddddddddd"),
+    );
+    let (inviter, redeemer) = (&ab.a, &cd.a);
+    drive_invite_to_completion(inviter, "alice", redeemer, "carol", &base);
 
     // ---- THE INVITER'S ORDINARY INBOX — residue: the A2 handshake frame. ----
-    let i_out = root.join("inviter_out");
-    ensure_dir_700(&i_out);
+    let i_out = fixture_dir(inviter, "inviter_out");
     let (i_ok, i_text) = run_any(
-        &inviter,
+        inviter,
         &receive_args(
             &base,
             INVITER_INBOX,
-            "redeemer",
+            "bob",
             i_out.to_str().expect("out"),
             "8",
         ),
@@ -868,14 +971,13 @@ fn both_mailboxes_of_a_completed_invite_receive_cleanly() {
     );
 
     // ---- THE REDEEMER'S ORDINARY INBOX — residue: the invite reply. ----
-    let r_out = root.join("redeemer_out");
-    ensure_dir_700(&r_out);
+    let r_out = fixture_dir(redeemer, "redeemer_out");
     let (r_ok, r_text) = run_any(
-        &redeemer,
+        redeemer,
         &receive_args(
             &base,
             REDEEMER_INBOX,
-            "inviter",
+            "dave",
             r_out.to_str().expect("out"),
             "8",
         ),
@@ -938,13 +1040,17 @@ fn foreign_litter_at_the_head_still_delivers_up_to_max() {
     // ⚠ PRODUCTION-LENGTH LEASE — see `PRODUCTION_PULL_LEASE_SECS`. A 1-second lease expires
     // between rounds and re-delivers the same head, which measures lease expiry rather than the
     // round condition this arm exists to pin.
-    let relay =
-        common::start_qsl_server_with_store(2 * 1024 * 1024, 512, None, PRODUCTION_PULL_LEASE_SECS);
+    let relay = start_relay(PRODUCTION_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
-    let root = test_root("na0741_t7");
 
     const BOB: &str = "na0741-t7-bob-tok-bbbbbbbbbbbbbb";
-    let (alice, bob) = setup(&root, "na0741-t7-alice-tok-aaaaaaaaaaaa", BOB);
+    let p = pair(
+        "na0741_t7",
+        &relay,
+        ("alice", "na0741-t7-alice-tok-aaaaaaaaaaaa"),
+        ("bob", BOB),
+    );
+    let (alice, bob) = (&p.a, &p.b);
 
     // FOUR foreign frames at the head — exactly `--max`, so the first round is entirely litter.
     for i in 0..4u8 {
@@ -954,14 +1060,13 @@ fn foreign_litter_at_the_head_still_delivers_up_to_max() {
     // Two real messages BEHIND the litter.
     let p1 = b"na0741 t7 payload one".to_vec();
     let p2 = b"na0741 t7 payload two".to_vec();
-    send_message(&alice, &base, &root, "m1.bin", &p1);
-    send_message(&alice, &base, &root, "m2.bin", &p2);
+    send_message(alice, &base, "bob", "m1.bin", &p1);
+    send_message(alice, &base, "bob", "m2.bin", &p2);
 
-    let out = root.join("out");
-    ensure_dir_700(&out);
+    let out = fixture_dir(bob, "out");
     let (ok, text) = run_any(
-        &bob,
-        &receive_args(&base, BOB, "bob", out.to_str().expect("out"), "4"),
+        bob,
+        &receive_args(&base, BOB, "alice", out.to_str().expect("out"), "4"),
     );
 
     assert!(ok, "the litter must not abort the batch:\n{text}");

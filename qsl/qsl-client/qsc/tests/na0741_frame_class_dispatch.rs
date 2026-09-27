@@ -104,6 +104,14 @@ const LEASE_EXPIRY_WAIT: Duration = Duration::from_millis(20_000);
 /// production figure and the lease-expiry interaction is recorded rather than folded in here.
 const PRODUCTION_PULL_LEASE_SECS: usize = 60;
 
+/// The residency wait for an arm on `PRODUCTION_PULL_LEASE_SECS` (T3). The relay stamps
+/// `leased_until = now + lease` and serves an item only once that has passed, so a residency probe
+/// must wait out the WHOLE production lease; `LEASE_EXPIRY_WAIT` is sized for the 8 s lease and
+/// would probe a still-leased frame (measured: 0 items resident). The 12 s margin is the one
+/// `LEASE_EXPIRY_WAIT` keeps over `TEST_PULL_LEASE_SECS`.
+const PRODUCTION_LEASE_EXPIRY_WAIT: Duration =
+    Duration::from_secs(PRODUCTION_PULL_LEASE_SECS as u64 + 12);
+
 fn guard() -> MutexGuard<'static, ()> {
     static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     LOCK.get_or_init(|| Mutex::new(()))
@@ -515,7 +523,6 @@ fn invite_class_frames_at_head_do_not_abort_the_batch() {
 fn handshake_class_frame_at_head_does_not_abort_the_batch() {
     let _g = guard();
     let relay = start_relay(TEST_PULL_LEASE_SECS);
-    let base = relay.base_url().to_string();
 
     foreign_frame_arm(
         &relay,
@@ -545,6 +552,14 @@ fn handshake_class_frame_at_head_does_not_abort_the_batch() {
     );
 
     const CTRL_BOB: &str = "na0741-t2-bent-bob-tok-cccccccccc";
+    // ⚠ PRODUCTION-LENGTH LEASE for the control pair ONLY (NA-0785 F03 / S7, commit 3; ruling
+    // RULING_NA0785_F03_S7_stop R2) — see `PRODUCTION_PULL_LEASE_SECS`, as T7. One debug-build
+    // receive of this pair outlives the 8 s test lease (measured 28.4 s), so a second round re-pulls
+    // the unacked bent frame and counts a second refusal: the exact `count=1` below would measure
+    // lease expiry, not the counting branch. The magic arm above keeps the short lease its E3
+    // residency probe needs.
+    let relay = start_relay(PRODUCTION_PULL_LEASE_SECS);
+    let base = relay.base_url().to_string();
     let c = pair(
         "na0741_t2_bent",
         &relay,
@@ -600,7 +615,11 @@ fn handshake_class_frame_at_head_does_not_abort_the_batch() {
 #[test]
 fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
     let _g = guard();
-    let relay = start_relay(TEST_PULL_LEASE_SECS);
+    // ⚠ PRODUCTION-LENGTH LEASE (NA-0785 F03 / S7, commit 3; ruling RULING_NA0785_F03_S7_stop R4)
+    // — see `PRODUCTION_PULL_LEASE_SECS`, as T7. A debug-build receive can outlive the 8 s test
+    // lease; the junk would then be re-pulled inside the one receive and counted twice, and the
+    // exact `count=1` below would measure lease expiry, not the admission-refusal branch.
+    let relay = start_relay(PRODUCTION_PULL_LEASE_SECS);
     let base = relay.base_url().to_string();
     const BOB: &str = "na0741-t3-bob-tok-bbbbbbbbbbbbbb";
     let p = pair(
@@ -649,8 +668,9 @@ fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
     );
 
     // REPLACED (with the two above): a refusal must not CONSUME the frame. Not acked, so after the
-    // lease it is resident again. The wait is mandatory for the reason E3 states.
-    thread::sleep(LEASE_EXPIRY_WAIT);
+    // lease it is resident again. The wait is mandatory for the reason E3 states, and it is the
+    // PRODUCTION lease's wait: this arm's relay runs `PRODUCTION_PULL_LEASE_SECS`.
+    thread::sleep(PRODUCTION_LEASE_EXPIRY_WAIT);
     let resident = raw_pull_lease(&base, BOB, 8);
     assert!(
         resident.iter().any(|f| f.as_slice() == junk.as_slice()),

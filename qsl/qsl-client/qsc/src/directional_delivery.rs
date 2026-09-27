@@ -326,7 +326,8 @@ impl QueuedIntent {
     pub(crate) fn decode(raw: &[u8], id: &str, body: &[u8]) -> R<Self> {
         if raw.len() > 1024 { return Err("INTEGRATION_QUEUE_SIZE"); }
         let value: Self = serde_json::from_slice(raw).map_err(|_| "INTEGRATION_QUEUE_INVALID")?;
-        if value.profile.as_bytes() != INTEGRATION_PROFILE || value.kind != 0 || value.id != id || value.body_hash != h(body) {
+        if value.profile.as_bytes() != INTEGRATION_PROFILE { return Err("INTENT_PROFILE"); }
+        if value.kind != 0 || value.id != id || value.body_hash != h(body) {
             return Err("APPLICATION_ID_CONFLICT");
         }
         value.padding.validate(id.len(), body.len())?;
@@ -387,7 +388,7 @@ fn typed_body_decode(raw: &[u8]) -> R<TypedBody> {
     }
     if raw.len() > 60000 { return Err("INTEGRATION_LENGTH"); }
     let mut r = Reader(raw);
-    if r.take(4)? != b"NDI2" { return Err("INTEGRATION_PROFILE"); }
+    if r.take(4)? != b"NDI2" { return Err("INTEGRATION_MAGIC"); }
     let kind = r.byte()?;
     let id_len = r.byte()? as usize;
     if id_len > 64 { return Err("INTEGRATION_ID"); }
@@ -416,6 +417,12 @@ fn typed_body_decode(raw: &[u8]) -> R<TypedBody> {
     Ok(TypedBody { kind, id, payload, closures })
 }
 fn body_decode(raw: &[u8]) -> R<(String, Vec<u8>, bool, Vec<Closure>)> {
+    // Files are gated on the kind byte, before any file-shape validation (C01 O9): the frame
+    // parses exactly as far as typed_body_decode reads its kind. The check after the decode
+    // stays as the backstop.
+    if raw.len() <= 60000 && raw.starts_with(b"NDI2") && raw.get(4).is_some_and(|kind| (1..=4).contains(kind)) {
+        return Err("INTEGRATION_FILE_GATED");
+    }
     let body = typed_body_decode(raw)?;
     if (1..=4).contains(&body.kind) { return Err("INTEGRATION_FILE_GATED"); }
     Ok((body.id, body.payload, body.kind == 5, body.closures))
@@ -1383,7 +1390,7 @@ mod r02_intent_profile_tests {
         let before=current.clone();
         let mut old:serde_json::Value=serde_json::from_slice(&current).unwrap();
         old["profile"]=serde_json::json!("NA0780-DIR-INTEGRATION-02");
-        assert_eq!(QueuedIntent::decode(&serde_json::to_vec(&old).unwrap(),id,body),Err("APPLICATION_ID_CONFLICT"));
+        assert_eq!(QueuedIntent::decode(&serde_json::to_vec(&old).unwrap(),id,body),Err("INTENT_PROFILE"));
         assert_eq!(current,before);
     }
 }

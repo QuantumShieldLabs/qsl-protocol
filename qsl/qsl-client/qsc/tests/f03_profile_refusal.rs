@@ -13,9 +13,9 @@
 //   b3 foreign Transaction code=TRANSACTION_PROFILE
 //                         delta directional_delivery.rs:470-471, reached from the vault aggregate
 //                         check (vault/mod.rs:1992) for every owned peer.
-//   b4 foreign QueuedIntent  no test here: APPLICATION_ID_CONFLICT today (directional_delivery.rs:
-//                         329, pinned by that module's own unit test); the distinct code is C01 O9,
-//                         arm e2 -- OPEN.
+//   b4 foreign QueuedIntent  no test here: refused INTENT_PROFILE since S9 (C01 O9 arm e2,
+//                         QueuedIntent::decode in directional_delivery.rs), pinned by that module's
+//                         own unit tests (r02_intent_profile_tests, f03_s9_distinct_codes_tests).
 //   b5 foreign receipt    a genuine receipt re-sealed with the retired profile in its AD
 //                         (directional_delivery.rs:60-63) is NOT admitted: skipped, the message stays
 //                         SENT, the flight stays outstanding. Its code (RECEIPT_AUTH, :103-105) is an

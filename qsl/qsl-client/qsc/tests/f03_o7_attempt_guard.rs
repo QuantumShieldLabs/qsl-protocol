@@ -1,12 +1,13 @@
 // NA-0785 F03 S8 (C01 O7): the attempt guard counts ONLY a passphrase-authentication
 // failure. C01 T6 O7 makes it a precondition; T2 rows V1, V2, V7 and V8 name the cases.
 //
-// Every arm opens a product-initialised vault with the CORRECT passphrase after an
-// on-disk change, with the wipe armed at 1, through ONE unlock_guarded_at call. A
-// version or format refusal must return its own unchanged code and have no effect: no
-// counter write, no delay, no wipe, vault bytes untouched (I03). The two COUNT
-// controls (a wrong passphrase, and C01 V1's foreign ciphertext under intact-looking
-// magic and KDF words) must stay counted, so the guard can still go red.
+// Every arm opens a product-initialised vault with the CORRECT passphrase (arm vi: the
+// empty passphrase) after an on-disk change, with the wipe armed at 1, through ONE
+// unlock_guarded_at call. A version or format refusal must return its own unchanged
+// code and have no effect: no counter write, no delay, no wipe, vault bytes untouched
+// (I03). The two COUNT controls (a wrong passphrase, and C01 V1's foreign ciphertext
+// under intact-looking magic and KDF words) must stay counted, so the guard can still
+// go red.
 //
 // Harness: the NA-0658 pattern -- the pub library surface only, every test serialised
 // on ENV_LOCK, a fresh QSC_CONFIG_DIR per test under QSC_TEST_ROOT, the clock seam
@@ -214,8 +215,18 @@ fn assert_refused_uncounted(arm: &str, cfg: &Path, passphrase: &str, code: &'sta
         vault_before,
         "O7 {arm}: vault bytes untouched"
     );
-    if arm == "arm iii" {
-        assert_eq!(kdf_after, kdf_before, "O7 arm iii: Argon2 not run");
+    // Refused before any key is derived; iv and v are post-AEAD, so Argon2 runs there.
+    let pre_kdf = [
+        "arm i-a",
+        "arm i-b",
+        "arm ii",
+        "arm iii",
+        "arm vi",
+        "arm vii-a",
+        "arm vii-b",
+    ];
+    if pre_kdf.contains(&arm) {
+        assert_eq!(kdf_after, kdf_before, "O7 {arm}: Argon2 not run");
     }
     assert!(!vault_unlocked(), "O7 {arm}: not unlocked");
     assert!(!has_process_passphrase(), "O7 {arm}: no process passphrase");

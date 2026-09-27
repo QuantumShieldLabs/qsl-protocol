@@ -345,6 +345,37 @@ fn o7_arm_vi_empty_passphrase_refused_uncounted() {
     refuse_case("arm_vi_empty", "arm vi", "vault_locked", |_, _| {});
 }
 
+/// C01 T2 V8, S8b: the encrypted part after the nonce is shorter than the 16-byte tag.
+/// Magic, key_source, KDF words, salt and nonce are the product's; ct_len and the file
+/// length agree, so the parser accepts it. It can never authenticate: a format defect.
+fn with_short_tag(ct_len: u32) -> impl FnOnce(&Path, Vec<u8>) {
+    move |cfg, mut bytes| {
+        bytes[21..25].copy_from_slice(&ct_len.to_le_bytes());
+        bytes.truncate(HEADER_LEN + ct_len as usize);
+        write_vault(cfg, &bytes);
+    }
+}
+
+#[test]
+fn o7_arm_vii_short_tag_ct_len_0_refused_uncounted() {
+    refuse_case(
+        "arm_vii_ct0",
+        "arm vii-a",
+        "vault_parse_failed",
+        with_short_tag(0),
+    );
+}
+
+#[test]
+fn o7_arm_vii_short_tag_ct_len_15_refused_uncounted() {
+    refuse_case(
+        "arm_vii_ct15",
+        "arm vii-b",
+        "vault_parse_failed",
+        with_short_tag(15),
+    );
+}
+
 // ---------------------------------------------------------------------------
 // COUNT controls: must stay counted before AND after the fix
 // ---------------------------------------------------------------------------

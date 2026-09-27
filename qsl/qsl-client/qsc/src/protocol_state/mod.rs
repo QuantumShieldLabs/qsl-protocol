@@ -1285,6 +1285,7 @@ impl DirectionalUpdateError {
                 "TYPED_LENGTH" | "ADV_LENGTH" | "ADV_AUTH" | "TARGET_EQUIVOCATION" |
                 "RECEIPT_BINDING" | "RECEIPT_AUTH" | "RECEIPT_CONTENT" |
                 "RECEIPT_NOT_OUTSTANDING" | "DISPOSITION_CONFLICT" | "CLOSED_REPLAY" |
+                // INTEGRATION_PROFILE and INTENT_PROFILE are kept by ruling (S9 resume W5); neither is reachable on receive.
                 "INTEGRATION_LENGTH" | "INTEGRATION_PROFILE" | "INTEGRATION_MAGIC" | "INTEGRATION_KIND" |
                 "INTEGRATION_ID" | "INTEGRATION_PADDING_PROFILE" |
                 "INTEGRATION_PADDING_SIZE" | "INTEGRATION_PADDING_NONZERO" |

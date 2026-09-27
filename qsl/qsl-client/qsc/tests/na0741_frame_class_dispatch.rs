@@ -12,11 +12,15 @@
 //!
 //! ## ⚠ WHAT THESE ARMS DELIBERATELY DO **NOT** ASSERT
 //!
-//! **Unknown-class frames still abort the batch, and T3 pins that as CURRENT behaviour rather than
-//! as a defect.** That is the ruled trade (N-PRIME): an attacker chooses their own leading bytes,
-//! so skipping Unknown buys no adversarial ground, while it would cost six committed assertions
-//! over Unknown-class junk fixtures and the NA-0187 contact-request onboarding surface. An arm that
-//! asserted "no frame ever aborts" would be asserting a DIFFERENT option than the one ruled.
+//! **Unknown-class frames are never skipped by class; they reach the decoder.** That is the ruled
+//! trade (N-PRIME): an attacker chooses their own leading bytes, so skipping Unknown buys no
+//! adversarial ground, while it would cost six committed assertions over Unknown-class junk
+//! fixtures and the NA-0187 contact-request onboarding surface. An arm that asserted "Unknown is
+//! skipped by class" would be asserting a DIFFERENT option than the one ruled. ⚠ At the
+//! integration head an Unknown frame no longer ABORTS the batch: the directional core refuses it
+//! as an expected non-admission (counted, no marker, no ACK) and the batch goes on. See the
+//! NA-0785 F03 / S7 section below and T3, which pins that refusal and, since S10a, the byte-exact
+//! delivery of a real message planted behind the junk.
 //!
 //! **Legacy WAS byte-unchanged in lane 1, and T4 drove both modes to pin the difference.** ⚠⚠
 //! NA-0770 (D-1411) RETIRED THE MODE, SO T4 NOW DRIVES ONE. ENG-0149 was satisfied by STATING and
@@ -610,6 +614,9 @@ fn handshake_class_frame_at_head_does_not_abort_the_batch() {
 // UNCHANGED behaviour, so it must pass on the unrepaired tree AND after the repair. It is the arm
 // that proves the classifier does not OVER-SKIP, and the one that keeps the suite's six committed
 // Unknown-class assertions honest.
+//
+// NA-0785 F03 / S10a (S7 F-01): LEG 2 plants a real message BEHIND the junk and requires its
+// byte-exact delivery, so the refusal is witnessed from a LIVE candidate, not merely counted.
 // ===========================================================================
 
 #[test]
@@ -630,6 +637,7 @@ fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
     );
     let bob = &p.b;
 
+    // ---- LEG 1: the junk alone. ----
     // `FF FF …` matches NO discriminator: not the handshake magic, and `FF != 0x01`, so it is
     // none of the three envelope classes either.
     let junk = vec![0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF];
@@ -644,9 +652,10 @@ fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
     // ⚠ RETIRED + REPLACED (NA-0785 F03 / S7, map MAP_S7.tsv). OLD: `assert!(!ok, ..)` and
     // `qsp_unpack ok=false`. At main the junk reached `qsp_unpack_for_peer`, was rejected there and
     // ABORTED the batch. The integration head has no legacy unpack and no `qsp_unpack` marker: the
-    // junk reaches the directional core, whose refusal (PARSE) is an expected non-admission --
-    // `continue`, counted `skipped`, NO marker, NO ACK (`transport/mod.rs`, the non-foreign branch
-    // of the receive loop; `protocol_state/mod.rs`, `expected_non_admission`). The property is kept
+    // junk reaches the directional core, whose refusal (MAGIC: the first four bytes are not `NDE1`,
+    // `directional_core.rs`) is an expected non-admission -- `continue`, counted `skipped`, NO
+    // marker, NO ACK (`transport/mod.rs`, the non-foreign branch of the receive loop;
+    // `protocol_state/mod.rs`, `expected_non_admission`). The property is kept
     // and re-witnessed: the junk is REFUSED -- never delivered, never consumed (the residency check
     // at the end) -- and it reached the DECODER rather than the class skip: counted once by the
     // admission-refusal branch, the only branch an Unknown frame can reach.
@@ -667,8 +676,52 @@ fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
          reach the skip arm:\n{text}"
     );
 
-    // REPLACED (with the two above): a refusal must not CONSUME the frame. Not acked, so after the
-    // lease it is resident again. The wait is mandatory for the reason E3 states, and it is the
+    // ---- LEG 2 (NA-0785 F03 / S10a; S7 F-01, ruling RULING_NA0785_F03_S7_PR1857 R3): the same
+    // junk with ONE real message planted BEHIND it. LEG 1 cannot tell a decoder refusal from
+    // NoCandidate: both are expected non-admissions counted by the same branch, so with no
+    // directional state for `alice` it would pass identically. Here the message behind the junk
+    // must be delivered byte-exact, which only a LIVE candidate can do, so `count=1` can only be the
+    // junk refused by that candidate; and a loop that stopped at the junk would deliver nothing.
+    // Same relay, so the one residency wait below serves both legs.
+    const BOB2: &str = "na0741-t3-live-bob-tok-cccccccccc";
+    let p2 = pair(
+        "na0741_t3_live",
+        &relay,
+        ("alice", "na0741-t3-live-alice-tok-dddddddd"),
+        ("bob", BOB2),
+    );
+    let (alice2, bob2) = (&p2.a, &p2.b);
+    push_raw(&base, BOB2, &junk);
+    let payload = b"na0741 t3 live payload".to_vec();
+    send_message(alice2, &base, "bob", "m1.bin", &payload);
+
+    let out2 = fixture_dir(bob2, "out");
+    let (_ok2, text2) = run_any(
+        bob2,
+        &receive_args(&base, BOB2, "alice", out2.to_str().expect("out"), "8"),
+    );
+    // Exit status deliberately unpinned, as T2's bent control: the delivery of the message behind
+    // the junk is what shows the batch did not stop at it.
+    assert_eq!(
+        received_bodies(&out2),
+        vec![payload],
+        "the real message planted BEHIND the junk must be delivered byte-exact, and the junk never \
+         as content. Nothing delivered means the loop stopped at the junk or no live candidate \
+         existed -- and then LEG 1's count=1 says nothing about the decoder:\n{text2}"
+    );
+    assert!(
+        has_marker_line(&text2, "recv_skip_summary", &["count=1"]),
+        "the junk must be refused ONCE by the admission-refusal branch -- here by a candidate the \
+         delivery above proves live:\n{text2}"
+    );
+    assert!(
+        !text2.contains("recv_frame_skipped"),
+        "OVER-SKIP: the junk emitted a skip marker; an Unknown-class frame never reaches the skip \
+         arm:\n{text2}"
+    );
+
+    // REPLACED (with LEG 1's two above): a refusal must not CONSUME the frame. Not acked, so after
+    // the lease it is resident again. The wait is mandatory for the reason E3 states, and it is the
     // PRODUCTION lease's wait: this arm's relay runs `PRODUCTION_PULL_LEASE_SECS`.
     thread::sleep(PRODUCTION_LEASE_EXPIRY_WAIT);
     let resident = raw_pull_lease(&base, BOB, 8);
@@ -677,6 +730,14 @@ fn unknown_class_junk_still_reaches_unpack_and_still_rejects() {
         "the refused junk frame is GONE from the relay: a refusal must leave it unacked. {} \
          item(s) resident.\n{text}",
         resident.len()
+    );
+    // LEG 2: a refusal by a LIVE candidate does not consume the junk either.
+    let resident2 = raw_pull_lease(&base, BOB2, 8);
+    assert!(
+        resident2.iter().any(|f| f.as_slice() == junk.as_slice()),
+        "LEG 2: the junk refused by a live candidate is GONE from the relay: a refusal must leave \
+         it unacked. {} item(s) resident.\n{text2}",
+        resident2.len()
     );
 }
 

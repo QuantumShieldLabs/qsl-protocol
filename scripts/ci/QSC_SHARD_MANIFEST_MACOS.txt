@@ -62,7 +62,7 @@ tests/desktop_gui_contract_na0215b.rs	2
 tests/diagnostics.rs	2
 tests/envelope.rs	3
 tests/f03_crossed_send.rs	0
-# tests/f03_distinct_codes.rs: compile-only in CI (no hooks-feature job yet; OWED S10).
+# tests/f03_distinct_codes.rs: compile-only in CI, built empty; no CI job runs this target yet (OWED S10b).
 tests/f03_distinct_codes.rs	3
 tests/f03_fixture_helpers.rs	1
 tests/f03_handshake_vectors.rs	3

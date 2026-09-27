@@ -2000,8 +2000,8 @@ fn review_r01_batch(fixed: bool) {
         ("body_padding_size", "INTEGRATION_PADDING_SIZE"),
         ("body_padding", "INTEGRATION_PADDING_NONZERO"),
         ("body_maintenance", "INTEGRATION_BODY"),
-        ("body_file_shape", "INTEGRATION_FILE_SHAPE"),
-        ("body_request", "INTEGRATION_FILE_REQUEST"),
+        ("body_file_shape", "INTEGRATION_FILE_GATED"),
+        ("body_request", "INTEGRATION_FILE_GATED"),
         ("body_file_gated", "INTEGRATION_FILE_GATED"),
     ];
     let mut rejected = Vec::new();

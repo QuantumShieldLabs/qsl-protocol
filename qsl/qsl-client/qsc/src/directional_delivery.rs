@@ -326,7 +326,8 @@ impl QueuedIntent {
     pub(crate) fn decode(raw: &[u8], id: &str, body: &[u8]) -> R<Self> {
         if raw.len() > 1024 { return Err("INTEGRATION_QUEUE_SIZE"); }
         let value: Self = serde_json::from_slice(raw).map_err(|_| "INTEGRATION_QUEUE_INVALID")?;
-        if value.profile.as_bytes() != INTEGRATION_PROFILE || value.kind != 0 || value.id != id || value.body_hash != h(body) {
+        if value.profile.as_bytes() != INTEGRATION_PROFILE { return Err("INTENT_PROFILE"); }
+        if value.kind != 0 || value.id != id || value.body_hash != h(body) {
             return Err("APPLICATION_ID_CONFLICT");
         }
         value.padding.validate(id.len(), body.len())?;
@@ -387,7 +388,7 @@ fn typed_body_decode(raw: &[u8]) -> R<TypedBody> {
     }
     if raw.len() > 60000 { return Err("INTEGRATION_LENGTH"); }
     let mut r = Reader(raw);
-    if r.take(4)? != b"NDI2" { return Err("INTEGRATION_PROFILE"); }
+    if r.take(4)? != b"NDI2" { return Err("INTEGRATION_MAGIC"); }
     let kind = r.byte()?;
     let id_len = r.byte()? as usize;
     if id_len > 64 { return Err("INTEGRATION_ID"); }
@@ -416,6 +417,12 @@ fn typed_body_decode(raw: &[u8]) -> R<TypedBody> {
     Ok(TypedBody { kind, id, payload, closures })
 }
 fn body_decode(raw: &[u8]) -> R<(String, Vec<u8>, bool, Vec<Closure>)> {
+    // Files are gated on the kind byte, before any file-shape validation (C01 O9): the frame
+    // parses exactly as far as typed_body_decode reads its kind. The check after the decode
+    // stays as the backstop.
+    if raw.len() <= 60000 && raw.starts_with(b"NDI2") && raw.get(4).is_some_and(|kind| (1..=4).contains(kind)) {
+        return Err("INTEGRATION_FILE_GATED");
+    }
     let body = typed_body_decode(raw)?;
     if (1..=4).contains(&body.kind) { return Err("INTEGRATION_FILE_GATED"); }
     Ok((body.id, body.payload, body.kind == 5, body.closures))
@@ -1383,7 +1390,78 @@ mod r02_intent_profile_tests {
         let before=current.clone();
         let mut old:serde_json::Value=serde_json::from_slice(&current).unwrap();
         old["profile"]=serde_json::json!("NA0780-DIR-INTEGRATION-02");
-        assert_eq!(QueuedIntent::decode(&serde_json::to_vec(&old).unwrap(),id,body),Err("APPLICATION_ID_CONFLICT"));
+        assert_eq!(QueuedIntent::decode(&serde_json::to_vec(&old).unwrap(),id,body),Err("INTENT_PROFILE"));
         assert_eq!(current,before);
+    }
+}
+
+// NA-0785 PLAN F03 / S9 -- C01 O9 distinct codes at the decode entry points. e2 lives here
+// because no seam outside the crate reaches QueuedIntent::decode (tests/f03_distinct_codes.rs
+// drives e1 and e5 through the real receive path).
+#[cfg(test)]
+mod f03_s9_distinct_codes_tests {
+    use super::*;
+    use crate::protocol_state::DirectionalUpdateError::Apply;
+    /// A strict kind-0 body re-labelled `kind`: the file kinds then meet file-shape validation.
+    fn frame(kind:u8,payload:&[u8])->Vec<u8> {
+        let padding=Padding::resolve(1,payload.len(),1,None,None).unwrap();
+        let mut raw=typed_body_encode(0,"i",payload,&[],&padding).unwrap();
+        raw[4]=kind;raw
+    }
+    #[test]
+    fn s9_e1_wrong_magic_is_integration_magic() {
+        let raw=frame(0,b"abc");
+        let got:Vec<_>=[*b"NDI1",*b"NDI3",*b"XXXX",[0;4]].iter().map(|magic| {
+            let mut bad=raw.clone();bad[..4].copy_from_slice(magic);
+            (typed_body_decode(&bad).err(),body_decode(&bad).err())
+        }).collect();
+        assert_eq!(got,vec![(Some("INTEGRATION_MAGIC"),Some("INTEGRATION_MAGIC"));4]);
+        // The magic precedes the file gate; a short frame keeps its length code.
+        let mut file=frame(4,b"not a file");file[..4].copy_from_slice(b"NDI1");
+        assert_eq!(body_decode(&file).err(),Some("INTEGRATION_MAGIC"));
+        assert_eq!(body_decode(&raw[..3]).err(),Some("INTEGRATION_LENGTH"));
+        // Disposition kept: an expected non-admission, as INTEGRATION_PROFILE was.
+        assert!(Apply("INTEGRATION_MAGIC").expected_non_admission());
+    }
+    #[test]
+    fn s9_e2_foreign_intent_profile_is_intent_profile_checked_first() {
+        let raw=QueuedIntent::message("id",b"body",Padding::resolve(2,4,3,None,None).unwrap()).unwrap().encode().unwrap();
+        let edit=|change:&dyn Fn(&mut serde_json::Value)| {
+            let mut value:serde_json::Value=serde_json::from_slice(&raw).unwrap();change(&mut value);
+            serde_json::to_vec(&value).unwrap()
+        };
+        let foreign=edit(&|v| v["profile"]="NA0780-DIR-INTEGRATION-02".into());
+        assert_eq!(QueuedIntent::decode(&foreign,"id",b"body"),Err("INTENT_PROFILE"));
+        // Checked FIRST: every other identity fact wrong as well.
+        let all=edit(&|v| {v["profile"]="NA0780-DIR-INTEGRATION-02".into();v["kind"]=1.into();});
+        assert_eq!(QueuedIntent::decode(&all,"other",b"changed"),Err("INTENT_PROFILE"));
+        // kind, id and body hash keep APPLICATION_ID_CONFLICT.
+        assert_eq!(QueuedIntent::decode(&edit(&|v| v["kind"]=1.into()),"id",b"body"),Err("APPLICATION_ID_CONFLICT"));
+        assert_eq!(QueuedIntent::decode(&raw,"other",b"body"),Err("APPLICATION_ID_CONFLICT"));
+        assert_eq!(QueuedIntent::decode(&raw,"id",b"changed"),Err("APPLICATION_ID_CONFLICT"));
+        assert!(QueuedIntent::decode(&raw,"id",b"body").is_ok());
+    }
+    #[test]
+    fn s9_e5_file_kinds_are_gated_before_file_shape() {
+        let mut request=vec![0u8;68];request[17]=1;request[18]=b'i';request[31]=255;
+        let cases=[(b"not a file".to_vec(),"INTEGRATION_FILE_SHAPE"),(request,"INTEGRATION_FILE_REQUEST")];
+        let (mut got,mut want)=(Vec::new(),Vec::new());
+        for kind in 1..=4u8 {
+            for (payload,shape) in &cases {
+                let raw=frame(kind,payload);
+                // typed_body_decode's other callers keep its file-shape result.
+                assert_eq!(typed_body_decode(&raw).err(),Some(*shape),"kind {kind}");
+                got.push((kind,body_decode(&raw).err()));want.push((kind,Some("INTEGRATION_FILE_GATED")));
+            }
+        }
+        assert_eq!(got,want);
+        // Any later structural refusal of a file-kind frame is gated too; kind 0 keeps its code.
+        let mut gated=frame(3,b"not a file");*gated.last_mut().unwrap()=1;
+        assert_eq!(body_decode(&gated).err(),Some("INTEGRATION_FILE_GATED"));
+        let mut ordinary=frame(0,b"not a file");*ordinary.last_mut().unwrap()=1;
+        assert_eq!(body_decode(&ordinary).err(),Some("INTEGRATION_PADDING_NONZERO"));
+        assert_eq!(body_decode(&frame(6,b"x")).err(),Some("INTEGRATION_KIND"));
+        assert!(body_decode(&frame(0,b"not a file")).is_ok());
+        assert!(Apply("INTEGRATION_FILE_GATED").expected_non_admission());
     }
 }

@@ -1285,14 +1285,14 @@ impl DirectionalUpdateError {
                 "TYPED_LENGTH" | "ADV_LENGTH" | "ADV_AUTH" | "TARGET_EQUIVOCATION" |
                 "RECEIPT_BINDING" | "RECEIPT_AUTH" | "RECEIPT_CONTENT" |
                 "RECEIPT_NOT_OUTSTANDING" | "DISPOSITION_CONFLICT" | "CLOSED_REPLAY" |
-                "INTEGRATION_LENGTH" | "INTEGRATION_PROFILE" | "INTEGRATION_KIND" |
+                "INTEGRATION_LENGTH" | "INTEGRATION_PROFILE" | "INTEGRATION_MAGIC" | "INTEGRATION_KIND" |
                 "INTEGRATION_ID" | "INTEGRATION_PADDING_PROFILE" |
                 "INTEGRATION_PADDING_SIZE" | "INTEGRATION_PADDING_NONZERO" |
                 "INTEGRATION_BODY" | "INTEGRATION_FILE_SHAPE" |
                 "INTEGRATION_FILE_REQUEST" | "INTEGRATION_FILE_GATED" |
                 "CLOSURE_CAPACITY" |
                 "CLOSURE_ORDER" | "CLOSURE_FINAL" | "CLOSURE_EPOCH" |
-                "CLOSURE_PREFIX" | "CLOSURE_TERMINAL" | "APPLICATION_ID_CONFLICT" |
+                "CLOSURE_PREFIX" | "CLOSURE_TERMINAL" | "APPLICATION_ID_CONFLICT" | "INTENT_PROFILE" |
                 "timeline_id_conflict" |
                 // Admission backpressure leaves this incoming frame uncommitted.
                 // A same-named encode/load error is Local and still propagates.
@@ -1377,7 +1377,8 @@ mod directional_receive_error_tests {
         assert!(NoCandidate.expected_non_admission());
         for code in ["MAGIC","PARSE","BODY_AUTH","RECEIPT_AUTH","CLOSED_REPLAY","timeline_id_conflict","RECEIPT_CONTEXT_CAPACITY","TRANSACTION_CAPACITY",
             "INTEGRATION_PADDING_PROFILE","INTEGRATION_PADDING_SIZE","INTEGRATION_PADDING_NONZERO",
-            "INTEGRATION_BODY","INTEGRATION_FILE_SHAPE","INTEGRATION_FILE_REQUEST","INTEGRATION_FILE_GATED"] {
+            "INTEGRATION_BODY","INTEGRATION_FILE_SHAPE","INTEGRATION_FILE_REQUEST","INTEGRATION_FILE_GATED",
+            "INTEGRATION_MAGIC","INTENT_PROFILE"] {
             assert!(Apply(code).expected_non_admission());
             assert!(!Local(code).expected_non_admission(),"origin must override rejection-like text");
         }

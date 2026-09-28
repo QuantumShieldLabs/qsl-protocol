@@ -499,3 +499,452 @@ pub fn set_umask_077() {
         crate::umask(0o077);
     }
 }
+
+// NA-0787 F04-C07P/S2 (C07 T8.1 G-365; RULING_F04C07P_formalization R4, shape G2): the CHECKED
+// durable write. `write_atomic` and `fsync_dir_best_effort` above are deliberately UNCHANGED --
+// their repair is ENG-0365, F05's -- and nothing existing calls what follows. The provider's C2,
+// C3 and C5 writes (S5) are its first callers; S6 maps `DurableWriteError` to
+// storage_durability_failed. No client-code string is allocated here (RULING_F04C07P R6).
+
+/// Why a checked durable write failed, by stage.
+///
+/// WHY STAGES AND NOT ONE CODE: `write_atomic` folds every stage into `IoWriteFailed` and
+/// DISCARDS the directory flush, so its caller cannot tell "nothing was written" from "the new
+/// file is in place but its directory entry is not known durable". Here the two are distinct:
+/// every variant but `DirFlush` means the destination was NOT replaced (absent, or still its old
+/// bytes) and no temp of this call is left behind; `DirFlush` from `write_file_durable` means the
+/// new bytes ARE in place.
+#[allow(dead_code)]
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum DurableWriteError {
+    /// The existing path hygiene refused (safe parents, directory or file perms), or the path has
+    /// no parent directory. The code is the hygiene's own, unchanged.
+    Hygiene(ErrorCode),
+    /// `tmp_path` is not a sibling of `path` distinct from it. Refused before any write.
+    TempNotSibling,
+    /// Creating the temp (it must not already exist) or writing its bytes failed.
+    TempCreateOrWrite,
+    /// The temp's flush failed: its bytes are not known durable, so it was never renamed.
+    FileFlush,
+    /// The rename over the destination failed; the destination is unchanged.
+    Rename,
+    /// The directory flush failed. After `write_file_durable`'s rename this means the new file IS
+    /// in place while its directory entry is not known durable.
+    DirFlush,
+}
+
+/// Open `dir` and flush it, reporting ANY failure -- the open included -- as `DirFlush`. The
+/// checked counterpart of `fsync_dir_best_effort`, which discards the same result.
+#[allow(dead_code)]
+pub(crate) fn sync_dir_checked(dir: &Path) -> Result<(), DurableWriteError> {
+    let flushed = File::open(dir).and_then(|d| d.sync_all());
+    #[cfg(test)]
+    let flushed = durable_flush_fault_apply(DurableFlushPoint::Dir, flushed);
+    flushed.map_err(|_| DurableWriteError::DirFlush)
+}
+
+/// Write `bytes` to `path` durably: a new temp at the caller-named `tmp_path` (a sibling of
+/// `path`), its flush CHECKED, renamed over `path`, then the directory flush CHECKED. `Ok` means
+/// every stage succeeded. The path hygiene is `write_atomic`'s, reused unchanged.
+///
+/// Two deliberate differences from `write_atomic`:
+/// - an existing file at `tmp_path` is NOT removed first. It is not this call's (stale temps are
+///   the recovery pass's to judge), so `create_new` refuses it as `TempCreateOrWrite` and it stays.
+/// - on any failure after the temp is created, up to and including the rename, that temp is
+///   removed: the primitive never leaves its own temp behind (`write_atomic` can; OWED L5).
+#[allow(dead_code)]
+pub(crate) fn write_file_durable(
+    path: &Path,
+    bytes: &[u8],
+    tmp_path: &Path,
+    source: ConfigSource,
+) -> Result<(), DurableWriteError> {
+    let dir = match path.parent() {
+        Some(d) if !d.as_os_str().is_empty() => d,
+        _ => return Err(DurableWriteError::Hygiene(ErrorCode::IoWriteFailed)),
+    };
+    if tmp_path == path || tmp_path.parent() != Some(dir) {
+        return Err(DurableWriteError::TempNotSibling);
+    }
+    enforce_safe_parents(path, source).map_err(DurableWriteError::Hygiene)?;
+    #[cfg(unix)]
+    if dir.exists() {
+        enforce_dir_perms(dir).map_err(DurableWriteError::Hygiene)?;
+    }
+    let mut f = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(tmp_path)
+        .map_err(|_| DurableWriteError::TempCreateOrWrite)?;
+    // From here the temp exists and is this call's own.
+    if let Err(e) = fill_flush_rename(&mut f, bytes, tmp_path, path) {
+        drop(f);
+        let _ = fs::remove_file(tmp_path);
+        return Err(e);
+    }
+    // The temp's descriptor stays open through the directory flush, as in `write_atomic`: the
+    // G365-1 instrument depends on it to make that flush's directory open the one that fails.
+    let flushed = sync_dir_checked(dir);
+    drop(f);
+    flushed
+}
+
+fn fill_flush_rename(
+    f: &mut File,
+    bytes: &[u8],
+    tmp_path: &Path,
+    path: &Path,
+) -> Result<(), DurableWriteError> {
+    #[cfg(unix)]
+    enforce_file_perms(tmp_path).map_err(DurableWriteError::Hygiene)?;
+    f.write_all(bytes)
+        .map_err(|_| DurableWriteError::TempCreateOrWrite)?;
+    let flushed = f.sync_all();
+    #[cfg(test)]
+    let flushed = durable_flush_fault_apply(DurableFlushPoint::File, flushed);
+    flushed.map_err(|_| DurableWriteError::FileFlush)?;
+    fs::rename(tmp_path, path).map_err(|_| DurableWriteError::Rename)
+}
+
+// The test-only failure-injection seam for the two checked flushes (S5's F1/F2 cut rows use it).
+// Every item is cfg(test): a non-test build has no seam at all. The seam REPLACES a flush's
+// RESULT, so an injected failure travels the same checked path as a real one.
+
+#[cfg(test)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DurableFlushPoint {
+    File,
+    Dir,
+}
+
+#[cfg(test)]
+thread_local! {
+    static DURABLE_FLUSH_FAULT: std::cell::Cell<Option<(DurableFlushPoint, u32)>> =
+        const { std::cell::Cell::new(None) };
+}
+
+/// Arm ONE injected failure on this thread: after `skip` flushes at `point` pass through, the
+/// next flush at `point` fails and the fault is spent.
+#[cfg(test)]
+pub(crate) fn arm_durable_flush_fault(point: DurableFlushPoint, skip: u32) {
+    DURABLE_FLUSH_FAULT.with(|c| c.set(Some((point, skip))));
+}
+
+#[cfg(test)]
+fn durable_flush_fault_apply(
+    point: DurableFlushPoint,
+    flushed: std::io::Result<()>,
+) -> std::io::Result<()> {
+    DURABLE_FLUSH_FAULT.with(|c| match c.get() {
+        Some((p, 0)) if p == point => {
+            c.set(None);
+            Err(std::io::Error::other("injected durable flush fault"))
+        }
+        Some((p, n)) if p == point => {
+            c.set(Some((p, n - 1)));
+            flushed
+        }
+        _ => flushed,
+    })
+}
+
+#[cfg(test)]
+mod durable_write_tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt;
+
+    /// A fresh directory at 0700: `enforce_safe_parents` refuses a group-writable parent, and a
+    /// tempdir's mode follows the session umask (the formalization trial's attempt-1 setup failure).
+    fn private_dir() -> tempfile::TempDir {
+        let td = tempfile::tempdir().expect("tempdir");
+        fs::set_permissions(td.path(), fs::Permissions::from_mode(0o700)).expect("chmod 0700");
+        td
+    }
+
+    fn names(dir: &Path) -> Vec<String> {
+        let mut v: Vec<String> = fs::read_dir(dir)
+            .expect("read_dir")
+            .map(|e| e.expect("entry").file_name().to_string_lossy().into_owned())
+            .collect();
+        v.sort();
+        v
+    }
+
+    #[test]
+    fn durable_write_new_path_happy() {
+        let td = private_dir();
+        let path = td.path().join("f");
+        let r = write_file_durable(
+            &path,
+            b"new",
+            &td.path().join("f.tmp"),
+            ConfigSource::EnvOverride,
+        );
+        assert!(r.is_ok(), "{r:?}");
+        assert_eq!(fs::read(&path).expect("read"), b"new");
+        let mode = fs::metadata(&path).expect("metadata").permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+        assert_eq!(names(td.path()), ["f"], "no temp may be left");
+    }
+
+    #[test]
+    fn durable_write_replaces_existing() {
+        let td = private_dir();
+        let path = td.path().join("f");
+        fs::write(&path, b"old").expect("seed");
+        let r = write_file_durable(
+            &path,
+            b"new",
+            &td.path().join("f.tmp"),
+            ConfigSource::EnvOverride,
+        );
+        assert!(r.is_ok(), "{r:?}");
+        assert_eq!(fs::read(&path).expect("read"), b"new");
+        assert_eq!(names(td.path()), ["f"], "no temp may be left");
+    }
+
+    #[test]
+    fn durable_write_refuses_unsafe_parent() {
+        let td = private_dir();
+        fs::set_permissions(td.path(), fs::Permissions::from_mode(0o777)).expect("chmod 0777");
+        let path = td.path().join("f");
+        let r = write_file_durable(
+            &path,
+            b"new",
+            &td.path().join("f.tmp"),
+            ConfigSource::EnvOverride,
+        );
+        assert!(
+            matches!(
+                r,
+                Err(DurableWriteError::Hygiene(ErrorCode::UnsafeParentPerms))
+            ),
+            "{r:?}"
+        );
+        assert!(names(td.path()).is_empty(), "nothing may be written");
+    }
+
+    #[test]
+    fn durable_write_refuses_tmp_in_other_dir() {
+        let a = private_dir();
+        let b = private_dir();
+        let r = write_file_durable(
+            &a.path().join("f"),
+            b"new",
+            &b.path().join("f.tmp"),
+            ConfigSource::EnvOverride,
+        );
+        assert!(matches!(r, Err(DurableWriteError::TempNotSibling)), "{r:?}");
+        assert!(
+            names(a.path()).is_empty(),
+            "nothing may be written in the destination dir"
+        );
+        assert!(
+            names(b.path()).is_empty(),
+            "nothing may be written in the temp's dir"
+        );
+    }
+
+    #[test]
+    fn durable_write_refuses_tmp_equal_to_path() {
+        let td = private_dir();
+        let path = td.path().join("f");
+        let r = write_file_durable(&path, b"new", &path, ConfigSource::EnvOverride);
+        assert!(matches!(r, Err(DurableWriteError::TempNotSibling)), "{r:?}");
+        assert!(names(td.path()).is_empty(), "nothing may be written");
+    }
+
+    #[test]
+    fn durable_write_keeps_foreign_existing_temp() {
+        let td = private_dir();
+        let path = td.path().join("f");
+        let tmp = td.path().join("f.tmp");
+        fs::write(&tmp, b"stale").expect("seed temp");
+        let r = write_file_durable(&path, b"new", &tmp, ConfigSource::EnvOverride);
+        assert!(
+            matches!(r, Err(DurableWriteError::TempCreateOrWrite)),
+            "{r:?}"
+        );
+        assert_eq!(
+            fs::read(&tmp).expect("read temp"),
+            b"stale",
+            "a temp not ours stays"
+        );
+        assert!(!path.exists(), "the destination must stay absent");
+    }
+
+    #[test]
+    fn durable_write_file_flush_failure_leaves_destination() {
+        let td = private_dir();
+        let path = td.path().join("f");
+        let tmp = td.path().join("f.tmp");
+        // Arm 1: no destination yet.
+        arm_durable_flush_fault(DurableFlushPoint::File, 0);
+        let r = write_file_durable(&path, b"new", &tmp, ConfigSource::EnvOverride);
+        assert!(matches!(r, Err(DurableWriteError::FileFlush)), "{r:?}");
+        assert!(!path.exists(), "the destination must stay absent");
+        assert!(!tmp.exists(), "the temp must be removed");
+        // Arm 2: an existing destination keeps its old bytes.
+        fs::write(&path, b"old").expect("seed");
+        arm_durable_flush_fault(DurableFlushPoint::File, 0);
+        let r = write_file_durable(&path, b"new", &tmp, ConfigSource::EnvOverride);
+        assert!(matches!(r, Err(DurableWriteError::FileFlush)), "{r:?}");
+        assert_eq!(fs::read(&path).expect("read"), b"old");
+        assert!(!tmp.exists(), "the temp must be removed");
+    }
+
+    #[test]
+    fn durable_write_dir_flush_failure_after_landing() {
+        let td = private_dir();
+        let path = td.path().join("f");
+        fs::write(&path, b"old").expect("seed");
+        arm_durable_flush_fault(DurableFlushPoint::Dir, 0);
+        let r = write_file_durable(
+            &path,
+            b"new",
+            &td.path().join("f.tmp"),
+            ConfigSource::EnvOverride,
+        );
+        assert!(matches!(r, Err(DurableWriteError::DirFlush)), "{r:?}");
+        // The landed state is part of the claim: DirFlush means the new bytes ARE in place.
+        assert_eq!(fs::read(&path).expect("read"), b"new");
+        assert_eq!(names(td.path()), ["f"], "no temp may be left");
+    }
+
+    #[test]
+    fn durable_flush_fault_skips_then_fires_once() {
+        let td = private_dir();
+        let path = td.path().join("f");
+        let tmp = td.path().join("f.tmp");
+        arm_durable_flush_fault(DurableFlushPoint::Dir, 1);
+        let r = write_file_durable(&path, b"one", &tmp, ConfigSource::EnvOverride);
+        assert!(r.is_ok(), "the skipped flush must pass through: {r:?}");
+        let r = write_file_durable(&path, b"two", &tmp, ConfigSource::EnvOverride);
+        assert!(matches!(r, Err(DurableWriteError::DirFlush)), "{r:?}");
+        assert_eq!(fs::read(&path).expect("read"), b"two");
+        let r = write_file_durable(&path, b"three", &tmp, ConfigSource::EnvOverride);
+        assert!(r.is_ok(), "the fault must be spent: {r:?}");
+        assert_eq!(fs::read(&path).expect("read"), b"three");
+    }
+
+    #[test]
+    fn sync_dir_checked_reports_missing_dir() {
+        let td = private_dir();
+        let r = sync_dir_checked(td.path());
+        assert!(r.is_ok(), "control: an existing directory flushes: {r:?}");
+        let r = sync_dir_checked(&td.path().join("missing"));
+        assert!(matches!(r, Err(DurableWriteError::DirFlush)), "{r:?}");
+    }
+
+    /// G365-1 (C07 T8.1 G-365; formalization trial g365_trial_module.rs, ported to the checked
+    /// primitive). The child lowers RLIMIT_NOFILE so the temp takes the last permitted descriptor
+    /// and the directory open inside the flush fails EMFILE. No test hook, no feature. Linux only:
+    /// RLIMIT_NOFILE = 7 and a 64-bit rlim_t are Linux values; macOS does not run these.
+    #[cfg(target_os = "linux")]
+    mod g365 {
+        use super::super::*;
+        use super::private_dir;
+        use std::os::unix::io::AsRawFd;
+
+        #[repr(C)]
+        struct RLimit {
+            cur: u64,
+            max: u64,
+        }
+        extern "C" {
+            fn getrlimit(res: i32, rl: *mut RLimit) -> i32;
+            fn setrlimit(res: i32, rl: *const RLimit) -> i32;
+        }
+        const RLIMIT_NOFILE: i32 = 7;
+        const CHILD: &str = "fs_store::durable_write_tests::g365::child";
+
+        fn lower_to_lowest_free() -> (RLimit, u64) {
+            let probe = File::open("/dev/null").expect("probe");
+            let n = probe.as_raw_fd() as u64;
+            drop(probe);
+            let mut old = RLimit { cur: 0, max: 0 };
+            assert_eq!(unsafe { getrlimit(RLIMIT_NOFILE, &mut old) }, 0);
+            let new = RLimit {
+                cur: n + 1,
+                max: old.max,
+            };
+            assert_eq!(unsafe { setrlimit(RLIMIT_NOFILE, &new) }, 0);
+            (old, n)
+        }
+
+        #[test]
+        #[ignore = "G365-1 child: runs only when re-executed by its parent tests"]
+        fn child() {
+            let Some(dir) = std::env::var_os("G365_DIR") else {
+                return;
+            };
+            let dir = PathBuf::from(dir);
+            let mode = std::env::var("G365_MODE").unwrap_or_default();
+            if mode == "control" {
+                // The mechanism is real: with the lowest free fd occupied, the directory open fails EMFILE.
+                let (old, n) = lower_to_lowest_free();
+                let hold = File::open("/dev/null").expect("hold");
+                let r = File::open(&dir);
+                let emfile = matches!(&r, Err(e) if e.raw_os_error() == Some(24));
+                drop(r);
+                drop(hold);
+                unsafe { setrlimit(RLIMIT_NOFILE, &old) };
+                println!(
+                    "G365_CONTROL lowest_free_fd={n} nofile_before={} dir_open_emfile={emfile}",
+                    old.cur
+                );
+                assert!(
+                    emfile,
+                    "control: the directory open must fail EMFILE under the lowered limit"
+                );
+                return;
+            }
+            let path = dir.join("f");
+            let (old, n) = lower_to_lowest_free();
+            let r = write_file_durable(&path, b"x", &dir.join("f.tmp"), ConfigSource::EnvOverride);
+            unsafe { setrlimit(RLIMIT_NOFILE, &old) };
+            let landed = fs::read(&path).map(|b| b == b"x").unwrap_or(false);
+            println!("G365_CHILD lowest_free_fd={n} nofile_before={} write_file_durable={r:?} landed={landed}", old.cur);
+            assert!(landed, "setup: the renamed file must be in place");
+            assert!(
+                matches!(r, Err(DurableWriteError::DirFlush)),
+                "G-365: write_file_durable did not report the directory flush that could not run"
+            );
+        }
+
+        fn run_child(mode: &str, marker: &str) {
+            let td = private_dir();
+            let out = std::process::Command::new(std::env::current_exe().expect("exe"))
+                .args([
+                    "--ignored",
+                    "--exact",
+                    CHILD,
+                    "--nocapture",
+                    "--test-threads=1",
+                ])
+                .env("G365_DIR", td.path())
+                .env("G365_MODE", mode)
+                .output()
+                .expect("spawn child");
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            println!(
+                "child[{mode}] status={:?}\n{stdout}\n{}",
+                out.status,
+                String::from_utf8_lossy(&out.stderr)
+            );
+            // Vacuity guard: a child that matched zero tests exits 0 without printing its marker.
+            assert!(stdout.contains(marker), "setup: the child test did not run");
+            assert!(out.status.success(), "child[{mode}] failed: see its output");
+        }
+
+        #[test]
+        fn mechanism_control() {
+            run_child("control", "G365_CONTROL ");
+        }
+
+        #[test]
+        fn durable_dir_flush_failure_is_reported() {
+            run_child("red", "G365_CHILD ");
+        }
+    }
+}

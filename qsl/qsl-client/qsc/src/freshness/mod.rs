@@ -4,6 +4,7 @@
 //! - [`digest`] / [`anchor`]: the C8 vault digest and anchor chain (C07 T4.1 C8; the label is C07-06).
 //! - [`checkpoint`]: the QSLFRESH v1 codec (C07 T6.5, DOC-CAN-003 C07-01).
 //! - [`paths`]: the D31 checkpoint location and the D32 lock path (C07 T6.4).
+//! - [`recover`]: the T4.3 LOCAL recovery classifier over the [`LineageOpen`] seam (S4).
 //!
 //! NOTHING HERE IS WIRED. The recovery classifier (S4), the transaction (S5) and the provider
 //! selector (S6) are the consumers, and S11 wires them into init/unlock/writes; until then every
@@ -13,8 +14,11 @@
 
 pub(crate) mod checkpoint;
 pub(crate) mod paths;
+pub(crate) mod recover;
 
 use sha2::{Digest, Sha256};
+use std::fmt;
+use zeroize::Zeroizing;
 
 /// C07-06: the vault digest domain label. A CRYPTO INPUT -- every committed digest `d` of every
 /// lineage depends on these exact 16 ASCII bytes, so changing them orphans every checkpoint.
@@ -84,6 +88,41 @@ pub(crate) fn anchor(prev: &[u8; 32], d: &[u8; 32]) -> [u8; 32] {
     h.update(prev);
     h.update(d);
     h.finalize().into()
+}
+
+/// The five lineage values the provider needs from inside a vault blob (C07 T6.1 F1-F5), as the
+/// caller's opener returns them AFTER authenticating the blob (step2/CIRCULARITY sec 2). Everything
+/// else in the payload stays opaque to the provider.
+pub(crate) struct LineageFields {
+    pub(crate) vault_id: [u8; 32],
+    pub(crate) generation: u64,
+    pub(crate) predecessor_anchor: [u8; 32],
+    /// Payload content (C07 F5), held only in this zeroizing container and only for one
+    /// operation; never printed, logged or written except as the QSLFRESH MAC key
+    /// (RULING_F04C07P R8).
+    pub(crate) checkpoint_mac_key: Zeroizing<[u8; 32]>,
+    pub(crate) protection_mode: ProtectionMode,
+}
+
+/// Deliberately partial: the key is never formatted.
+impl fmt::Debug for LineageFields {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("LineageFields")
+            .field("generation", &self.generation)
+            .field("mode", &self.protection_mode)
+            .finish_non_exhaustive()
+    }
+}
+
+/// "Did not authenticate", and nothing more: no reason and no string (RULING_F04C07P R6).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct OpenFailed;
+
+/// THE SEAM (step2/CIRCULARITY sec 2; RULING_F04C07P R3, R8). The CALLER authenticates the blob --
+/// the vault AEAD, paying any Argon2id (C07 T4.3 :271-273, AM-4) -- and returns its lineage values.
+/// The provider holds no vault key and derives none. S11 implements it over payload v5.
+pub(crate) trait LineageOpen {
+    fn open(&self, blob: &[u8]) -> Result<LineageFields, OpenFailed>;
 }
 
 #[cfg(test)]

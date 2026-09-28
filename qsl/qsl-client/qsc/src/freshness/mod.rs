@@ -631,7 +631,7 @@ mod tests {
         let refused = select_provider(ProtectionMode::Tpm);
         assert_eq!(refused, Err(SelectError::AnchorUnqualified));
         assert_eq!(refused.unwrap_err().code(), "anchor_unqualified");
-        // The body census: no filesystem, process, environment or unsafe token, and no wildcard.
+        // The body census: no disk, process, environment or unsafe token, and no wildcard.
         let src = include_str!("mod.rs");
         let start = src
             .find("pub(crate) fn select_provider(")

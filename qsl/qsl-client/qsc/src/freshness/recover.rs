@@ -708,6 +708,8 @@ mod tests {
 
     // ---- the freeze fixtures (each individual test and PURE use the same builders)
 
+    type Fixture = fn() -> (Store, Lineage);
+
     fn fx_r_ca() -> (Store, Lineage) {
         let (st, lin) = (Store::new(), Lineage::new());
         let chain = lin.chain(N + 1);
@@ -1029,7 +1031,7 @@ mod tests {
     fn pure_every_freeze_leaves_both_trees_identical() {
         // The verdicts are the individual tests'; this one pins that a freeze writes nothing and
         // that recovering again gives the same answer.
-        let fixtures: [(&str, fn() -> (Store, Lineage)); 10] = [
+        let fixtures: [(&str, Fixture); 10] = [
             ("R-CA", fx_r_ca),
             ("R-CC", fx_r_cc),
             ("R-CS", fx_r_cs),

@@ -7,11 +7,13 @@
 //! - [`recover`]: the T4.3 LOCAL recovery classifier over the [`LineageOpen`] seam (S4).
 //! - [`lock`]: the D32 lineage lock (FN1), with the inode re-check (S5).
 //! - [`txn`]: begin / commit (C1-C3, C5) / genesis (C7) under the lineage lock (S5).
+//! - [`codes`], [`select_provider`] and every typed failure's `code()`: DOC-CAN-009's client refusal codes (S6).
 //!
 //! NOTHING HERE IS WIRED. The recovery classifier (S4), the transaction (S5) and the provider
 //! selector (S6) are the consumers, and S11 wires them into init/unlock/writes; until then every
 //! item is reachable only from this module's tests, hence the one `dead_code` allowance below.
 //! No client-code string lives here: the ER spellings are S6's (RULING_F04C07P R6).
+//! S6 supersedes that last sentence: [`codes`] holds the spellings, and nothing outside it spells one.
 #![allow(dead_code)]
 
 pub(crate) mod checkpoint;
@@ -20,6 +22,7 @@ pub(crate) mod paths;
 pub(crate) mod recover;
 pub(crate) mod txn;
 
+use crate::model::ErrorCode;
 use sha2::{Digest, Sha256};
 use std::fmt;
 use zeroize::Zeroizing;
@@ -71,6 +74,278 @@ impl ProtectionMode {
             1 => Some(Self::LocalCheckpoint),
             2 => Some(Self::Tpm),
             _ => None,
+        }
+    }
+}
+
+/// DOC-CAN-009 "QSC client refusal codes (normative registry)": one constant per registry row,
+/// QRC-0001..QRC-0021 in order (RULING_NA0787_S6a R1-R3). The registry is append-only: a row is
+/// never edited or reused. An evidence-side script compares these with its Code column (SR-20).
+pub(crate) mod codes {
+    /// QRC-0001, C07 ER2.
+    pub(crate) const FRESHNESS_CHECKPOINT_MISSING: &str = "freshness_checkpoint_missing";
+    /// QRC-0002, C07 ER3.
+    pub(crate) const FRESHNESS_CHECKPOINT_CORRUPT: &str = "freshness_checkpoint_corrupt";
+    /// QRC-0003, C07 ER4.
+    pub(crate) const FRESHNESS_CHECKPOINT_UNSUPPORTED: &str = "freshness_checkpoint_unsupported";
+    /// QRC-0004, C07 ER5.
+    pub(crate) const FRESHNESS_GENERATION_REGRESSION: &str = "freshness_generation_regression";
+    /// QRC-0005, C07 ER6.
+    pub(crate) const FRESHNESS_DIGEST_CONFLICT: &str = "freshness_digest_conflict";
+    /// QRC-0006, C07 ER7.
+    pub(crate) const COMMITTED_STATE_MISSING: &str = "committed_state_missing";
+    /// QRC-0007, C07 ER17.
+    pub(crate) const STORAGE_DURABILITY_FAILED: &str = "storage_durability_failed";
+    /// QRC-0008, C07 ER18.
+    pub(crate) const FRESHNESS_GENERATION_EXHAUSTED: &str = "freshness_generation_exhausted";
+    /// QRC-0009, C07 ER19.
+    pub(crate) const VAULT_PROTECTION_MODE_UNSUPPORTED: &str = "vault_protection_mode_unsupported";
+    /// QRC-0010, C07 ER21.
+    pub(crate) const ANCHOR_UNQUALIFIED: &str = "anchor_unqualified";
+    /// QRC-0011.
+    pub(crate) const FRESHNESS_STATE_DIR_INVALID: &str = "freshness_state_dir_invalid";
+    /// QRC-0012.
+    pub(crate) const FRESHNESS_LINEAGE_LOCK_CONTENDED: &str = "freshness_lineage_lock_contended";
+    /// QRC-0013.
+    pub(crate) const FRESHNESS_LINEAGE_LOCK_UNSTABLE: &str = "freshness_lineage_lock_unstable";
+    /// QRC-0014.
+    pub(crate) const FRESHNESS_LINEAGE_CHANGED: &str = "freshness_lineage_changed";
+    /// QRC-0015.
+    pub(crate) const FRESHNESS_LINEAGE_MISMATCH: &str = "freshness_lineage_mismatch";
+    /// QRC-0016.
+    pub(crate) const FRESHNESS_CHECKPOINT_UNREADABLE: &str = "freshness_checkpoint_unreadable";
+    /// QRC-0017.
+    pub(crate) const FRESHNESS_HEAD_CHANGED: &str = "freshness_head_changed";
+    /// QRC-0018.
+    pub(crate) const FRESHNESS_CHECKPOINT_EXISTS: &str = "freshness_checkpoint_exists";
+    /// QRC-0019.
+    pub(crate) const FRESHNESS_SUCCESSOR_INVALID: &str = "freshness_successor_invalid";
+    /// QRC-0020 (C01 AM-6.17 O14's distinct code for an oversized vault file).
+    pub(crate) const VAULT_FILE_OVERSIZED: &str = "vault_file_oversized";
+    /// QRC-0021.
+    pub(crate) const VAULT_CAPACITY_EXCEEDED: &str = "vault_capacity_exceeded";
+
+    /// EXISTING qsc codes the provider reuses that have no constant anywhere else in the tree.
+    /// NOT registry rows (DOC-CAN-009 sec 4). vault_locked and the model codes are referenced
+    /// where they already live (`crate::msgqueue::MSGQUEUE_VAULT_LOCKED`, `ErrorCode::as_str`).
+    pub(crate) mod existing {
+        /// The unlock path's code for an absent vault (vault/mod.rs:964).
+        pub(crate) const VAULT_MISSING: &str = "vault_missing";
+        /// The unlock path's code for an unreadable vault file (vault/mod.rs:969).
+        pub(crate) const VAULT_READ_FAILED: &str = "vault_read_failed";
+        /// Init's code for a vault already present (vault/mod.rs:841).
+        pub(crate) const VAULT_EXISTS: &str = "vault_exists";
+    }
+}
+
+/// The anchor providers this build has: exactly one (C07 AM-1). The TPM provider is F05's.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Provider {
+    LocalCheckpoint,
+}
+
+/// C07 AM-3: why no provider was selected.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SelectError {
+    /// ER21: `tpm` while the T2 PL8 list is empty. No TPM command is issued; nothing is written.
+    AnchorUnqualified,
+}
+
+/// C07 AM-3, T6.3 (RULING_NA0787_S6a Q-12): the provider for a protection mode. The T2 PL8 list of
+/// qualified TPMs is EMPTY in this build, so `tpm` always refuses ER21 -- never a silent fall-back
+/// to the local provider (I01, QQ4). A pure function of one value: no path, no environment, no
+/// I/O. A stored value that is neither spelling never gets here: `ProtectionMode::parse` refuses it.
+pub(crate) fn select_provider(mode: ProtectionMode) -> Result<Provider, SelectError> {
+    match mode {
+        ProtectionMode::LocalCheckpoint => Ok(Provider::LocalCheckpoint),
+        ProtectionMode::Tpm => Err(SelectError::AnchorUnqualified),
+    }
+}
+
+// S6: every typed failure -> ONE client refusal code (MAPPING TABLE 1 as RULING_NA0787_S6a rules
+// it; the row numbers below are that table's). Every match lists every variant, so a new kind is
+// a compile error until it is mapped: `_` appears only on an io::ErrorKind payload, `..` only on
+// the detail fields slot / kind / which. The provider exposes no counting rule (Q-10): S11 counts.
+
+impl UnsupportedProtectionMode {
+    /// Row 4, ER19.
+    pub(crate) fn code(&self) -> &'static str {
+        codes::VAULT_PROTECTION_MODE_UNSUPPORTED
+    }
+}
+
+impl SelectError {
+    /// Row 5, ER21.
+    pub(crate) fn code(&self) -> &'static str {
+        match self {
+            Self::AnchorUnqualified => codes::ANCHOR_UNQUALIFIED,
+        }
+    }
+}
+
+impl paths::StateRootError {
+    /// Rows 1-3.
+    pub(crate) fn code(&self) -> &'static str {
+        match self {
+            Self::NoHome => ErrorCode::MissingHome.as_str(),
+            Self::HomeNotAbsolute | Self::OverrideNotAbsolute => codes::FRESHNESS_STATE_DIR_INVALID,
+        }
+    }
+}
+
+impl paths::CheckpointDirError {
+    /// Rows 10-14 (and 60).
+    pub(crate) fn code(&self) -> &'static str {
+        match self {
+            Self::RootNotAbsolute | Self::NotADirectory => codes::FRESHNESS_STATE_DIR_INVALID,
+            Self::Symlink => ErrorCode::UnsafePathSymlink.as_str(),
+            Self::GroupOrWorldWritable => ErrorCode::UnsafeParentPerms.as_str(),
+            Self::Io(_) => ErrorCode::IoWriteFailed.as_str(),
+        }
+    }
+}
+
+impl lock::LockError {
+    /// Rows 15-19 (and 61).
+    pub(crate) fn code(&self) -> &'static str {
+        match self {
+            Self::Open(_) => ErrorCode::LockOpenFailed.as_str(),
+            Self::Contended => codes::FRESHNESS_LINEAGE_LOCK_CONTENDED,
+            Self::Flock(_) | Self::Stat(_) => ErrorCode::LockFailed.as_str(),
+            Self::InodeRetriesExhausted => codes::FRESHNESS_LINEAGE_LOCK_UNSTABLE,
+        }
+    }
+}
+
+impl recover::FreezeKind {
+    /// Rows 28-35: the T4.3 freezes.
+    pub(crate) fn code(&self) -> &'static str {
+        use checkpoint::{CorruptKind as C, UnsupportedKind as U};
+        match self {
+            Self::CheckpointMissing => codes::FRESHNESS_CHECKPOINT_MISSING,
+            Self::CheckpointCorrupt(C::Length | C::Trailing | C::Magic | C::Mac) => {
+                codes::FRESHNESS_CHECKPOINT_CORRUPT
+            }
+            Self::CheckpointUnsupported(U::Version | U::Profile | U::ProfileDisagreesWithMode) => {
+                codes::FRESHNESS_CHECKPOINT_UNSUPPORTED
+            }
+            Self::ForeignCheckpoint => codes::COMMITTED_STATE_MISSING,
+            Self::LineageMismatch => codes::FRESHNESS_LINEAGE_MISMATCH,
+            Self::GenerationRegression => codes::FRESHNESS_GENERATION_REGRESSION,
+            Self::DigestConflict => codes::FRESHNESS_DIGEST_CONFLICT,
+            Self::CommittedStateMissing => codes::COMMITTED_STATE_MISSING,
+        }
+    }
+}
+
+impl crate::fs_store::DurableWriteError {
+    /// Rows 49-54 (Q-7): a path-safety refusal keeps the hygiene's own code; every other stage is
+    /// a write or flush that did not complete, ER17.
+    pub(crate) fn code(&self) -> &'static str {
+        match self {
+            Self::Hygiene(code) => code.as_str(),
+            Self::TempNotSibling
+            | Self::TempCreateOrWrite
+            | Self::FileFlush
+            | Self::Rename
+            | Self::DirFlush => codes::STORAGE_DURABILITY_FAILED,
+        }
+    }
+}
+
+/// Where a RecoverError surfaced: two of its kinds mean different things at each (rows 9 / 23 /
+/// 65 and 24 / 66).
+#[derive(Debug, Clone, Copy)]
+enum RecoverAt {
+    /// begin()'s quarantined open, before the lock (it builds only BlobRead, BlobTooLarge and
+    /// OpenFailed; the other kinds keep their own cause's code there).
+    Quarantine,
+    /// recover() under begin()'s lineage lock.
+    Locked,
+    /// recover() inside genesis(), where anything found means a vault is already here.
+    Genesis,
+}
+
+fn recover_code(e: &recover::RecoverError, at: RecoverAt) -> &'static str {
+    use recover::RecoverError as R;
+    match e {
+        R::TempCleanup(_) => ErrorCode::IoWriteFailed.as_str(),
+        R::BlobRead { .. } => codes::existing::VAULT_READ_FAILED,
+        R::BlobTooLarge { .. } => codes::VAULT_FILE_OVERSIZED,
+        R::OpenFailed { .. } => match at {
+            // ER1, the one code that may count -- and only under S11's opener condition (Q-10).
+            RecoverAt::Quarantine => crate::msgqueue::MSGQUEUE_VAULT_LOCKED,
+            // The quarantine authenticated a blob moments earlier: the slots changed.
+            RecoverAt::Locked => codes::FRESHNESS_LINEAGE_CHANGED,
+            // At init: a vault this opener cannot open is already in the store.
+            RecoverAt::Genesis => codes::existing::VAULT_EXISTS,
+        },
+        R::NotLocalCheckpoint => match at {
+            RecoverAt::Quarantine | RecoverAt::Locked => codes::ANCHOR_UNQUALIFIED,
+            RecoverAt::Genesis => codes::existing::VAULT_EXISTS,
+        },
+        R::CheckpointRead(_) => codes::FRESHNESS_CHECKPOINT_UNREADABLE,
+        R::DurableWrite(e) => e.code(),
+    }
+}
+
+impl recover::RecoverError {
+    /// Rows 20-27: recover() refusing under begin()'s lineage lock.
+    pub(crate) fn code(&self) -> &'static str {
+        recover_code(self, RecoverAt::Locked)
+    }
+}
+
+impl txn::BeginError {
+    /// Rows 6-36.
+    pub(crate) fn code(&self) -> &'static str {
+        match self {
+            Self::NoLineage => codes::existing::VAULT_MISSING,
+            Self::Quarantine(e) => recover_code(e, RecoverAt::Quarantine),
+            Self::CheckpointDir(e) => e.code(),
+            Self::Lock(e) => e.code(),
+            Self::Recover(e) => e.code(),
+            Self::Freeze(kind) => kind.code(),
+            Self::LineageChanged => codes::FRESHNESS_LINEAGE_CHANGED,
+        }
+    }
+}
+
+impl txn::CommitError {
+    /// Rows 37-54.
+    pub(crate) fn code(&self) -> &'static str {
+        use txn::ChainBreak as B;
+        match self {
+            Self::Poisoned | Self::StalePrepared(_) => codes::STORAGE_DURABILITY_FAILED,
+            Self::GenerationExhausted => codes::FRESHNESS_GENERATION_EXHAUSTED,
+            Self::SuccessorTooLarge => codes::VAULT_CAPACITY_EXCEEDED,
+            Self::SuccessorOpenFailed
+            | Self::NotChained(B::VaultId | B::Mode | B::Generation | B::PredecessorAnchor) => {
+                codes::FRESHNESS_SUCCESSOR_INVALID
+            }
+            Self::NotChained(B::CheckpointKey | B::HeadChanged) => codes::FRESHNESS_HEAD_CHANGED,
+            Self::NotChained(B::HeadRead(_)) => codes::FRESHNESS_CHECKPOINT_UNREADABLE,
+            Self::DurableWrite(e) => e.code(),
+        }
+    }
+}
+
+impl txn::GenesisError {
+    /// Rows 55-71.
+    pub(crate) fn code(&self) -> &'static str {
+        use txn::GenesisBreak as B;
+        match self {
+            Self::B0TooLarge => codes::VAULT_CAPACITY_EXCEEDED,
+            Self::B0OpenFailed | Self::NotGenesis(B::Generation | B::PredecessorAnchor) => {
+                codes::FRESHNESS_SUCCESSOR_INVALID
+            }
+            Self::NotLocalCheckpoint => codes::ANCHOR_UNQUALIFIED,
+            Self::CheckpointDir(e) => e.code(),
+            Self::Lock(e) => e.code(),
+            Self::Recover(e) => recover_code(e, RecoverAt::Genesis),
+            Self::LineagePresent => codes::existing::VAULT_EXISTS,
+            Self::CheckpointExists => codes::FRESHNESS_CHECKPOINT_EXISTS,
+            Self::DurableWrite(e) => e.code(),
         }
     }
 }
@@ -341,5 +616,591 @@ mod tests {
             hex32(VEC1_A),
             "C8 anchor differs from the reference script"
         );
+    }
+
+    #[test]
+    fn sel1_local_checkpoint_selects_the_local_provider() {
+        assert_eq!(
+            select_provider(ProtectionMode::LocalCheckpoint),
+            Ok(Provider::LocalCheckpoint)
+        );
+    }
+
+    #[test]
+    fn sel2_tpm_refuses_anchor_unqualified_with_no_io() {
+        let refused = select_provider(ProtectionMode::Tpm);
+        assert_eq!(refused, Err(SelectError::AnchorUnqualified));
+        assert_eq!(refused.unwrap_err().code(), "anchor_unqualified");
+        // The body census: no filesystem, process, environment or unsafe token, and no wildcard.
+        let src = include_str!("mod.rs");
+        let start = src
+            .find("pub(crate) fn select_provider(")
+            .expect("select_provider is defined");
+        let len = src[start..].find("\n}\n").expect("select_provider ends");
+        let body = &src[start..start + len];
+        assert!(
+            body.contains("match mode") && body.contains("ProtectionMode::Tpm"),
+            "the census would be vacuous: {body}"
+        );
+        for token in [
+            "fs::",
+            "File",
+            "OpenOptions",
+            "Command",
+            "env::",
+            "unsafe",
+            "_ =>",
+        ] {
+            assert!(!body.contains(token), "select_provider holds {token:?}");
+        }
+    }
+
+    #[test]
+    fn sel3_unknown_stored_mode_is_refused_by_parse() {
+        for bad in ["none", "", "Tpm", "local_checkpoint"] {
+            let refused = ProtectionMode::parse(bad);
+            assert_eq!(
+                refused,
+                Err(UnsupportedProtectionMode),
+                "{bad:?} must be refused"
+            );
+            assert_eq!(
+                refused.unwrap_err().code(),
+                "vault_protection_mode_unsupported"
+            );
+        }
+    }
+
+    /// CODE-2: (row, the constructed kind's code(), the RULED spelling). Every mismatch is printed,
+    /// then the test fails naming them all, so a mutation's red set is visible row by row.
+    fn code2(rows: &[(&str, &str, &str)]) {
+        let red: Vec<&str> = rows
+            .iter()
+            .filter(|(_, got, want)| got != want)
+            .map(|(id, got, want)| {
+                eprintln!("CODE-2 row {id}: got {got} want {want}");
+                *id
+            })
+            .collect();
+        assert!(red.is_empty(), "CODE-2 red rows: {red:?}");
+    }
+
+    #[test]
+    fn code2_rows_01_05_state_root_parse_select() {
+        use super::paths::StateRootError as S;
+        code2(&[
+            ("1", S::NoHome.code(), "missing_home"),
+            (
+                "2",
+                S::HomeNotAbsolute.code(),
+                "freshness_state_dir_invalid",
+            ),
+            (
+                "3",
+                S::OverrideNotAbsolute.code(),
+                "freshness_state_dir_invalid",
+            ),
+            (
+                "4",
+                UnsupportedProtectionMode.code(),
+                "vault_protection_mode_unsupported",
+            ),
+            (
+                "5",
+                SelectError::AnchorUnqualified.code(),
+                "anchor_unqualified",
+            ),
+        ]);
+    }
+
+    #[test]
+    fn code2_rows_06_36_begin() {
+        use super::checkpoint::{CorruptKind as C, UnsupportedKind as U};
+        use super::lock::LockError as L;
+        use super::paths::CheckpointDirError as D;
+        use super::recover::{FreezeKind as F, RecoverError as R, Slot, Unauthenticated};
+        use super::txn::BeginError as E;
+        use crate::fs_store::DurableWriteError as W;
+        use std::io::ErrorKind as K;
+        let read = |slot| R::BlobRead {
+            slot,
+            kind: K::PermissionDenied,
+        };
+        code2(&[
+            ("6", E::NoLineage.code(), "vault_missing"),
+            (
+                "7",
+                E::Quarantine(read(Slot::Current)).code(),
+                "vault_read_failed",
+            ),
+            (
+                "8",
+                E::Quarantine(R::BlobTooLarge {
+                    slot: Slot::Current,
+                })
+                .code(),
+                "vault_file_oversized",
+            ),
+            (
+                "9",
+                E::Quarantine(R::OpenFailed {
+                    which: Unauthenticated::Current,
+                })
+                .code(),
+                "vault_locked",
+            ),
+            (
+                "10",
+                E::CheckpointDir(D::RootNotAbsolute).code(),
+                "freshness_state_dir_invalid",
+            ),
+            (
+                "11",
+                E::CheckpointDir(D::Symlink).code(),
+                "unsafe_path_symlink",
+            ),
+            (
+                "12",
+                E::CheckpointDir(D::NotADirectory).code(),
+                "freshness_state_dir_invalid",
+            ),
+            (
+                "13",
+                E::CheckpointDir(D::GroupOrWorldWritable).code(),
+                "unsafe_parent_perms",
+            ),
+            (
+                "14",
+                E::CheckpointDir(D::Io(K::PermissionDenied)).code(),
+                "io_write_failed",
+            ),
+            (
+                "15",
+                E::Lock(L::Open(K::PermissionDenied)).code(),
+                "lock_open_failed",
+            ),
+            (
+                "16",
+                E::Lock(L::Contended).code(),
+                "freshness_lineage_lock_contended",
+            ),
+            ("17", E::Lock(L::Flock(K::Other)).code(), "lock_failed"),
+            ("18", E::Lock(L::Stat(K::NotFound)).code(), "lock_failed"),
+            (
+                "19",
+                E::Lock(L::InodeRetriesExhausted).code(),
+                "freshness_lineage_lock_unstable",
+            ),
+            (
+                "20",
+                E::Recover(R::TempCleanup(K::PermissionDenied)).code(),
+                "io_write_failed",
+            ),
+            (
+                "21",
+                E::Recover(read(Slot::Prepared)).code(),
+                "vault_read_failed",
+            ),
+            (
+                "22",
+                E::Recover(R::BlobTooLarge {
+                    slot: Slot::Prepared,
+                })
+                .code(),
+                "vault_file_oversized",
+            ),
+            (
+                "23",
+                E::Recover(R::OpenFailed {
+                    which: Unauthenticated::Both,
+                })
+                .code(),
+                "freshness_lineage_changed",
+            ),
+            (
+                "24",
+                E::Recover(R::NotLocalCheckpoint).code(),
+                "anchor_unqualified",
+            ),
+            (
+                "25",
+                E::Recover(R::CheckpointRead(K::PermissionDenied)).code(),
+                "freshness_checkpoint_unreadable",
+            ),
+            (
+                "26",
+                E::Recover(R::DurableWrite(W::Rename)).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "27",
+                E::Recover(R::DurableWrite(W::DirFlush)).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "28",
+                E::Freeze(F::CheckpointMissing).code(),
+                "freshness_checkpoint_missing",
+            ),
+            (
+                "29.Length",
+                E::Freeze(F::CheckpointCorrupt(C::Length)).code(),
+                "freshness_checkpoint_corrupt",
+            ),
+            (
+                "29.Trailing",
+                E::Freeze(F::CheckpointCorrupt(C::Trailing)).code(),
+                "freshness_checkpoint_corrupt",
+            ),
+            (
+                "29.Magic",
+                E::Freeze(F::CheckpointCorrupt(C::Magic)).code(),
+                "freshness_checkpoint_corrupt",
+            ),
+            (
+                "29.Mac",
+                E::Freeze(F::CheckpointCorrupt(C::Mac)).code(),
+                "freshness_checkpoint_corrupt",
+            ),
+            (
+                "30.Version",
+                E::Freeze(F::CheckpointUnsupported(U::Version)).code(),
+                "freshness_checkpoint_unsupported",
+            ),
+            (
+                "30.Profile",
+                E::Freeze(F::CheckpointUnsupported(U::Profile)).code(),
+                "freshness_checkpoint_unsupported",
+            ),
+            (
+                "30.ProfileDisagreesWithMode",
+                E::Freeze(F::CheckpointUnsupported(U::ProfileDisagreesWithMode)).code(),
+                "freshness_checkpoint_unsupported",
+            ),
+            (
+                "31",
+                E::Freeze(F::ForeignCheckpoint).code(),
+                "committed_state_missing",
+            ),
+            (
+                "32",
+                E::Freeze(F::LineageMismatch).code(),
+                "freshness_lineage_mismatch",
+            ),
+            (
+                "33",
+                E::Freeze(F::GenerationRegression).code(),
+                "freshness_generation_regression",
+            ),
+            (
+                "34",
+                E::Freeze(F::DigestConflict).code(),
+                "freshness_digest_conflict",
+            ),
+            (
+                "35",
+                E::Freeze(F::CommittedStateMissing).code(),
+                "committed_state_missing",
+            ),
+            ("36", E::LineageChanged.code(), "freshness_lineage_changed"),
+            // QX (sealed D-S1): kinds the quarantine never builds keep their own cause's code.
+            (
+                "QX.TempCleanup",
+                E::Quarantine(R::TempCleanup(K::Other)).code(),
+                "io_write_failed",
+            ),
+            (
+                "QX.NotLocalCheckpoint",
+                E::Quarantine(R::NotLocalCheckpoint).code(),
+                "anchor_unqualified",
+            ),
+            (
+                "QX.CheckpointRead",
+                E::Quarantine(R::CheckpointRead(K::Other)).code(),
+                "freshness_checkpoint_unreadable",
+            ),
+            (
+                "QX.DurableWrite.Rename",
+                E::Quarantine(R::DurableWrite(W::Rename)).code(),
+                "storage_durability_failed",
+            ),
+        ]);
+    }
+
+    #[test]
+    fn code2_rows_37_54_commit() {
+        use super::txn::{ChainBreak as B, CommitError as E};
+        use crate::fs_store::DurableWriteError as W;
+        use crate::model::ErrorCode as M;
+        use std::io::ErrorKind as K;
+        code2(&[
+            ("37", E::Poisoned.code(), "storage_durability_failed"),
+            (
+                "38",
+                E::GenerationExhausted.code(),
+                "freshness_generation_exhausted",
+            ),
+            ("39", E::SuccessorTooLarge.code(), "vault_capacity_exceeded"),
+            (
+                "40",
+                E::SuccessorOpenFailed.code(),
+                "freshness_successor_invalid",
+            ),
+            (
+                "41",
+                E::NotChained(B::VaultId).code(),
+                "freshness_successor_invalid",
+            ),
+            (
+                "42",
+                E::NotChained(B::Mode).code(),
+                "freshness_successor_invalid",
+            ),
+            (
+                "43",
+                E::NotChained(B::Generation).code(),
+                "freshness_successor_invalid",
+            ),
+            (
+                "44",
+                E::NotChained(B::PredecessorAnchor).code(),
+                "freshness_successor_invalid",
+            ),
+            (
+                "45",
+                E::NotChained(B::CheckpointKey).code(),
+                "freshness_head_changed",
+            ),
+            (
+                "46",
+                E::NotChained(B::HeadChanged).code(),
+                "freshness_head_changed",
+            ),
+            (
+                "47",
+                E::NotChained(B::HeadRead(K::PermissionDenied)).code(),
+                "freshness_checkpoint_unreadable",
+            ),
+            (
+                "48",
+                E::StalePrepared(K::PermissionDenied).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "49.IoWriteFailed",
+                E::DurableWrite(W::Hygiene(M::IoWriteFailed)).code(),
+                "io_write_failed",
+            ),
+            (
+                "49.IoReadFailed",
+                E::DurableWrite(W::Hygiene(M::IoReadFailed)).code(),
+                "io_read_failed",
+            ),
+            (
+                "49.UnsafePathSymlink",
+                E::DurableWrite(W::Hygiene(M::UnsafePathSymlink)).code(),
+                "unsafe_path_symlink",
+            ),
+            (
+                "49.UnsafeParentPerms",
+                E::DurableWrite(W::Hygiene(M::UnsafeParentPerms)).code(),
+                "unsafe_parent_perms",
+            ),
+            (
+                "50",
+                E::DurableWrite(W::TempNotSibling).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "51",
+                E::DurableWrite(W::TempCreateOrWrite).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "52",
+                E::DurableWrite(W::FileFlush).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "53",
+                E::DurableWrite(W::Rename).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "54",
+                E::DurableWrite(W::DirFlush).code(),
+                "storage_durability_failed",
+            ),
+        ]);
+    }
+
+    #[test]
+    fn code2_rows_55_71_genesis() {
+        use super::lock::LockError as L;
+        use super::paths::CheckpointDirError as D;
+        use super::recover::{RecoverError as R, Slot, Unauthenticated};
+        use super::txn::{GenesisBreak as B, GenesisError as E};
+        use crate::fs_store::DurableWriteError as W;
+        use crate::model::ErrorCode as M;
+        use std::io::ErrorKind as K;
+        let durable = |e| E::DurableWrite(e).code();
+        code2(&[
+            ("55", E::B0TooLarge.code(), "vault_capacity_exceeded"),
+            ("56", E::B0OpenFailed.code(), "freshness_successor_invalid"),
+            (
+                "57",
+                E::NotGenesis(B::Generation).code(),
+                "freshness_successor_invalid",
+            ),
+            (
+                "58",
+                E::NotGenesis(B::PredecessorAnchor).code(),
+                "freshness_successor_invalid",
+            ),
+            ("59", E::NotLocalCheckpoint.code(), "anchor_unqualified"),
+            (
+                "60.RootNotAbsolute",
+                E::CheckpointDir(D::RootNotAbsolute).code(),
+                "freshness_state_dir_invalid",
+            ),
+            (
+                "60.Symlink",
+                E::CheckpointDir(D::Symlink).code(),
+                "unsafe_path_symlink",
+            ),
+            (
+                "60.NotADirectory",
+                E::CheckpointDir(D::NotADirectory).code(),
+                "freshness_state_dir_invalid",
+            ),
+            (
+                "60.GroupOrWorldWritable",
+                E::CheckpointDir(D::GroupOrWorldWritable).code(),
+                "unsafe_parent_perms",
+            ),
+            (
+                "60.Io",
+                E::CheckpointDir(D::Io(K::Other)).code(),
+                "io_write_failed",
+            ),
+            (
+                "61.Open",
+                E::Lock(L::Open(K::Other)).code(),
+                "lock_open_failed",
+            ),
+            (
+                "61.Contended",
+                E::Lock(L::Contended).code(),
+                "freshness_lineage_lock_contended",
+            ),
+            (
+                "61.Flock",
+                E::Lock(L::Flock(K::Other)).code(),
+                "lock_failed",
+            ),
+            ("61.Stat", E::Lock(L::Stat(K::Other)).code(), "lock_failed"),
+            (
+                "61.InodeRetriesExhausted",
+                E::Lock(L::InodeRetriesExhausted).code(),
+                "freshness_lineage_lock_unstable",
+            ),
+            (
+                "62",
+                E::Recover(R::TempCleanup(K::Other)).code(),
+                "io_write_failed",
+            ),
+            (
+                "63",
+                E::Recover(R::BlobRead {
+                    slot: Slot::Current,
+                    kind: K::Other,
+                })
+                .code(),
+                "vault_read_failed",
+            ),
+            (
+                "64",
+                E::Recover(R::BlobTooLarge {
+                    slot: Slot::Current,
+                })
+                .code(),
+                "vault_file_oversized",
+            ),
+            (
+                "65",
+                E::Recover(R::OpenFailed {
+                    which: Unauthenticated::Prepared,
+                })
+                .code(),
+                "vault_exists",
+            ),
+            (
+                "66",
+                E::Recover(R::NotLocalCheckpoint).code(),
+                "vault_exists",
+            ),
+            (
+                "67",
+                E::Recover(R::CheckpointRead(K::Other)).code(),
+                "freshness_checkpoint_unreadable",
+            ),
+            (
+                "68.Rename",
+                E::Recover(R::DurableWrite(W::Rename)).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "68.DirFlush",
+                E::Recover(R::DurableWrite(W::DirFlush)).code(),
+                "storage_durability_failed",
+            ),
+            ("69", E::LineagePresent.code(), "vault_exists"),
+            (
+                "70",
+                E::CheckpointExists.code(),
+                "freshness_checkpoint_exists",
+            ),
+            (
+                "71.IoWriteFailed",
+                durable(W::Hygiene(M::IoWriteFailed)),
+                "io_write_failed",
+            ),
+            (
+                "71.IoReadFailed",
+                durable(W::Hygiene(M::IoReadFailed)),
+                "io_read_failed",
+            ),
+            (
+                "71.UnsafePathSymlink",
+                durable(W::Hygiene(M::UnsafePathSymlink)),
+                "unsafe_path_symlink",
+            ),
+            (
+                "71.UnsafeParentPerms",
+                durable(W::Hygiene(M::UnsafeParentPerms)),
+                "unsafe_parent_perms",
+            ),
+            (
+                "71.TempNotSibling",
+                durable(W::TempNotSibling),
+                "storage_durability_failed",
+            ),
+            (
+                "71.TempCreateOrWrite",
+                durable(W::TempCreateOrWrite),
+                "storage_durability_failed",
+            ),
+            (
+                "71.FileFlush",
+                durable(W::FileFlush),
+                "storage_durability_failed",
+            ),
+            ("71.Rename", durable(W::Rename), "storage_durability_failed"),
+            (
+                "71.DirFlush",
+                durable(W::DirFlush),
+                "storage_durability_failed",
+            ),
+        ]);
     }
 }

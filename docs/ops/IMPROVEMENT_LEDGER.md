@@ -8464,6 +8464,7 @@ N-14 remains an explicit source-documentation deferral: the sink callback holds 
 - Named repair (for F05; NOT repaired here): a CHECKED directory flush whose failure fails the commit; the C07
   contract may not rest a power-loss claim on the current primitive. F02's standalone prototype uses checked flushes
   and does not touch production persistence.
+- Update 2026-09-28 (F04-C07P formalization, state/records/NA-0787/formalization/step5/G365.md): MEASURED at na0785-f03-integration 0673559d in a scratch clone (never pushed): a child test process whose RLIMIT_NOFILE left no descriptor for the directory open made write_atomic return Ok(()) with the renamed file in place (RED, the intended reason; a control arm proved the directory open fails EMFILE under the limit); a one-line candidate fix at fs_store/mod.rs:252 returned Err (GREEN). The repair of write_atomic itself stays F05's; F04-C07P satisfies G-365 for the provider's writes (DD-2).
 
 ### ENG-0366 -- MAIN (AND THE #1831 CANDIDATE): AUTHORITATIVE STATE LIVES IN WRITER FILES OUTSIDE THE VAULT; AN ANCHOR OVER THE VAULT ALONE LEAVES THEIR ROLLBACK UNDETECTED (PLAN F02 formalization E-4) -- GATE FOR F03-F05
 

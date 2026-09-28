@@ -858,5 +858,18 @@ SR-15 independent review. This subsection allocates identifiers, not error codes
 | O5-01 | Contact id (C01 O5; applies to A15, A17 and every per-contact artifact of C01 T5) | 16 bytes from the CSPRNG, written as 32 lowercase hex characters [0-9a-f]{32}, minted locally when a contact is created and never derived from the typed label. The typed label is a local note that lives ONLY inside the encrypted vault as a label -> contact-id mapping (the resolver); it never appears in a filename, directory name, vault key suffix or AAD. Renaming a contact changes only that mapping (no re-keying; the peer never sees the label) | a per-contact key or path whose suffix is not 32 lowercase hex -> refused by the consumer's own code (codes registered by the implementing PR, C01 O9) | ALLOCATED (format and placement); the resolver's storage row stays with CENSUS V7 (C01 O6) |
 | A21-AM1 | RETIRED (ADDS to A21) | the candidate's parameter-length literal 25 (with its value); the candidate's owner/peer strings na0780_directional_owner_v1 and na0780_directional_transaction_v2/ and the record spelling na0780_directional_transaction/{peer} (12.2 :669); the "R02 approved identifier allocation" of NA-0780 TASK (2026-09-20), which was never a registry allocation (C01 O1); the identifier statements of the candidate qsc README sections "Directional first-release development draft", "NA-0780 successor development profile (Stage A)" and "R02 successor integration" (profile -01/-02/-03, schema 3/4, NDI1) | as A02-A13 | RETIRED |
 
+### 12.10 Note on 12.8: the registry of the C07 client refusal codes
+
+Added by PLAN card F04-C07P (NA-0787, sub-step S6) under C07 AM-12 and F-10 and C01 AM-6.16 (a) (OWED D35).
+Sections 12.1-12.9 are not edited (as 12.3-12.9 state for their predecessors). In 12.8 the sentence "The marker
+spellings of the contract's T3.6 (...) are registered in DOC-SCL-002 by the implementing PR (C01 O9)" is superseded
+on one point, its registry: the client-local marker spellings of C07 T3.6 (ER2-ER22) and of T6.1 F6 are PROPOSED
+spellings registered in DOC-CAN-009 "QSC client refusal codes (normative registry)"
+(`docs/canonical/DOC-CAN-009_QSC_Client_Refusal_Codes_v0.1.0_DRAFT.md`) by the implementing PR; DOC-SCL-002 keeps
+the service layer. The PR that appends this note creates DOC-CAN-009 and registers the spellings it allocates
+(ER2-ER7, ER17, ER18, ER19 and ER21 as QRC-0001..QRC-0010, and the eleven provider codes the ruling adds as
+QRC-0011..QRC-0021); the TPM-profile spellings (ER8-ER16, ER20, ER22) and F6's are registered there by their own
+implementing PRs. This note allocates no identifier.
+
 ---
 End of DOC-CAN-003

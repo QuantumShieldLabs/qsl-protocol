@@ -5,6 +5,8 @@
 //! - [`checkpoint`]: the QSLFRESH v1 codec (C07 T6.5, DOC-CAN-003 C07-01).
 //! - [`paths`]: the D31 checkpoint location and the D32 lock path (C07 T6.4).
 //! - [`recover`]: the T4.3 LOCAL recovery classifier over the [`LineageOpen`] seam (S4).
+//! - [`lock`]: the D32 lineage lock (FN1), with the inode re-check (S5).
+//! - [`txn`]: begin / commit (C1-C3, C5) / genesis (C7) under the lineage lock (S5).
 //!
 //! NOTHING HERE IS WIRED. The recovery classifier (S4), the transaction (S5) and the provider
 //! selector (S6) are the consumers, and S11 wires them into init/unlock/writes; until then every
@@ -13,8 +15,10 @@
 #![allow(dead_code)]
 
 pub(crate) mod checkpoint;
+pub(crate) mod lock;
 pub(crate) mod paths;
 pub(crate) mod recover;
+pub(crate) mod txn;
 
 use sha2::{Digest, Sha256};
 use std::fmt;
@@ -123,6 +127,107 @@ pub(crate) struct OpenFailed;
 /// The provider holds no vault key and derives none. S11 implements it over payload v5.
 pub(crate) trait LineageOpen {
     fn open(&self, blob: &[u8]) -> Result<LineageFields, OpenFailed>;
+}
+
+/// THE PROCESS-CUT SEAM (S5; PROTOTYPE sec 4; RULING_F04C07P R9): a cut point of the transaction,
+/// genesis or recovery. Compiled only under cfg(test): no shipping artifact contains it (I13).
+#[cfg(test)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum CutPoint {
+    KB2,
+    KM2,
+    KA2,
+    KM3,
+    KA34,
+    KM5,
+    KA5,
+    KA6,
+    GI1,
+    GI2,
+    GI3,
+    RC1,
+}
+
+#[cfg(test)]
+impl CutPoint {
+    pub(crate) fn name(self) -> &'static str {
+        match self {
+            Self::KB2 => "K-B2",
+            Self::KM2 => "K-M2",
+            Self::KA2 => "K-A2",
+            Self::KM3 => "K-M3",
+            Self::KA34 => "K-A34",
+            Self::KM5 => "K-M5",
+            Self::KA5 => "K-A5",
+            Self::KA6 => "K-A6",
+            Self::GI1 => "GI-1",
+            Self::GI2 => "GI-2",
+            Self::GI3 => "GI-3",
+            Self::RC1 => "RC-1",
+        }
+    }
+}
+
+/// The variable naming the one cut point a child process dies at, and the child's exit code there.
+#[cfg(test)]
+pub(crate) const CUT_ENV: &str = "QSL_FRESHNESS_CUT";
+#[cfg(test)]
+pub(crate) const CUT_EXIT: i32 = 86;
+
+/// THE CUT FUNCTION. In a process started with CUT_ENV naming `point`, end the process here with
+/// exit 86 (no unwinding, no destructors: nothing is flushed or unlocked on the way out). When
+/// `temp` is given, first leave that temp exactly as `fs_store::write_file_durable` leaves its own
+/// before the rename -- created new, mode 0600, written, flushed -- because that cut point lies
+/// inside the primitive, where no cut can be placed (K-M2, K-M3). Otherwise a no-op.
+#[cfg(test)]
+#[inline(never)]
+pub(crate) fn cut(point: CutPoint, temp: Option<(&std::path::Path, &[u8])>) {
+    if std::env::var(CUT_ENV).ok().as_deref() != Some(point.name()) {
+        return;
+    }
+    if let Some((path, bytes)) = temp {
+        use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
+        let mut f = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .mode(0o600)
+            .open(path)
+            .expect("cut: create the temp");
+        f.write_all(bytes).expect("cut: write the temp");
+        f.sync_all().expect("cut: flush the temp");
+    }
+    std::process::exit(CUT_EXIT);
+}
+
+/// The variable naming a cut child's fixture directory (the child reads its inputs there).
+#[cfg(test)]
+pub(crate) const FIXTURE_ENV: &str = "QSL_FRESHNESS_FIXTURE";
+
+/// Re-execute this unit-test binary as a CHILD running exactly the ignored test `test`, with the
+/// cut point (if any) and the fixture directory in its environment. Returns its exit status and
+/// its pid. "Restart" is then the caller's own begin(): a new process relative to the child.
+#[cfg(test)]
+pub(crate) fn run_child(
+    test: &str,
+    cut: Option<CutPoint>,
+    fixture: &std::path::Path,
+) -> (std::process::ExitStatus, u32) {
+    let exe = std::env::current_exe().expect("current_exe");
+    let mut cmd = std::process::Command::new(exe);
+    cmd.args(["--ignored", "--exact", test, "--test-threads=1"])
+        .env(FIXTURE_ENV, fixture)
+        .env_remove(CUT_ENV)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+    if let Some(point) = cut {
+        cmd.env(CUT_ENV, point.name());
+    }
+    let child = cmd.spawn().expect("spawn the child");
+    let pid = child.id();
+    let out = child.wait_with_output().expect("wait for the child");
+    (out.status, pid)
 }
 
 #[cfg(test)]

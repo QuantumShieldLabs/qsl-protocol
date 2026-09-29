@@ -1614,8 +1614,8 @@ fn key_from_hex(secret: &str, out: &mut [u8; 32]) -> bool {
         return false;
     }
     let mut key = [0u8; 32];
-    for (byte, pair) in key.iter_mut().zip(digits.chunks_exact(2)) {
-        match (hex_nibble(pair[0]), hex_nibble(pair[1])) {
+    for (i, byte) in key.iter_mut().enumerate() {
+        match (hex_nibble(digits[2 * i]), hex_nibble(digits[2 * i + 1])) {
             (Some(hi), Some(lo)) => *byte = (hi << 4) | lo,
             _ => {
                 key.zeroize();

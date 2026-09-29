@@ -14,6 +14,10 @@
 //! S7b X3 (F-03, F-21): the lock path is opened with O_NOFOLLOW and O_NONBLOCK and must be a
 //! REGULAR file: a symlink, FIFO or other file type there is refused, never followed or locked.
 //! S7b X6 (F-08): when the open CREATES the lock file, its directory is flushed.
+//! S7c DF-9: a HARD LINK at the lock path is a regular file and is accepted -- FN1's lock is an
+//! inode at a path, not a name. A link to another file can only make brokers contend or lock that
+//! file's inode (a refusal or confusion, never two holders of one inode); no nlink check is made,
+//! since it would also refuse a benign link.
 //!
 //! LOCK ORDER (a precondition for every caller): the caller's store lock `.qsc.lock`
 //! (model::LockGuard) FIRST, then this lineage lock. The reverse order is FORBIDDEN. Both locks are
@@ -316,11 +320,17 @@ mod tests {
         use crate::fs_store::{arm_durable_flush_fault, DurableFlushPoint};
         let td = private_dir();
         arm_durable_flush_fault(DurableFlushPoint::Dir, 0);
+        crate::fs_store::take_dir_flushes();
         let r = LineageLock::acquire(td.path()).map(|_| ());
         assert_eq!(
             r,
             Err(LockError::DirFlush),
             "the creation's flush is checked"
+        );
+        // S7c DF-3: the flush went to the checkpoint DIRECTORY, not the lock file.
+        assert_eq!(
+            crate::fs_store::take_dir_flushes(),
+            [td.path().to_path_buf()]
         );
         assert_eq!(r.unwrap_err().code(), "storage_durability_failed");
         assert!(

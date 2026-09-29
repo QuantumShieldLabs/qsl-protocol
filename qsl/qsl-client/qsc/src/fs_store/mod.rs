@@ -539,6 +539,8 @@ pub(crate) enum DurableWriteError {
 pub(crate) fn sync_dir_checked(dir: &Path) -> Result<(), DurableWriteError> {
     let flushed = File::open(dir).and_then(|d| d.sync_all());
     #[cfg(test)]
+    DIR_FLUSHES.with(|c| c.borrow_mut().push(dir.to_path_buf()));
+    #[cfg(test)]
     let flushed = durable_flush_fault_apply(DurableFlushPoint::Dir, flushed);
     flushed.map_err(|_| DurableWriteError::DirFlush)
 }
@@ -626,6 +628,19 @@ pub(crate) enum DurableFlushPoint {
 thread_local! {
     static DURABLE_FLUSH_FAULT: std::cell::Cell<Option<(DurableFlushPoint, u32)>> =
         const { std::cell::Cell::new(None) };
+}
+
+// NA-0787 S7c DF-3: every directory a checked directory flush of this thread was applied to, in
+// order, so a test can see WHICH directory was flushed, not only how many.
+#[cfg(test)]
+thread_local! {
+    static DIR_FLUSHES: std::cell::RefCell<Vec<PathBuf>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
+/// The directories this thread's checked directory flushes were applied to since the last call.
+#[cfg(test)]
+pub(crate) fn take_dir_flushes() -> Vec<PathBuf> {
+    DIR_FLUSHES.with(|c| c.take())
 }
 
 /// Arm ONE injected failure on this thread: after `skip` flushes at `point` pass through, the

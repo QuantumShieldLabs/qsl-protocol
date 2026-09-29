@@ -1378,6 +1378,16 @@ mod tests {
         );
         let text = format!("{fields:?}");
         assert!(!text.contains("checkpoint_mac_key"), "{text}");
+        // S7c DF-11: the key BYTES under any label -- neither their hex nor their Debug array form.
+        let key = syn_mac_key();
+        assert!(
+            !text.contains(&crate::hex_encode(&key)),
+            "the key's hex was formatted"
+        );
+        assert!(
+            !text.contains(&format!("{key:?}")),
+            "the key's bytes were formatted"
+        );
     }
 
     #[test]

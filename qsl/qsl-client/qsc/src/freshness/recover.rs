@@ -4,8 +4,9 @@
 //! be committed (PROMOTE), or something else (FREEZE, never a guess).
 //!
 //! THE ORDERED RULES (SEALED_EXPECTATION_S4.md sec 3; the first rule that applies decides):
-//! - a. any restart (:270): remove the prepared temps of DEAD pids and, when the caller names the
-//!   lineage it locked, that lineage's head temps of DEAD pids (S7b X7), and nothing else;
+//! - a. any restart (:270): remove the prepared temps of DEAD pids (either shape, S7c DF-2) and,
+//!   when the caller names the lineage it locked, that lineage's head temps of DEAD pids (S7b X7),
+//!   and nothing else;
 //! - b. read current and prepared, each bounded by `max_blob_len`, before the opener sees either;
 //! - c. both authenticated must agree on vault_id, checkpoint_mac_key and protection_mode, and on
 //!   the lineage the caller locked, if it names one (S7b X10: refused before rule h can promote);
@@ -42,8 +43,9 @@ pub(crate) fn prepared_path(store_dir: &Path) -> PathBuf {
     store_dir.join(PREPARED_FILE)
 }
 
-pub(crate) fn prepared_temp_path(store_dir: &Path, pid: u32) -> PathBuf {
-    store_dir.join(format!("{PREPARED_TEMP_PREFIX}{pid}"))
+/// `vault.qsv.prepared.tmp.<pid>.<n>`, n the writer's per-process counter (S7c DF-2).
+pub(crate) fn prepared_temp_path(store_dir: &Path, pid: u32, seq: u64) -> PathBuf {
+    store_dir.join(format!("{PREPARED_TEMP_PREFIX}{pid}.{seq}"))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -214,7 +216,7 @@ enum Verdict {
 /// Classify the store per C07 T4.3 (LOCAL) by the sealed ordered rules (module doc).
 ///
 /// PRECONDITION (documented, not enforced here): the caller holds the lineage lock (C07 FN1 :258)
-/// of `expected` when it names one (begin(): the quarantined vault_id); genesis() names none.
+/// of `expected` when it names one (begin(): the quarantined vault_id; genesis(): B0's, S7c DF-1).
 pub(crate) fn recover(
     store_dir: &Path,
     state_root: &Path,
@@ -445,7 +447,7 @@ fn open_slot(
 }
 
 /// Rule a (:270). Only a regular (non-directory) entry of `dir` whose name `pid_of` reads as a
-/// canonical pid that is NOT alive is removed -- `vault.qsv.prepared.tmp.<pid>` in the store, and
+/// canonical pid that is NOT alive is removed -- `vault.qsv.prepared.tmp.<pid>[.<n>]` in the store, and
 /// (S7b X7) `head.tmp.<pid>[.<n>]` in the locked lineage's checkpoint directory; everything else is
 /// left exactly as found. No directory flush follows: a resurrected dead temp is simply removed
 /// again next time.
@@ -478,11 +480,20 @@ fn remove_dead_temps(dir: &Path, pid_of: fn(&OsStr) -> Option<i32>) -> Result<()
     Ok(())
 }
 
-/// The pid of a prepared temp name, in CANONICAL decimal only: no sign, no leading zero (so never
-/// pid 0, which kill() reads as "my process group"), within pid_t. Anything else is None.
+/// The pid of a prepared temp name of either shape, `<prefix><pid>` (S5) or `<prefix><pid>.<n>`
+/// (S7c DF-2), in CANONICAL decimal only: no sign, no leading zero (so never pid 0, which kill()
+/// reads as "my process group"), within pid_t; n is "0" or has no leading zero. Anything else is None.
 fn prepared_temp_pid(name: &OsStr) -> Option<i32> {
-    let digits = name.to_str()?.strip_prefix(PREPARED_TEMP_PREFIX)?;
-    if digits.is_empty() || digits.starts_with('0') || !digits.bytes().all(|b| b.is_ascii_digit()) {
+    let rest = name.to_str()?.strip_prefix(PREPARED_TEMP_PREFIX)?;
+    let (digits, seq) = match rest.split_once('.') {
+        Some((pid, seq)) => (pid, Some(seq)),
+        None => (rest, None),
+    };
+    let canonical = |d: &str| !d.is_empty() && d.bytes().all(|b| b.is_ascii_digit());
+    if !canonical(digits) || digits.starts_with('0') {
+        return None;
+    }
+    if seq.is_some_and(|n| !canonical(n) || (n.len() > 1 && n.starts_with('0'))) {
         return None;
     }
     digits.parse().ok()
@@ -1071,9 +1082,11 @@ mod tests {
     fn r_tmp_only_dead_pid_prepared_temps_are_removed() {
         let (st, lin) = (Store::new(), Lineage::new());
         let dead = dead_pid();
-        let dead_temp = prepared_temp_path(&st.store, dead);
+        // S5's shape, spelled out (S7c DF-2 writes `<pid>.<n>`; df2 below covers both shapes).
+        let dead_temp = st.store.join(format!("{PREPARED_TEMP_PREFIX}{dead}"));
         let kept = [
-            prepared_temp_path(&st.store, std::process::id()),
+            st.store
+                .join(format!("{PREPARED_TEMP_PREFIX}{}", std::process::id())),
             st.store.join(format!("{PREPARED_TEMP_PREFIX}0{dead}")),
             st.store.join(format!("{PREPARED_TEMP_PREFIX}x")),
             st.store.join(format!("{PREPARED_TEMP_PREFIX}0")),
@@ -1082,7 +1095,9 @@ mod tests {
         for path in std::iter::once(&dead_temp).chain(kept.iter()) {
             fs::write(path, b"partial").expect("plant temp");
         }
-        let dead_dir = prepared_temp_path(&st.store, dead_pid());
+        let dead_dir = st
+            .store
+            .join(format!("{PREPARED_TEMP_PREFIX}{}", dead_pid()));
         fs::create_dir(&dead_dir).expect("plant dir");
         assert_eq!(summary(&st.recover(&lin)), "NoLineage");
         assert!(!dead_temp.exists(), "a dead pid's prepared temp is removed");
@@ -1357,6 +1372,42 @@ mod tests {
             other_temp.exists(),
             "only the named lineage's directory is swept"
         );
+    }
+
+    #[test]
+    fn df2_rule_a_removes_dead_pid_prepared_temps_both_shapes() {
+        // S7c DF-2: the prepared temp carries a counter; rule a still removes DEAD pids only.
+        let (st, lin) = (Store::new(), Lineage::new());
+        let dead = dead_pid();
+        let temp = |rest: String| st.store.join(format!("{PREPARED_TEMP_PREFIX}{rest}"));
+        let removed = [
+            temp(format!("{dead}")),
+            prepared_temp_path(&st.store, dead, 3),
+        ];
+        let me = std::process::id();
+        let kept = [
+            temp(format!("{me}")),
+            prepared_temp_path(&st.store, me, 0),
+            temp(format!("0{dead}.1")),
+            temp(format!("{dead}.03")),
+            temp(format!("{dead}.")),
+            temp(format!("{dead}.1.2")),
+            temp(format!("{dead}.x")),
+            temp("0.1".to_string()),
+        ];
+        for path in removed.iter().chain(kept.iter()) {
+            fs::write(path, b"partial").expect("plant prepared temp");
+        }
+        let dead_dir = prepared_temp_path(&st.store, dead_pid(), 1);
+        fs::create_dir(&dead_dir).expect("plant dir");
+        assert_eq!(summary(&st.recover(&lin)), "NoLineage");
+        for path in &removed {
+            assert!(!path.exists(), "{} must be removed", path.display());
+        }
+        for path in &kept {
+            assert!(path.exists(), "{} must be untouched", path.display());
+        }
+        assert!(dead_dir.is_dir(), "a directory is not a temp file");
     }
 
     #[test]

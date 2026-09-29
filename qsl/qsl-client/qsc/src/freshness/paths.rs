@@ -384,7 +384,18 @@ mod tests {
         // Exactly three: the fourth flush is never reached, so the fault is still armed.
         let td = fresh();
         arm_durable_flush_fault(DurableFlushPoint::Dir, 3);
+        crate::fs_store::take_dir_flushes();
         let dir = ensure_checkpoint_dir(td.path(), &syn_vault_id()).expect("three flushes pass");
+        // S7c DF-3: each flush went to the created component's PARENT, in order.
+        let qsl = td.path().join(QSL_DIR);
+        assert_eq!(
+            crate::fs_store::take_dir_flushes(),
+            [
+                td.path().to_path_buf(),
+                qsl.clone(),
+                qsl.join(FRESHNESS_DIR)
+            ]
+        );
         arm_durable_flush_fault(DurableFlushPoint::Dir, 0);
         assert_eq!(ensure_checkpoint_dir(td.path(), &syn_vault_id()), Ok(dir));
         assert!(

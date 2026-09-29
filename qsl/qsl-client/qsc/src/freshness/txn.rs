@@ -33,6 +33,7 @@ use super::recover::{
 use super::{anchor, digest, open_regular, LineageFields, LineageOpen, OpenError, ProtectionMode};
 use crate::fs_store::{self, DurableWriteError};
 use crate::model::ConfigSource;
+use std::fmt;
 use std::fs;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
@@ -42,6 +43,10 @@ use std::sync::atomic::{AtomicU64, Ordering};
 /// S7b X7 (F-10): the per-process counter that makes every head temp name unique
 /// (`head.tmp.<pid>.<n>`), so two writes of one process never meet each other's temp.
 static HEAD_TEMP_SEQ: AtomicU64 = AtomicU64::new(0);
+
+/// S7c DF-2: the prepared temp's own counter, by the same discipline
+/// (`vault.qsv.prepared.tmp.<pid>.<n>`), so a leftover of a reused pid never blocks C2.
+static PREPARED_TEMP_SEQ: AtomicU64 = AtomicU64::new(0);
 
 /// The exact identity of a committed vault (I04): what the caller's C6 releases and retries under.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -136,7 +141,6 @@ pub(crate) enum GenesisError {
 
 /// An unlocked lineage: holds the lineage lock for its whole lifetime (FN1) and the committed
 /// identity -- never a key and never the vault's bytes.
-#[derive(Debug)]
 pub(crate) struct Session {
     lock: LineageLock,
     store_dir: PathBuf,
@@ -150,6 +154,22 @@ pub(crate) struct Session {
     resumed: Resumed,
     stale_prepared: bool,
     poisoned: bool,
+}
+
+/// S7c DF-6: X8's shape -- the head bytes are never formatted, only their length; the lock by its path.
+impl fmt::Debug for Session {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Session")
+            .field("vault_id", &crate::hex_encode(&self.vault_id))
+            .field("mode", &self.mode)
+            .field("committed", &self.committed)
+            .field("head_len", &self.head.len())
+            .field("resumed", &self.resumed)
+            .field("stale_prepared", &self.stale_prepared)
+            .field("poisoned", &self.poisoned)
+            .field("lock", &self.lock.path())
+            .finish_non_exhaustive()
+    }
 }
 
 /// Unlock a lineage (B). PRECONDITION: the caller holds its store lock `.qsc.lock` (taken FIRST).
@@ -347,19 +367,18 @@ impl Session {
             },
             fields.checkpoint_mac_key(),
         );
+        let prepared_temp = next_prepared_temp(&self.store_dir, pid);
         let head_temp = next_head_temp(&self.checkpoint_dir, pid);
         #[cfg(test)]
         super::cut(super::CutPoint::KB2, None);
         #[cfg(test)]
         super::cut(
             super::CutPoint::KM2,
-            Some((
-                prepared_temp_path(&self.store_dir, pid).as_path(),
-                successor,
-            )),
+            Some((prepared_temp.as_path(), successor)),
         );
         // C2 (:248).
-        write_prepared(&self.store_dir, successor, pid).map_err(CommitError::DurableWrite)?;
+        write_prepared(&self.store_dir, successor, &prepared_temp)
+            .map_err(CommitError::DurableWrite)?;
         #[cfg(test)]
         super::cut(super::CutPoint::KA2, None);
         #[cfg(test)]
@@ -408,7 +427,8 @@ pub(crate) fn genesis(
     let checkpoint_dir =
         paths::ensure_checkpoint_dir(state_root, &vault_id).map_err(GenesisError::CheckpointDir)?;
     let lock = LineageLock::acquire(&checkpoint_dir).map_err(GenesisError::Lock)?;
-    match recover::recover(store_dir, state_root, max_blob_len, opener, None)
+    // S7c DF-1: B0's authenticated vault_id, so another lineage is refused before rule h (X10).
+    match recover::recover(store_dir, state_root, max_blob_len, opener, Some(&vault_id))
         .map_err(GenesisError::Recover)?
     {
         Recovered::NoLineage => {}
@@ -436,7 +456,8 @@ pub(crate) fn genesis(
         fields.checkpoint_mac_key(),
     );
     // C2.
-    write_prepared(store_dir, b0, pid).map_err(GenesisError::DurableWrite)?;
+    let prepared_temp = next_prepared_temp(store_dir, pid);
+    write_prepared(store_dir, b0, &prepared_temp).map_err(GenesisError::DurableWrite)?;
     #[cfg(test)]
     super::cut(super::CutPoint::GI1, None);
     // C3: the genesis checkpoint.
@@ -539,14 +560,20 @@ fn remove_stale_prepared(store_dir: &Path) -> Result<(), CommitError> {
     fs_store::sync_dir_checked(store_dir).map_err(CommitError::DurableWrite)
 }
 
-/// C2 through S2's checked primitive; the temp carries this process's pid (D30 :332).
-fn write_prepared(store_dir: &Path, bytes: &[u8], pid: u32) -> Result<(), DurableWriteError> {
+/// C2 through S2's checked primitive, through the caller's `next_prepared_temp` (D30 :332).
+fn write_prepared(store_dir: &Path, bytes: &[u8], temp: &Path) -> Result<(), DurableWriteError> {
     fs_store::write_file_durable(
         &prepared_path(store_dir),
         bytes,
-        &prepared_temp_path(store_dir, pid),
+        temp,
         ConfigSource::EnvOverride,
     )
+}
+
+/// This write's prepared temp: `vault.qsv.prepared.tmp.<pid>.<n>` (D30 :332, made unique by S7c DF-2).
+fn next_prepared_temp(store_dir: &Path, pid: u32) -> PathBuf {
+    let seq = PREPARED_TEMP_SEQ.fetch_add(1, Ordering::Relaxed);
+    prepared_temp_path(store_dir, pid, seq)
 }
 
 /// This write's head temp: `head.tmp.<pid>.<n>` (D31 :333, made unique by S7b X7).
@@ -1189,7 +1216,7 @@ mod tests {
         let s3 = fx.lin.blob(N + 1, &chain[N as usize].anchor);
         let pid = fx.cut_child("commit", &s3.bytes, CutPoint::KB2);
         assert!(!prepared_path(&fx.store).exists());
-        assert!(!prepared_temp_path(&fx.store, pid).exists());
+        assert!(!prepared_temp_path(&fx.store, pid, 0).exists());
         restart_twice(&fx, open(&chain[N as usize]));
         assert_ledger(&fx, &upto(&chain));
     }
@@ -1199,7 +1226,8 @@ mod tests {
         let (fx, chain) = Fx::at(N);
         let s3 = fx.lin.blob(N + 1, &chain[N as usize].anchor);
         let pid = fx.cut_child("commit", &s3.bytes, CutPoint::KM2);
-        let temp = prepared_temp_path(&fx.store, pid);
+        // The child's first prepared write: its counter's first value (S7c DF-2).
+        let temp = prepared_temp_path(&fx.store, pid, 0);
         assert_eq!(fs::read(&temp).expect("the dead child's temp"), s3.bytes);
         assert!(!prepared_path(&fx.store).exists());
         restart_twice(&fx, open(&chain[N as usize]));
@@ -1302,7 +1330,11 @@ mod tests {
         assert_eq!(fx.trees(), before);
         drop(s);
         assert!(!prepared_path(&fx.store).exists());
-        assert!(!prepared_temp_path(&fx.store, process::id()).exists());
+        assert_eq!(
+            prepared_family(&fx.store),
+            0,
+            "no temp of either shape is left"
+        );
         restart_twice(&fx, open(&chain[N as usize]));
         assert_ledger(&fx, &upto(&chain));
     }
@@ -1802,6 +1834,32 @@ mod tests {
         );
         let prepared = fs::symlink_metadata(prepared_path(&fx.store)).expect("prepared");
         assert!(prepared.file_type().is_symlink(), "nothing was promoted");
+        // S7c DF-11: rule b under the lock -- an AUTHENTIC current beside a symlinked prepared slot.
+        let (fx, chain) = Fx::at(N);
+        let elsewhere = fx.root.path().join("elsewhere.blob");
+        fs::write(&elsewhere, &chain[N as usize].bytes).expect("elsewhere");
+        std::os::unix::fs::symlink(&elsewhere, prepared_path(&fx.store)).expect("symlink");
+        let r = fx.begin();
+        assert!(
+            matches!(
+                r,
+                Err(BeginError::Recover(RecoverError::BlobRead {
+                    slot: Slot::Prepared,
+                    ..
+                }))
+            ),
+            "{r:?}"
+        );
+        assert_eq!(r.unwrap_err().code(), "vault_read_failed");
+        let prepared = fs::symlink_metadata(prepared_path(&fx.store)).expect("prepared");
+        assert!(
+            prepared.file_type().is_symlink(),
+            "never followed, never promoted"
+        );
+        assert_eq!(
+            fs::read(current_path(&fx.store)).expect("current"),
+            chain[N as usize].bytes
+        );
     }
 
     #[test]
@@ -1855,6 +1913,12 @@ mod tests {
         .expect("head decodes");
         assert_eq!((head.generation, head.digest), (s3.generation, s3.digest));
         assert!(planted.exists(), "a live pid's temp is kept by rule a");
+        // S7c DF-5: the counter advances -- two consecutive head temps of one process differ.
+        let pid = process::id();
+        assert_ne!(
+            next_head_temp(&fx.ckdir(), pid),
+            next_head_temp(&fx.ckdir(), pid)
+        );
     }
 
     #[test]
@@ -1862,7 +1926,7 @@ mod tests {
         // X is committed at N. Lineage Y (same opener, another vault_id and Kc) is promotable:
         // current Y0, prepared Y1, a head naming Y1. The store is swapped to Y INSIDE the
         // quarantine's open of X's current, after its bytes were read.
-        let (fx, _chain) = Fx::at(N);
+        let (fx, chain) = Fx::at(N);
         let (vid_y, kc_y) = (random32(), random32());
         let y0 = fx.lin.blob_with(vid_y, 0, &ZERO, kc_y, 1);
         let y1 = fx.lin.blob_with(vid_y, 1, &y0.anchor, kc_y, 1);
@@ -1878,18 +1942,24 @@ mod tests {
         );
         let ck_y = paths::ensure_checkpoint_dir(&fx.state, &vid_y).expect("Y's dir");
         fs::write(paths::head_path(&ck_y), head_y1).expect("Y's head");
-        let store = fx.store.clone();
-        let (y0b, y1b) = (y0.bytes.clone(), y1.bytes.clone());
-        *fx.lin.opener.hook.borrow_mut() = Some((
-            1,
-            Box::new(move || {
-                fs::write(current_path(&store), &y0b).expect("swap current");
-                fs::write(prepared_path(&store), &y1b).expect("swap prepared");
-            }),
-        ));
+        let swap_to_y = || {
+            let store = fx.store.clone();
+            let (y0b, y1b) = (y0.bytes.clone(), y1.bytes.clone());
+            fx.lin.opener.calls.set(0);
+            *fx.lin.opener.hook.borrow_mut() = Some((
+                1,
+                Box::new(move || {
+                    fs::write(current_path(&store), &y0b).expect("swap current");
+                    fs::write(prepared_path(&store), &y1b).expect("swap prepared");
+                }),
+            ));
+        };
+        swap_to_y();
         let r = fx.begin();
         assert!(matches!(r, Err(BeginError::LineageChanged)), "{r:?}");
         assert_eq!(r.unwrap_err().code(), "freshness_lineage_changed");
+        // S7c DF-10: the quarantine's open, then rule b's current and prepared -- nothing past rule c.
+        assert_eq!(fx.lin.opener.calls.get(), 3);
         assert_eq!(
             fs::read(prepared_path(&fx.store)).expect("Y's prepared slot is still there"),
             y1.bytes
@@ -1905,6 +1975,20 @@ mod tests {
         assert!(
             !paths::lock_path(&ck_y).exists(),
             "Y's lock was never taken"
+        );
+        // S7c DF-10 (D-S1's placement): Y's head is never OPENED. With a directory there, a read
+        // before the compare would refuse it as a checkpoint read failure instead.
+        fs::remove_file(paths::head_path(&ck_y)).expect("rm Y's head");
+        fs::create_dir(paths::head_path(&ck_y)).expect("a directory at Y's head");
+        fx.put_current(&chain[N as usize].bytes);
+        fs::remove_file(prepared_path(&fx.store)).expect("rm prepared");
+        swap_to_y();
+        let r = fx.begin();
+        assert!(matches!(r, Err(BeginError::LineageChanged)), "{r:?}");
+        assert_eq!(fx.lin.opener.calls.get(), 3);
+        assert_eq!(
+            fs::read(prepared_path(&fx.store)).expect("Y's prepared slot is still there"),
+            y1.bytes
         );
     }
 
@@ -1933,5 +2017,107 @@ mod tests {
             "refused before the opener"
         );
         assert!(!s.is_poisoned());
+    }
+
+    // ---- S7c (SEALED_EXPECTATION_S7c.md sec 1): the delta read's findings, RULING R2.
+
+    #[test]
+    fn df1_genesis_refuses_a_foreign_promotable_store_before_promotion() {
+        // p_a7 inverted: lineage Y (same opener, another vault_id and Kc) is promotable in the store.
+        let fx = Fx::empty();
+        let (vid_y, kc_y) = (random32(), random32());
+        let y0 = fx.lin.blob_with(vid_y, 0, &ZERO, kc_y, 1);
+        let y1 = fx.lin.blob_with(vid_y, 1, &y0.anchor, kc_y, 1);
+        let head_y1 = checkpoint::encode(
+            &Checkpoint {
+                mode: ProtectionMode::LocalCheckpoint,
+                vault_id: vid_y,
+                generation: y1.generation,
+                digest: y1.digest,
+                anchor: y1.anchor,
+            },
+            &kc_y,
+        );
+        let ck_y = paths::ensure_checkpoint_dir(&fx.state, &vid_y).expect("Y's dir");
+        fs::write(paths::head_path(&ck_y), head_y1).expect("Y's head");
+        fx.put_current(&y0.bytes);
+        fx.put_prepared(&y1.bytes);
+        let b0 = fx.lin.blob(0, &ZERO);
+        let r = genesis(&fx.store, &fx.state, MAX, &b0.bytes, &fx.lin.opener);
+        assert_eq!(kind(&r), "Recover(LineageChanged)");
+        assert_eq!(r.unwrap_err().code(), "vault_exists");
+        assert_eq!(
+            fs::read(prepared_path(&fx.store)).expect("Y's prepared slot is still there"),
+            y1.bytes
+        );
+        assert_eq!(
+            fs::read(current_path(&fx.store)).expect("current"),
+            y0.bytes
+        );
+        assert_eq!(
+            fs::read(paths::head_path(&ck_y)).expect("Y's head"),
+            head_y1
+        );
+        assert!(
+            !paths::lock_path(&ck_y).exists(),
+            "Y's lock was never taken"
+        );
+    }
+
+    #[test]
+    fn df2_own_pid_old_shape_prepared_temp_no_longer_blocks_c2() {
+        // p_a3 inverted: a leftover of a reused pid (this process's) in S5's old shape.
+        let (fx, chain) = Fx::at(N);
+        let planted = fx
+            .store
+            .join(format!("vault.qsv.prepared.tmp.{}", process::id()));
+        fs::write(&planted, b"leftover-from-a-reused-pid").expect("plant");
+        let mut s = fx.begin().expect("begin");
+        let s3 = fx.lin.blob(N + 1, &chain[N as usize].anchor);
+        let c = s
+            .commit(&s3.bytes, &fx.lin.opener)
+            .expect("C2 uses its own name");
+        assert_eq!(c, s3.id());
+        let s4 = fx.lin.blob(N + 2, &s3.anchor);
+        assert_eq!(s.commit(&s4.bytes, &fx.lin.opener).expect("again"), s4.id());
+        assert!(planted.exists(), "a live pid's temp is kept by rule a");
+        let pid = process::id();
+        assert_ne!(
+            next_prepared_temp(&fx.store, pid),
+            next_prepared_temp(&fx.store, pid)
+        );
+    }
+
+    #[test]
+    fn df4_genesis_session_head_classifies_a_wrong_key_successor() {
+        // p_a1: the Session's head after genesis is the head genesis wrote.
+        let fx = Fx::empty();
+        let lin = &fx.lin;
+        let b0 = lin.blob(0, &ZERO);
+        let mut s = genesis(&fx.store, &fx.state, MAX, &b0.bytes, &lin.opener).expect("genesis");
+        let bad = lin.blob_with(lin.vault_id, 1, &b0.anchor, random32(), 1);
+        let r = s.commit(&bad.bytes, &lin.opener);
+        assert_eq!(kind(&r), "NotChained(CheckpointKey)");
+        assert_eq!(r.unwrap_err().code(), "freshness_successor_invalid");
+        assert!(!s.is_poisoned());
+        let s1 = lin.blob(1, &b0.anchor);
+        assert_eq!(s.commit(&s1.bytes, &lin.opener).expect("commit"), s1.id());
+    }
+
+    #[test]
+    fn df6_session_debug_never_formats_the_head_bytes() {
+        let (fx, _chain) = Fx::at(N);
+        let s = fx.begin().expect("begin");
+        let text = format!("{s:?}");
+        assert!(
+            text.contains(&format!("head_len: {}", checkpoint::LEN)),
+            "{text}"
+        );
+        assert!(!text.contains("head: ["), "the head was formatted: {text}");
+        assert!(
+            text.contains(&crate::hex_encode(&fx.lin.vault_id)),
+            "{text}"
+        );
+        assert!(!text.contains("LineageLock"), "{text}");
     }
 }

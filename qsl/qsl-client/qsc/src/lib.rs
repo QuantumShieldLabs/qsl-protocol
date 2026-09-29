@@ -134,6 +134,7 @@ pub mod store;
 pub mod timeline;
 mod directional_core;
 mod directional_delivery;
+mod strict_json;
 pub mod transport;
 pub mod vault;
 

@@ -2012,7 +2012,7 @@ fn directional_owner(payload:&VaultPayload)
         return Err("directional_profile_required");
     }
     let raw=payload.secrets.get(layout.owner_key).ok_or("directional_reserve_missing")?;
-    serde_json::from_str(raw).map_err(|_|"directional_owner_tampered")
+    crate::protocol_state::CapacityOwner::decode(raw)
 }
 fn check_directional_aggregate(payload:&VaultPayload)->Result<(),&'static str> {
     let layout=crate::protocol_state::approved_directional_layout()?;

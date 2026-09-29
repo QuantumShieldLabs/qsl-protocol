@@ -571,11 +571,16 @@ pub(crate) fn write_file_durable(
     if dir.exists() {
         enforce_dir_perms(dir).map_err(DurableWriteError::Hygiene)?;
     }
-    let mut f = OpenOptions::new()
-        .create_new(true)
-        .write(true)
-        .open(tmp_path)
-        .map_err(|_| DurableWriteError::TempCreateOrWrite)?;
+    // NA-0787 S7b X2 (F-02): the temp is born 0600 under any umask; the chmod below stays.
+    let mut f = {
+        use std::os::unix::fs::OpenOptionsExt;
+        OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .mode(0o600)
+            .open(tmp_path)
+    }
+    .map_err(|_| DurableWriteError::TempCreateOrWrite)?;
     // From here the temp exists and is this call's own.
     if let Err(e) = fill_flush_rename(&mut f, bytes, tmp_path, path) {
         drop(f);

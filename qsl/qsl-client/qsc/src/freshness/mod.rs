@@ -25,6 +25,10 @@ pub(crate) mod txn;
 use crate::model::ErrorCode;
 use sha2::{Digest, Sha256};
 use std::fmt;
+use std::fs::{File, OpenOptions};
+use std::io;
+use std::os::unix::fs::OpenOptionsExt;
+use std::path::Path;
 use zeroize::Zeroizing;
 
 /// C07-06: the vault digest domain label. A CRYPTO INPUT -- every committed digest `d` of every
@@ -135,6 +139,9 @@ pub(crate) mod codes {
         pub(crate) const VAULT_READ_FAILED: &str = "vault_read_failed";
         /// Init's code for a vault already present (vault/mod.rs:841).
         pub(crate) const VAULT_EXISTS: &str = "vault_exists";
+        /// The vault parser's code for a payload it cannot read (vault/mod.rs:973); here an
+        /// AUTHENTICATED blob the opener cannot read (OpenError::Malformed).
+        pub(crate) const VAULT_PARSE_FAILED: &str = "vault_parse_failed";
     }
 }
 
@@ -201,18 +208,23 @@ impl paths::CheckpointDirError {
             Self::Symlink => ErrorCode::UnsafePathSymlink.as_str(),
             Self::GroupOrWorldWritable => ErrorCode::UnsafeParentPerms.as_str(),
             Self::Io(_) => ErrorCode::IoWriteFailed.as_str(),
+            // S7b row 80: a created component's checked parent flush failed (ER17).
+            Self::DirFlush => codes::STORAGE_DURABILITY_FAILED,
         }
     }
 }
 
 impl lock::LockError {
-    /// Rows 15-19 (and 61).
+    /// Rows 15-19 (and 61); S7b rows 77-79, 84-85.
     pub(crate) fn code(&self) -> &'static str {
         match self {
-            Self::Open(_) => ErrorCode::LockOpenFailed.as_str(),
+            Self::Open(_) | Self::NotRegular => ErrorCode::LockOpenFailed.as_str(),
             Self::Contended => codes::FRESHNESS_LINEAGE_LOCK_CONTENDED,
             Self::Flock(_) | Self::Stat(_) => ErrorCode::LockFailed.as_str(),
-            Self::InodeRetriesExhausted => codes::FRESHNESS_LINEAGE_LOCK_UNSTABLE,
+            Self::InodeRetriesExhausted | Self::InodeChanged => {
+                codes::FRESHNESS_LINEAGE_LOCK_UNSTABLE
+            }
+            Self::DirFlush => codes::STORAGE_DURABILITY_FAILED,
         }
     }
 }
@@ -280,8 +292,15 @@ fn recover_code(e: &recover::RecoverError, at: RecoverAt) -> &'static str {
             // At init: a vault this opener cannot open is already in the store.
             RecoverAt::Genesis => codes::existing::VAULT_EXISTS,
         },
+        // S7b rows 72-74: authenticated but unreadable -- never a verdict, never counted.
+        R::BlobMalformed { .. } => codes::existing::VAULT_PARSE_FAILED,
         R::NotLocalCheckpoint => match at {
             RecoverAt::Quarantine | RecoverAt::Locked => codes::ANCHOR_UNQUALIFIED,
+            RecoverAt::Genesis => codes::existing::VAULT_EXISTS,
+        },
+        // S7b rows 81-83: another lineage than the one the lock was taken for.
+        R::LineageChanged => match at {
+            RecoverAt::Quarantine | RecoverAt::Locked => codes::FRESHNESS_LINEAGE_CHANGED,
             RecoverAt::Genesis => codes::existing::VAULT_EXISTS,
         },
         R::CheckpointRead(_) => codes::FRESHNESS_CHECKPOINT_UNREADABLE,
@@ -312,7 +331,8 @@ impl txn::BeginError {
 }
 
 impl txn::CommitError {
-    /// Rows 37-54.
+    /// Rows 37-54; S7b rows 75, 86-87 and row 45 changed (CheckpointKey: the head bytes did not
+    /// change, so the successor carries another key -- a client defect, not a head change).
     pub(crate) fn code(&self) -> &'static str {
         use txn::ChainBreak as B;
         match self {
@@ -320,18 +340,20 @@ impl txn::CommitError {
             Self::GenerationExhausted => codes::FRESHNESS_GENERATION_EXHAUSTED,
             Self::SuccessorTooLarge => codes::VAULT_CAPACITY_EXCEEDED,
             Self::SuccessorOpenFailed
-            | Self::NotChained(B::VaultId | B::Mode | B::Generation | B::PredecessorAnchor) => {
-                codes::FRESHNESS_SUCCESSOR_INVALID
-            }
-            Self::NotChained(B::CheckpointKey | B::HeadChanged) => codes::FRESHNESS_HEAD_CHANGED,
+            | Self::NotChained(
+                B::VaultId | B::Mode | B::Generation | B::PredecessorAnchor | B::CheckpointKey,
+            ) => codes::FRESHNESS_SUCCESSOR_INVALID,
+            Self::SuccessorMalformed => codes::existing::VAULT_PARSE_FAILED,
+            Self::NotChained(B::HeadChanged) => codes::FRESHNESS_HEAD_CHANGED,
             Self::NotChained(B::HeadRead(_)) => codes::FRESHNESS_CHECKPOINT_UNREADABLE,
+            Self::Lock(e) => e.code(),
             Self::DurableWrite(e) => e.code(),
         }
     }
 }
 
 impl txn::GenesisError {
-    /// Rows 55-71.
+    /// Rows 55-71; S7b row 76.
     pub(crate) fn code(&self) -> &'static str {
         use txn::GenesisBreak as B;
         match self {
@@ -339,6 +361,7 @@ impl txn::GenesisError {
             Self::B0OpenFailed | Self::NotGenesis(B::Generation | B::PredecessorAnchor) => {
                 codes::FRESHNESS_SUCCESSOR_INVALID
             }
+            Self::B0Malformed => codes::existing::VAULT_PARSE_FAILED,
             Self::NotLocalCheckpoint => codes::ANCHOR_UNQUALIFIED,
             Self::CheckpointDir(e) => e.code(),
             Self::Lock(e) => e.code(),
@@ -378,9 +401,17 @@ pub(crate) struct LineageFields {
     pub(crate) predecessor_anchor: [u8; 32],
     /// Payload content (C07 F5), held only in this zeroizing container and only for one
     /// operation; never printed, logged or written except as the QSLFRESH MAC key
-    /// (RULING_F04C07P R8).
-    pub(crate) checkpoint_mac_key: Zeroizing<[u8; 32]>,
+    /// (RULING_F04C07P R8). PRIVATE (S7b X9): outside this module it is only borrowed, through
+    /// [`LineageFields::checkpoint_mac_key`].
+    checkpoint_mac_key: Zeroizing<[u8; 32]>,
     pub(crate) protection_mode: ProtectionMode,
+}
+
+impl LineageFields {
+    /// The QSLFRESH MAC key, borrowed for one operation; the type never hands out a copy.
+    pub(crate) fn checkpoint_mac_key(&self) -> &[u8; 32] {
+        &self.checkpoint_mac_key
+    }
 }
 
 /// Deliberately partial: the key is never formatted.
@@ -393,15 +424,69 @@ impl fmt::Debug for LineageFields {
     }
 }
 
-/// "Did not authenticate", and nothing more: no reason and no string (RULING_F04C07P R6).
+/// Why the opener returned no lineage values; no reason string (RULING_F04C07P R6). Two kinds so
+/// that an authentic payload the client cannot read is never mistaken for a wrong passphrase
+/// (RULING_SR15_NA0787_S7 R3 F-01; C07 T6 ENC decision 2, T6.1 F6).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct OpenFailed;
+pub(crate) enum OpenError {
+    /// Did not authenticate. A wrong passphrase looks exactly like this: the one kind that may
+    /// surface as vault_locked (at the quarantine) and so the one that may count.
+    Unauthenticated,
+    /// Authenticated, but its payload cannot be read (an unknown version, an inconsistent or
+    /// missing field). Never a verdict, never counted, never vault_locked: vault_parse_failed.
+    Malformed,
+}
 
 /// THE SEAM (step2/CIRCULARITY sec 2; RULING_F04C07P R3, R8). The CALLER authenticates the blob --
 /// the vault AEAD, paying any Argon2id (C07 T4.3 :271-273, AM-4) -- and returns its lineage values.
 /// The provider holds no vault key and derives none. S11 implements it over payload v5.
 pub(crate) trait LineageOpen {
-    fn open(&self, blob: &[u8]) -> Result<LineageFields, OpenFailed>;
+    fn open(&self, blob: &[u8]) -> Result<LineageFields, OpenError>;
+}
+
+// S7b X3/X4 (F-03, F-04, F-21): the provider opens only what it wrote. O_NOFOLLOW makes the kernel
+// refuse a final symlink (ELOOP); O_NONBLOCK keeps a FIFO or device from blocking the open. Pinned
+// per target like the flock values, with no libc dependency: Linux's O_NOFOLLOW differs by
+// architecture, and an unlisted target fails to compile (fail closed, model/mod.rs's precedent).
+#[cfg(all(
+    target_os = "linux",
+    any(target_arch = "x86_64", target_arch = "x86", target_arch = "riscv64")
+))]
+const O_NOFOLLOW: i32 = 0o400_000;
+#[cfg(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "arm")))]
+const O_NOFOLLOW: i32 = 0o100_000;
+#[cfg(target_os = "macos")]
+const O_NOFOLLOW: i32 = 0x0100;
+#[cfg(all(
+    target_os = "linux",
+    any(
+        target_arch = "x86_64",
+        target_arch = "x86",
+        target_arch = "riscv64",
+        target_arch = "aarch64",
+        target_arch = "arm"
+    )
+))]
+const O_NONBLOCK: i32 = 0o4000;
+#[cfg(target_os = "macos")]
+const O_NONBLOCK: i32 = 0x0004;
+
+/// The flags every provider open carries (the lock's too).
+const NO_FOLLOW_NO_BLOCK: i32 = O_NOFOLLOW | O_NONBLOCK;
+
+/// Open `path` for reading only if it is a REGULAR file: a final symlink is refused by the kernel
+/// and a FIFO, device, socket or directory by fstat, before a single byte is read (the caller's
+/// kind for it is the site's own read failure, InvalidInput as its detail). NotFound passes through
+/// unchanged, so each site keeps its meaning for an absent file.
+pub(crate) fn open_regular(path: &Path) -> io::Result<File> {
+    let file = OpenOptions::new()
+        .read(true)
+        .custom_flags(NO_FOLLOW_NO_BLOCK)
+        .open(path)?;
+    if !file.metadata()?.file_type().is_file() {
+        return Err(io::Error::from(io::ErrorKind::InvalidInput));
+    }
+    Ok(file)
 }
 
 /// THE PROCESS-CUT SEAM (S5; PROTOTYPE sec 4; RULING_F04C07P R9): a cut point of the transaction,
@@ -969,7 +1054,8 @@ mod tests {
             (
                 "45",
                 E::NotChained(B::CheckpointKey).code(),
-                "freshness_head_changed",
+                // S7b X5 (RULING_SR15_NA0787_S7 R3 F-06): was freshness_head_changed.
+                "freshness_successor_invalid",
             ),
             (
                 "46",
@@ -1200,6 +1286,190 @@ mod tests {
                 "71.DirFlush",
                 durable(W::DirFlush),
                 "storage_durability_failed",
+            ),
+        ]);
+    }
+
+    // ---- S7b (SEALED_EXPECTATION_S7b.md sec 1 and sec 3)
+
+    /// ELOOP, the kernel's answer to O_NOFOLLOW on a final symlink.
+    #[cfg(target_os = "linux")]
+    const ELOOP: i32 = 40;
+    #[cfg(target_os = "macos")]
+    const ELOOP: i32 = 62;
+
+    #[test]
+    fn x4_open_regular_refuses_symlink_fifo_and_dir_without_blocking() {
+        use std::io::Read;
+        let td = tempfile::tempdir().expect("tempdir");
+        let regular = td.path().join("regular");
+        std::fs::write(&regular, b"abc").expect("regular");
+        let mut bytes = Vec::new();
+        open_regular(&regular)
+            .expect("a regular file opens")
+            .read_to_end(&mut bytes)
+            .expect("read");
+        assert_eq!(bytes, b"abc");
+        // A symlink, even to a regular file, and a dangling one: the kernel refuses (this proves
+        // the O_NOFOLLOW value on the running target).
+        let link = td.path().join("link");
+        std::os::unix::fs::symlink(&regular, &link).expect("symlink");
+        let dangling = td.path().join("dangling");
+        std::os::unix::fs::symlink(td.path().join("absent"), &dangling).expect("symlink");
+        for path in [&link, &dangling] {
+            let e = open_regular(path).expect_err("never followed");
+            assert_eq!(e.raw_os_error(), Some(ELOOP), "{}: {e:?}", path.display());
+        }
+        let missing = open_regular(&td.path().join("absent")).expect_err("absent");
+        assert_eq!(
+            missing.kind(),
+            io::ErrorKind::NotFound,
+            "NotFound passes through"
+        );
+        let dir = td.path().join("dir");
+        std::fs::create_dir(&dir).expect("dir");
+        let e = open_regular(&dir).expect_err("a directory");
+        assert_eq!(e.kind(), io::ErrorKind::InvalidInput);
+        // A FIFO with no writer: refused at once, never a blocked open.
+        let fifo = td.path().join("fifo");
+        let made = std::process::Command::new("mkfifo")
+            .arg(&fifo)
+            .status()
+            .expect("mkfifo");
+        assert!(made.success());
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let _ = tx.send(open_regular(&fifo).map(|_| ()).map_err(|e| e.kind()));
+        });
+        let r = rx
+            .recv_timeout(std::time::Duration::from_secs(10))
+            .expect("the open must return within the bound");
+        assert_eq!(r, Err(io::ErrorKind::InvalidInput));
+    }
+
+    #[test]
+    fn x9_checkpoint_mac_key_is_private_behind_an_accessor() {
+        let src = include_str!("mod.rs");
+        let start = src
+            .find("pub(crate) struct LineageFields {")
+            .expect("LineageFields is defined");
+        let len = src[start..].find("\n}\n").expect("LineageFields ends");
+        let body = &src[start..start + len];
+        assert!(
+            body.contains("\n    checkpoint_mac_key: Zeroizing<[u8; 32]>,"),
+            "the census would be vacuous: {body}"
+        );
+        assert!(
+            !body.contains("pub(crate) checkpoint_mac_key")
+                && !body.contains("pub checkpoint_mac_key"),
+            "the key field must be private: {body}"
+        );
+        let fields = LineageFields {
+            vault_id: syn_vault_id(),
+            generation: SYN_GENERATION,
+            predecessor_anchor: syn_prev(),
+            checkpoint_mac_key: Zeroizing::new(syn_mac_key()),
+            protection_mode: ProtectionMode::LocalCheckpoint,
+        };
+        assert_eq!(
+            fields.checkpoint_mac_key(),
+            &syn_mac_key(),
+            "borrowed, not copied out"
+        );
+        let text = format!("{fields:?}");
+        assert!(!text.contains("checkpoint_mac_key"), "{text}");
+    }
+
+    #[test]
+    fn code2_rows_s7b_addendum() {
+        use super::lock::LockError as L;
+        use super::paths::CheckpointDirError as D;
+        use super::recover::{RecoverError as R, Slot};
+        use super::txn::{
+            BeginError as BE, ChainBreak as B, CommitError as CE, GenesisError as GE,
+        };
+        use std::io::ErrorKind as K;
+        let malformed = |slot| R::BlobMalformed { slot };
+        code2(&[
+            (
+                "72",
+                BE::Quarantine(malformed(Slot::Current)).code(),
+                "vault_parse_failed",
+            ),
+            (
+                "73",
+                BE::Recover(malformed(Slot::Prepared)).code(),
+                "vault_parse_failed",
+            ),
+            (
+                "74",
+                GE::Recover(malformed(Slot::Current)).code(),
+                "vault_parse_failed",
+            ),
+            ("75", CE::SuccessorMalformed.code(), "vault_parse_failed"),
+            ("76", GE::B0Malformed.code(), "vault_parse_failed"),
+            ("77", BE::Lock(L::NotRegular).code(), "lock_open_failed"),
+            ("78", GE::Lock(L::NotRegular).code(), "lock_open_failed"),
+            (
+                "79/BG",
+                BE::Lock(L::DirFlush).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "79/GN",
+                GE::Lock(L::DirFlush).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "80/BG",
+                BE::CheckpointDir(D::DirFlush).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "80/GN",
+                GE::CheckpointDir(D::DirFlush).code(),
+                "storage_durability_failed",
+            ),
+            (
+                "81",
+                BE::Recover(R::LineageChanged).code(),
+                "freshness_lineage_changed",
+            ),
+            (
+                "82",
+                BE::Quarantine(R::LineageChanged).code(),
+                "freshness_lineage_changed",
+            ),
+            ("83", GE::Recover(R::LineageChanged).code(), "vault_exists"),
+            (
+                "84",
+                CE::Lock(L::InodeChanged).code(),
+                "freshness_lineage_lock_unstable",
+            ),
+            (
+                "85",
+                BE::Lock(L::InodeChanged).code(),
+                "freshness_lineage_lock_unstable",
+            ),
+            (
+                "86",
+                CE::Lock(L::Contended).code(),
+                "freshness_lineage_lock_contended",
+            ),
+            (
+                "87",
+                CE::Lock(L::Stat(K::PermissionDenied)).code(),
+                "lock_failed",
+            ),
+            (
+                "45",
+                CE::NotChained(B::CheckpointKey).code(),
+                "freshness_successor_invalid",
+            ),
+            (
+                "46",
+                CE::NotChained(B::HeadChanged).code(),
+                "freshness_head_changed",
             ),
         ]);
     }

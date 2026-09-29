@@ -15,7 +15,9 @@
 //!   freezes CheckpointMissing on the next begin (DD-5 LITERAL: never auto-discarded).
 //!
 //! The Session holds NO key material (RULING_F04C07P R8): the checkpoint key of a commit comes,
-//! for that one operation, from the successor's authenticated fields. FN3: one successor per
+//! for that one operation, from the successor's authenticated fields. It keeps the exact head bytes
+//! it authenticated (public data), so a MAC failure at commit tells a changed head from a
+//! successor under another key (S7b X5). FN3: one successor per
 //! commit; there is no batching API. The writes are exactly: the checkpoint directory and the lock
 //! file (begin, genesis), B4, C2, C3 and C5. LOCK ORDER: the caller's store lock `.qsc.lock` FIRST,
 //! then the lineage lock taken here; the reverse order is FORBIDDEN. No client-code string is
@@ -28,13 +30,18 @@ use super::recover::{
     self, current_path, prepared_path, prepared_temp_path, FreezeKind, RecoverError, Recovered,
     Slot, Unauthenticated,
 };
-use super::{anchor, digest, LineageFields, LineageOpen, ProtectionMode};
+use super::{anchor, digest, open_regular, LineageFields, LineageOpen, OpenError, ProtectionMode};
 use crate::fs_store::{self, DurableWriteError};
 use crate::model::ConfigSource;
-use std::fs::{self, File};
+use std::fs;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 use std::process;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+/// S7b X7 (F-10): the per-process counter that makes every head temp name unique
+/// (`head.tmp.<pid>.<n>`), so two writes of one process never meet each other's temp.
+static HEAD_TEMP_SEQ: AtomicU64 = AtomicU64::new(0);
 
 /// The exact identity of a committed vault (I04): what the caller's C6 releases and retries under.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -91,6 +98,10 @@ pub(crate) enum CommitError {
     /// Longer than the caller's bound; never shown to the opener (I06).
     SuccessorTooLarge,
     SuccessorOpenFailed,
+    /// S7b X1: the successor authenticated but its payload cannot be read (a client defect).
+    SuccessorMalformed,
+    /// S7b X11: the lineage lock no longer holds the inode at its path. Refused first.
+    Lock(LockError),
     NotChained(ChainBreak),
     /// B4: the stale prepared slot could not be removed.
     StalePrepared(io::ErrorKind),
@@ -108,6 +119,8 @@ pub(crate) enum GenesisBreak {
 pub(crate) enum GenesisError {
     B0TooLarge,
     B0OpenFailed,
+    /// S7b X1: B0 authenticated but its payload cannot be read.
+    B0Malformed,
     NotGenesis(GenesisBreak),
     NotLocalCheckpoint,
     CheckpointDir(CheckpointDirError),
@@ -132,6 +145,8 @@ pub(crate) struct Session {
     vault_id: [u8; 32],
     mode: ProtectionMode,
     committed: Committed,
+    /// The exact head bytes that name `committed` (read at begin, or written here). Public.
+    head: [u8; checkpoint::LEN],
     resumed: Resumed,
     stale_prepared: bool,
     poisoned: bool,
@@ -152,9 +167,13 @@ pub(crate) fn begin(
     let checkpoint_dir =
         paths::ensure_checkpoint_dir(state_root, &vault_id).map_err(BeginError::CheckpointDir)?;
     let lock = LineageLock::acquire(&checkpoint_dir).map_err(BeginError::Lock)?;
-    // 3. T4.3 under the lock. Every return below that is not Ok drops (releases) the lock.
-    let recovered = recover::recover(store_dir, state_root, max_blob_len, opener)
-        .map_err(BeginError::Recover)?;
+    // 3. T4.3 under the lock, for the lineage locked (S7b X10). Every return below that is not Ok
+    //    drops (releases) the lock.
+    let recovered = recover::recover(store_dir, state_root, max_blob_len, opener, Some(&vault_id))
+        .map_err(|e| match e {
+            RecoverError::LineageChanged => BeginError::LineageChanged,
+            e => BeginError::Recover(e),
+        })?;
     let (current, resumed, stale_prepared) = match recovered {
         Recovered::NoLineage => return Err(BeginError::NoLineage),
         Recovered::Freeze(kind) => return Err(BeginError::Freeze(kind)),
@@ -180,6 +199,7 @@ pub(crate) fn begin(
             digest: current.digest,
             anchor: current.anchor,
         },
+        head: current.head,
         resumed,
         stale_prepared,
         poisoned: false,
@@ -219,6 +239,8 @@ impl Session {
         successor: &[u8],
         opener: &dyn LineageOpen,
     ) -> Result<Committed, CommitError> {
+        // S7b X11 (F-09): the lock must still be the path's before anything else.
+        self.lock.recheck().map_err(CommitError::Lock)?;
         if self.poisoned {
             return Err(CommitError::Poisoned);
         }
@@ -230,9 +252,10 @@ impl Session {
         if successor.len() > self.max_blob_len {
             return Err(CommitError::SuccessorTooLarge);
         }
-        let fields = opener
-            .open(successor)
-            .map_err(|_| CommitError::SuccessorOpenFailed)?;
+        let fields = opener.open(successor).map_err(|e| match e {
+            OpenError::Unauthenticated => CommitError::SuccessorOpenFailed,
+            OpenError::Malformed => CommitError::SuccessorMalformed,
+        })?;
         self.check_chain(&fields, next)
             .map_err(CommitError::NotChained)?;
         let d = digest(&self.vault_id, successor);
@@ -242,8 +265,9 @@ impl Session {
             anchor: anchor(&self.committed.anchor, &d),
         };
         match self.write_transaction(successor, &fields, committed) {
-            Ok(()) => {
+            Ok(head) => {
                 self.committed = committed;
+                self.head = head;
                 Ok(committed)
             }
             Err(e) => {
@@ -268,15 +292,22 @@ impl Session {
             return Err(ChainBreak::PredecessorAnchor);
         }
         // The head must still name the committed vault, under the successor's own key.
-        let file = match File::open(paths::head_path(&self.checkpoint_dir)) {
+        let file = match open_regular(&paths::head_path(&self.checkpoint_dir)) {
             Ok(file) => file,
             Err(e) if e.kind() == io::ErrorKind::NotFound => return Err(ChainBreak::HeadChanged),
             Err(e) => return Err(ChainBreak::HeadRead(e.kind())),
         };
-        let head = match checkpoint::decode_from(file, &fields.checkpoint_mac_key, self.mode) {
+        let bytes = checkpoint::read_bounded(file).map_err(|e| ChainBreak::HeadRead(e.kind()))?;
+        let head = match checkpoint::decode(&bytes, fields.checkpoint_mac_key(), self.mode) {
             Ok(head) => head,
+            // S7b X5 (F-06): the SAME bytes this session authenticated no longer verify, so the
+            // successor carries another key; different bytes mean the head itself changed.
             Err(CheckpointError::Corrupt(CorruptKind::Mac)) => {
-                return Err(ChainBreak::CheckpointKey)
+                return Err(if bytes[..] == self.head[..] {
+                    ChainBreak::CheckpointKey
+                } else {
+                    ChainBreak::HeadChanged
+                })
             }
             Err(CheckpointError::Read(kind)) => return Err(ChainBreak::HeadRead(kind)),
             Err(_) => return Err(ChainBreak::HeadChanged),
@@ -292,13 +323,14 @@ impl Session {
         Ok(())
     }
 
-    /// The writes, in the contract's order. Every cut point is a cfg(test) statement.
+    /// The writes, in the contract's order. Every cut point is a cfg(test) statement. Returns the
+    /// head it wrote.
     fn write_transaction(
         &mut self,
         successor: &[u8],
         fields: &LineageFields,
         committed: Committed,
-    ) -> Result<(), CommitError> {
+    ) -> Result<[u8; checkpoint::LEN], CommitError> {
         let pid = process::id();
         // B4 (:318): the stale slot goes, durably, BEFORE the new preparation.
         if self.stale_prepared {
@@ -313,8 +345,9 @@ impl Session {
                 digest: committed.digest,
                 anchor: committed.anchor,
             },
-            &fields.checkpoint_mac_key,
+            fields.checkpoint_mac_key(),
         );
+        let head_temp = next_head_temp(&self.checkpoint_dir, pid);
         #[cfg(test)]
         super::cut(super::CutPoint::KB2, None);
         #[cfg(test)]
@@ -330,15 +363,9 @@ impl Session {
         #[cfg(test)]
         super::cut(super::CutPoint::KA2, None);
         #[cfg(test)]
-        super::cut(
-            super::CutPoint::KM3,
-            Some((
-                paths::head_temp_path(&self.checkpoint_dir, pid).as_path(),
-                &head[..],
-            )),
-        );
+        super::cut(super::CutPoint::KM3, Some((head_temp.as_path(), &head[..])));
         // C3 (:249): THE LOCAL COMMIT POINT.
-        write_head(&self.checkpoint_dir, &head, pid).map_err(CommitError::DurableWrite)?;
+        write_head(&self.checkpoint_dir, &head, &head_temp).map_err(CommitError::DurableWrite)?;
         #[cfg(test)]
         super::cut(super::CutPoint::KA34, None);
         // C5 (:251): promote, then the CHECKED directory flush.
@@ -348,7 +375,7 @@ impl Session {
         fs_store::sync_dir_checked(&self.store_dir).map_err(CommitError::DurableWrite)?;
         #[cfg(test)]
         super::cut(super::CutPoint::KA5, None);
-        Ok(())
+        Ok(head)
     }
 }
 
@@ -364,7 +391,10 @@ pub(crate) fn genesis(
     if b0.len() > max_blob_len {
         return Err(GenesisError::B0TooLarge);
     }
-    let fields = opener.open(b0).map_err(|_| GenesisError::B0OpenFailed)?;
+    let fields = opener.open(b0).map_err(|e| match e {
+        OpenError::Unauthenticated => GenesisError::B0OpenFailed,
+        OpenError::Malformed => GenesisError::B0Malformed,
+    })?;
     if fields.generation != 0 {
         return Err(GenesisError::NotGenesis(GenesisBreak::Generation));
     }
@@ -378,7 +408,7 @@ pub(crate) fn genesis(
     let checkpoint_dir =
         paths::ensure_checkpoint_dir(state_root, &vault_id).map_err(GenesisError::CheckpointDir)?;
     let lock = LineageLock::acquire(&checkpoint_dir).map_err(GenesisError::Lock)?;
-    match recover::recover(store_dir, state_root, max_blob_len, opener)
+    match recover::recover(store_dir, state_root, max_blob_len, opener, None)
         .map_err(GenesisError::Recover)?
     {
         Recovered::NoLineage => {}
@@ -403,14 +433,15 @@ pub(crate) fn genesis(
             digest: d,
             anchor: committed.anchor,
         },
-        &fields.checkpoint_mac_key,
+        fields.checkpoint_mac_key(),
     );
     // C2.
     write_prepared(store_dir, b0, pid).map_err(GenesisError::DurableWrite)?;
     #[cfg(test)]
     super::cut(super::CutPoint::GI1, None);
     // C3: the genesis checkpoint.
-    write_head(&checkpoint_dir, &head, pid).map_err(GenesisError::DurableWrite)?;
+    let head_temp = next_head_temp(&checkpoint_dir, pid);
+    write_head(&checkpoint_dir, &head, &head_temp).map_err(GenesisError::DurableWrite)?;
     #[cfg(test)]
     super::cut(super::CutPoint::GI2, None);
     // C5.
@@ -426,6 +457,7 @@ pub(crate) fn genesis(
         vault_id,
         mode: fields.protection_mode,
         committed,
+        head,
         resumed: Resumed::Genesis,
         stale_prepared: false,
         poisoned: false,
@@ -449,8 +481,11 @@ fn quarantine_vault_id(
             continue;
         };
         present[i] = true;
-        if let Ok(fields) = opener.open(&bytes) {
-            return Ok(Some(fields.vault_id));
+        match opener.open(&bytes) {
+            Ok(fields) => return Ok(Some(fields.vault_id)),
+            // S7b X1 (F-01): authentic but unreadable -- never "unauthenticated", never counted.
+            Err(OpenError::Malformed) => return Err(RecoverError::BlobMalformed { slot: *slot }),
+            Err(OpenError::Unauthenticated) => {}
         }
     }
     let which = match present {
@@ -468,7 +503,7 @@ fn read_bounded(
     max_blob_len: usize,
     slot: Slot,
 ) -> Result<Option<Vec<u8>>, RecoverError> {
-    let file = match File::open(path) {
+    let file = match open_regular(path) {
         Ok(file) => file,
         Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
         Err(e) => {
@@ -514,12 +549,18 @@ fn write_prepared(store_dir: &Path, bytes: &[u8], pid: u32) -> Result<(), Durabl
     )
 }
 
-/// C3 through S2's checked primitive; the temp is `head.tmp.<pid>` (D31 :333).
-fn write_head(checkpoint_dir: &Path, head: &[u8], pid: u32) -> Result<(), DurableWriteError> {
+/// This write's head temp: `head.tmp.<pid>.<n>` (D31 :333, made unique by S7b X7).
+fn next_head_temp(checkpoint_dir: &Path, pid: u32) -> PathBuf {
+    let seq = HEAD_TEMP_SEQ.fetch_add(1, Ordering::Relaxed);
+    paths::head_temp_path(checkpoint_dir, pid, seq)
+}
+
+/// C3 through S2's checked primitive, through the caller's `next_head_temp`.
+fn write_head(checkpoint_dir: &Path, head: &[u8], temp: &Path) -> Result<(), DurableWriteError> {
     fs_store::write_file_durable(
         &paths::head_path(checkpoint_dir),
         head,
-        &paths::head_temp_path(checkpoint_dir, pid),
+        temp,
         ConfigSource::EnvOverride,
     )
 }
@@ -533,14 +574,14 @@ fn rename_prepared_over_current(store_dir: &Path) -> Result<(), DurableWriteErro
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::freshness::{cut, run_child, CutPoint, OpenFailed, CUT_EXIT, FIXTURE_ENV};
+    use crate::freshness::{cut, run_child, CutPoint, CUT_EXIT, FIXTURE_ENV};
     use crate::fs_store::{arm_durable_flush_fault, DurableFlushPoint};
     use crate::model::{LockGuard, LockMode};
     use chacha20poly1305::aead::{Aead, KeyInit};
     use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
     use rand_core::{OsRng, RngCore};
     use sha2::{Digest as _, Sha256};
-    use std::cell::Cell;
+    use std::cell::{Cell, RefCell};
     use std::fs::OpenOptions;
     use std::io::Write;
     use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
@@ -565,11 +606,17 @@ mod tests {
     /// for the blob, not a provider: nonce(12) || ChaCha20-Poly1305(vault_id || generation BE ||
     /// predecessor_anchor || Kc || profile byte || random filler) under a random per-test key. The
     /// key is also written, 0600, into the test's own tempdir so a cut child can open the blobs.
+    /// A tag failure -> Unauthenticated; an AUTHENTIC plaintext of the wrong length or with an
+    /// unknown profile byte -> Malformed (S7b X1). `hook` (S7 read PR10) runs inside the n-th open.
     struct TestOpener {
         key: [u8; 32],
         aead: ChaCha20Poly1305,
         calls: Cell<u32>,
+        hook: Hook,
     }
+
+    /// A closure to run inside the n-th open() call.
+    type Hook = RefCell<Option<(u32, Box<dyn Fn()>)>>;
 
     impl TestOpener {
         fn new() -> Self {
@@ -581,6 +628,7 @@ mod tests {
                 key,
                 aead: ChaCha20Poly1305::new(Key::from_slice(&key)),
                 calls: Cell::new(0),
+                hook: RefCell::new(None),
             }
         }
 
@@ -614,17 +662,22 @@ mod tests {
     }
 
     impl LineageOpen for TestOpener {
-        fn open(&self, blob: &[u8]) -> Result<LineageFields, OpenFailed> {
+        fn open(&self, blob: &[u8]) -> Result<LineageFields, OpenError> {
             self.calls.set(self.calls.get() + 1);
+            if let Some((at, hook)) = self.hook.borrow().as_ref() {
+                if *at == self.calls.get() {
+                    hook();
+                }
+            }
             if blob.len() < 12 {
-                return Err(OpenFailed);
+                return Err(OpenError::Unauthenticated);
             }
             let plain = self
                 .aead
                 .decrypt(Nonce::from_slice(&blob[..12]), &blob[12..])
-                .map_err(|_| OpenFailed)?;
+                .map_err(|_| OpenError::Unauthenticated)?;
             if plain.len() != PLAIN {
-                return Err(OpenFailed);
+                return Err(OpenError::Malformed);
             }
             let field = |at: usize| -> [u8; 32] { plain[at..at + 32].try_into().expect("32") };
             let mut generation = [0u8; 8];
@@ -634,7 +687,8 @@ mod tests {
                 generation: u64::from_be_bytes(generation),
                 predecessor_anchor: field(40),
                 checkpoint_mac_key: Zeroizing::new(field(72)),
-                protection_mode: ProtectionMode::from_profile_byte(plain[104]).ok_or(OpenFailed)?,
+                protection_mode: ProtectionMode::from_profile_byte(plain[104])
+                    .ok_or(OpenError::Malformed)?,
             })
         }
     }
@@ -1060,7 +1114,8 @@ mod tests {
                 release(&ledger, s.committed());
             }
             "rc1" => {
-                arm_durable_flush_fault(DurableFlushPoint::Dir, 0);
+                // S7b X6: begin() first CREATES the lock file (one checked flush), then promotes.
+                arm_durable_flush_fault(DurableFlushPoint::Dir, 1);
                 match begin(&store, &state, MAX, &opener) {
                     Err(BeginError::Recover(RecoverError::DurableWrite(
                         DurableWriteError::DirFlush,
@@ -1178,14 +1233,14 @@ mod tests {
         let (fx, chain) = Fx::at(N);
         let s3 = fx.lin.blob(N + 1, &chain[N as usize].anchor);
         let pid = fx.cut_child("commit", &s3.bytes, CutPoint::KM3);
-        let temp = paths::head_temp_path(&fx.ckdir(), pid);
+        // The child's first head write: its counter's first value (S7b X7).
+        let temp = paths::head_temp_path(&fx.ckdir(), pid, 0);
         let bytes = fs::read(&temp).expect("the dead child's head temp");
         assert_eq!(bytes.len(), checkpoint::LEN);
         restart_twice(&fx, stale(&chain[N as usize]));
-        assert_eq!(
-            fs::read(&temp).expect("head temp kept"),
-            bytes,
-            "a checkpoint temp is never authority and is not removed (E-3 / D40)"
+        assert!(
+            !temp.exists(),
+            "a checkpoint temp is never authority, and a dead pid's is removed (S7b X7, D40)"
         );
         assert_ledger(&fx, &upto(&chain));
     }
@@ -1623,5 +1678,260 @@ mod tests {
         let r = genesis(&fx.store, &fx.state, MAX, &b0.bytes, &fx.lin.opener);
         assert_eq!(kind(&r), "CheckpointExists", "arm g");
         assert_eq!(fx.trees_but_lock(), before, "arm g");
+    }
+
+    // ---- S7b (SEALED_EXPECTATION_S7b.md sec 1): the S7 read's probes, their outcomes INVERTED.
+
+    /// An AUTHENTIC blob with an unknown profile byte: the opener returns Malformed.
+    fn malformed(lin: &Lineage, generation: u64, pred: &[u8; 32]) -> Vec<u8> {
+        lin.blob_with(lin.vault_id, generation, pred, lin.kc, 0)
+            .bytes
+    }
+
+    #[test]
+    fn x1_malformed_is_vault_parse_failed_never_vault_locked() {
+        // a. The quarantine: refused as a parse failure, before any directory or lock.
+        let fx = Fx::empty();
+        fx.put_current(&malformed(&fx.lin, 0, &ZERO));
+        let before = fx.trees();
+        let r = fx.begin();
+        assert!(
+            matches!(
+                r,
+                Err(BeginError::Quarantine(RecoverError::BlobMalformed {
+                    slot: Slot::Current
+                }))
+            ),
+            "{r:?}"
+        );
+        let code = r.unwrap_err().code();
+        assert_eq!(code, "vault_parse_failed");
+        assert_ne!(
+            code,
+            crate::msgqueue::MSGQUEUE_VAULT_LOCKED,
+            "never the counted code"
+        );
+        assert_eq!(fx.trees(), before);
+        assert!(!fx.ckdir().exists(), "no checkpoint dir, no lock");
+        // b. Under the lock: an authentic current beside a Malformed prepared slot.
+        let (fx, chain) = Fx::at(N);
+        fx.put_prepared(&malformed(&fx.lin, N + 1, &chain[N as usize].anchor));
+        let r = fx.begin();
+        assert!(
+            matches!(
+                r,
+                Err(BeginError::Recover(RecoverError::BlobMalformed {
+                    slot: Slot::Prepared
+                }))
+            ),
+            "{r:?}"
+        );
+        assert_eq!(r.unwrap_err().code(), "vault_parse_failed");
+        // c. A Malformed successor: refused before any write, the session not poisoned.
+        let (fx, chain) = Fx::at(N);
+        let mut s = fx.begin().expect("begin");
+        let before = fx.trees();
+        let r = s.commit(
+            &malformed(&fx.lin, N + 1, &chain[N as usize].anchor),
+            &fx.lin.opener,
+        );
+        assert_eq!(kind(&r), "SuccessorMalformed");
+        assert_eq!(r.unwrap_err().code(), "vault_parse_failed");
+        assert_eq!(fx.trees(), before);
+        assert!(!s.is_poisoned());
+        // d. A Malformed B0.
+        let fx = Fx::empty();
+        let before = fx.trees();
+        let r = genesis(
+            &fx.store,
+            &fx.state,
+            MAX,
+            &malformed(&fx.lin, 0, &ZERO),
+            &fx.lin.opener,
+        );
+        assert_eq!(kind(&r), "B0Malformed");
+        assert_eq!(r.unwrap_err().code(), "vault_parse_failed");
+        assert_eq!(fx.trees(), before);
+    }
+
+    #[test]
+    fn x4_pr09_fifo_at_vault_qsv_is_refused_within_a_bound() {
+        let (fx, _chain) = Fx::at(N);
+        fs::remove_file(current_path(&fx.store)).expect("rm current");
+        let made = std::process::Command::new("mkfifo")
+            .arg(current_path(&fx.store))
+            .status()
+            .expect("mkfifo");
+        assert!(made.success());
+        let (store, state, key) = (fx.store.clone(), fx.state.clone(), fx.lin.opener.key);
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let opener = TestOpener::from_key(key);
+            let r = begin(&store, &state, MAX, &opener);
+            let _ = tx.send(r.map(|_| ()).map_err(|e| (format!("{e:?}"), e.code())));
+        });
+        let r = rx
+            .recv_timeout(std::time::Duration::from_secs(10))
+            .expect("begin() must return within the bound, never hang on a FIFO");
+        let (kind, code) = r.expect_err("a FIFO is never a vault");
+        assert!(
+            kind.starts_with("Quarantine(BlobRead { slot: Current"),
+            "{kind}"
+        );
+        assert_eq!(code, "vault_read_failed");
+    }
+
+    #[test]
+    fn x4_pr17_symlinked_prepared_slot_is_refused_before_rule_h() {
+        let (fx, chain) = Fx::at(N);
+        fx.put_current(b"garbage");
+        let elsewhere = fx.root.path().join("elsewhere.blob");
+        fs::write(&elsewhere, &chain[N as usize].bytes).expect("elsewhere");
+        std::os::unix::fs::symlink(&elsewhere, prepared_path(&fx.store)).expect("symlink");
+        let r = fx.begin();
+        assert!(r.is_err(), "{r:?}");
+        assert_eq!(r.unwrap_err().code(), "vault_read_failed");
+        let current = fs::symlink_metadata(current_path(&fx.store)).expect("current");
+        assert!(
+            current.file_type().is_file(),
+            "current is still a regular file"
+        );
+        assert_eq!(
+            fs::read(current_path(&fx.store)).expect("current"),
+            b"garbage"
+        );
+        let prepared = fs::symlink_metadata(prepared_path(&fx.store)).expect("prepared");
+        assert!(prepared.file_type().is_symlink(), "nothing was promoted");
+    }
+
+    #[test]
+    fn x5_pr14_another_kc_is_successor_invalid_unless_the_head_changed() {
+        let (fx, chain) = Fx::at(N);
+        let lin = &fx.lin;
+        let a2 = chain[N as usize].anchor;
+        let mut s = fx.begin().expect("begin");
+        // 1. Another key, the head bytes unchanged: the successor is at fault.
+        let head = fx.head_bytes().expect("head");
+        let bad = lin.blob_with(lin.vault_id, N + 1, &a2, random32(), 1);
+        let r = s.commit(&bad.bytes, &lin.opener);
+        assert_eq!(kind(&r), "NotChained(CheckpointKey)");
+        assert_eq!(r.unwrap_err().code(), "freshness_successor_invalid");
+        assert_eq!(
+            fx.head_bytes().expect("head"),
+            head,
+            "the head did not change"
+        );
+        assert!(!s.is_poisoned());
+        // 2. Another key AND another head on disk: the head changed.
+        fx.put_head(&lin.head(&chain[1]));
+        let r = s.commit(&bad.bytes, &lin.opener);
+        assert_eq!(kind(&r), "NotChained(HeadChanged)");
+        assert_eq!(r.unwrap_err().code(), "freshness_head_changed");
+        // 3. Restored: a chaining successor commits, and the Session holds the NEW head's bytes.
+        fx.put_head(&head);
+        let s3 = lin.blob(N + 1, &a2);
+        assert_eq!(s.commit(&s3.bytes, &lin.opener).expect("commit"), s3.id());
+        let bad4 = lin.blob_with(lin.vault_id, N + 2, &s3.anchor, random32(), 1);
+        let r = s.commit(&bad4.bytes, &lin.opener);
+        assert_eq!(kind(&r), "NotChained(CheckpointKey)");
+    }
+
+    #[test]
+    fn x7_pr11_own_pid_old_shape_head_temp_no_longer_blocks_c3() {
+        let (fx, chain) = Fx::at(N);
+        let s3 = fx.lin.blob(N + 1, &chain[N as usize].anchor);
+        let planted = fx.ckdir().join(format!("head.tmp.{}", process::id()));
+        fs::write(&planted, b"leftover-from-a-reused-pid").expect("plant");
+        let mut s = fx.begin().expect("begin");
+        let c = s
+            .commit(&s3.bytes, &fx.lin.opener)
+            .expect("C3 uses its own name");
+        assert_eq!(c, s3.id());
+        let head = checkpoint::decode(
+            &fx.head_bytes().expect("head"),
+            &fx.lin.kc,
+            ProtectionMode::LocalCheckpoint,
+        )
+        .expect("head decodes");
+        assert_eq!((head.generation, head.digest), (s3.generation, s3.digest));
+        assert!(planted.exists(), "a live pid's temp is kept by rule a");
+    }
+
+    #[test]
+    fn x10_pr10_swapped_store_is_refused_before_any_promotion() {
+        // X is committed at N. Lineage Y (same opener, another vault_id and Kc) is promotable:
+        // current Y0, prepared Y1, a head naming Y1. The store is swapped to Y INSIDE the
+        // quarantine's open of X's current, after its bytes were read.
+        let (fx, _chain) = Fx::at(N);
+        let (vid_y, kc_y) = (random32(), random32());
+        let y0 = fx.lin.blob_with(vid_y, 0, &ZERO, kc_y, 1);
+        let y1 = fx.lin.blob_with(vid_y, 1, &y0.anchor, kc_y, 1);
+        let head_y1 = checkpoint::encode(
+            &Checkpoint {
+                mode: ProtectionMode::LocalCheckpoint,
+                vault_id: vid_y,
+                generation: y1.generation,
+                digest: y1.digest,
+                anchor: y1.anchor,
+            },
+            &kc_y,
+        );
+        let ck_y = paths::ensure_checkpoint_dir(&fx.state, &vid_y).expect("Y's dir");
+        fs::write(paths::head_path(&ck_y), head_y1).expect("Y's head");
+        let store = fx.store.clone();
+        let (y0b, y1b) = (y0.bytes.clone(), y1.bytes.clone());
+        *fx.lin.opener.hook.borrow_mut() = Some((
+            1,
+            Box::new(move || {
+                fs::write(current_path(&store), &y0b).expect("swap current");
+                fs::write(prepared_path(&store), &y1b).expect("swap prepared");
+            }),
+        ));
+        let r = fx.begin();
+        assert!(matches!(r, Err(BeginError::LineageChanged)), "{r:?}");
+        assert_eq!(r.unwrap_err().code(), "freshness_lineage_changed");
+        assert_eq!(
+            fs::read(prepared_path(&fx.store)).expect("Y's prepared slot is still there"),
+            y1.bytes
+        );
+        assert_eq!(
+            fs::read(current_path(&fx.store)).expect("current"),
+            y0.bytes
+        );
+        assert_eq!(
+            fs::read(paths::head_path(&ck_y)).expect("Y's head"),
+            head_y1
+        );
+        assert!(
+            !paths::lock_path(&ck_y).exists(),
+            "Y's lock was never taken"
+        );
+    }
+
+    #[test]
+    fn x11_commit_rechecks_the_lock_inode_first() {
+        let (fx, chain) = Fx::at(N);
+        let s3 = fx.lin.blob(N + 1, &chain[N as usize].anchor);
+        let mut s = fx.begin().expect("begin");
+        let lock = paths::lock_path(&fx.ckdir());
+        fs::remove_file(&lock).expect("unlink the lock file");
+        OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .mode(0o600)
+            .open(&lock)
+            .expect("recreate it");
+        let before = fx.trees();
+        let calls = fx.lin.opener.calls.get();
+        let r = s.commit(&s3.bytes, &fx.lin.opener);
+        assert_eq!(kind(&r), "Lock(InodeChanged)");
+        assert_eq!(r.unwrap_err().code(), "freshness_lineage_lock_unstable");
+        assert_eq!(fx.trees(), before, "refused before any write");
+        assert_eq!(
+            fx.lin.opener.calls.get(),
+            calls,
+            "refused before the opener"
+        );
+        assert!(!s.is_poisoned());
     }
 }

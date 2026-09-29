@@ -4,9 +4,11 @@
 //! be committed (PROMOTE), or something else (FREEZE, never a guess).
 //!
 //! THE ORDERED RULES (SEALED_EXPECTATION_S4.md sec 3; the first rule that applies decides):
-//! - a. any restart (:270): remove the prepared temps of DEAD pids, and nothing else;
+//! - a. any restart (:270): remove the prepared temps of DEAD pids and, when the caller names the
+//!   lineage it locked, that lineage's head temps of DEAD pids (S7b X7), and nothing else;
 //! - b. read current and prepared, each bounded by `max_blob_len`, before the opener sees either;
-//! - c. both authenticated must agree on vault_id, checkpoint_mac_key and protection_mode;
+//! - c. both authenticated must agree on vault_id, checkpoint_mac_key and protection_mode, and on
+//!   the lineage the caller locked, if it names one (S7b X10: refused before rule h can promote);
 //! - d. nothing present -> NoLineage; blobs present and none authenticates -> Err(OpenFailed);
 //! - e. the head: absent, corrupt, unsupported or foreign -> FREEZE, never rebuilt (:267);
 //! - f-i. the head matches CURRENT -> open (:264); PREPARED -> promote durably (:265); neither ->
@@ -15,12 +17,15 @@
 //!
 //! No lock is taken here: the caller holds the lineage lock (FN1; S5 adds it and calls this under
 //! it). No client-code string is allocated: the marker spellings are S6's (RULING_F04C07P R6).
+//! Every read open is `open_regular` (S7b X4): a symlink, FIFO or device is refused, never read.
 
 use super::checkpoint::{self, Checkpoint, CheckpointError, CorruptKind, UnsupportedKind};
-use super::{anchor, digest, paths, LineageFields, LineageOpen, ProtectionMode};
+use super::ProtectionMode;
+use super::{anchor, digest, open_regular, paths, LineageFields, LineageOpen, OpenError};
 use crate::fs_store::{self, DurableWriteError};
 use std::ffi::OsStr;
-use std::fs::{self, File};
+use std::fmt;
+use std::fs;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
@@ -55,17 +60,29 @@ pub(crate) enum Unauthenticated {
     Both,
 }
 
-/// An authenticated blob that the head names: its exact bytes, its lineage values, and the head's
-/// digest and anchor for it (equal to the recomputed ones, by the match).
-#[derive(Debug)]
+/// An authenticated blob that the head names: its exact bytes, its lineage values, the head's
+/// digest and anchor for it (equal to the recomputed ones, by the match), and the exact head bytes
+/// that were read and authenticated (S7b X5: public, no key; commit compares against them).
 pub(crate) struct CommittedBlob {
     pub(crate) bytes: Vec<u8>,
     pub(crate) fields: LineageFields,
     pub(crate) digest: [u8; 32],
     pub(crate) anchor: [u8; 32],
+    pub(crate) head: [u8; checkpoint::LEN],
 }
 
-#[derive(Debug)]
+/// S7b X8 (F-12): the blob (the whole encrypted vault) is never formatted, only its length.
+impl fmt::Debug for CommittedBlob {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CommittedBlob")
+            .field("bytes_len", &self.bytes.len())
+            .field("fields", &self.fields)
+            .field("digest", &self.digest)
+            .field("anchor", &self.anchor)
+            .finish_non_exhaustive()
+    }
+}
+
 pub(crate) enum Recovered {
     /// Nothing in the store: the empty store, init's case.
     NoLineage,
@@ -80,6 +97,28 @@ pub(crate) enum Recovered {
     Promoted { current: CommittedBlob },
     /// Fail closed. Permanent for these files: recovering again returns the same freeze.
     Freeze(FreezeKind),
+}
+
+/// S7b X8: through CommittedBlob's own Debug, so the blob bytes are never formatted.
+impl fmt::Debug for Recovered {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NoLineage => f.write_str("NoLineage"),
+            Self::Open {
+                current,
+                stale_prepared,
+            } => f
+                .debug_struct("Open")
+                .field("current", current)
+                .field("stale_prepared", stale_prepared)
+                .finish(),
+            Self::Promoted { current } => f
+                .debug_struct("Promoted")
+                .field("current", current)
+                .finish(),
+            Self::Freeze(kind) => f.debug_tuple("Freeze").field(kind).finish(),
+        }
+    }
 }
 
 /// Typed freezes; the ER spellings are S6's.
@@ -120,6 +159,13 @@ pub(crate) enum RecoverError {
     OpenFailed {
         which: Unauthenticated,
     },
+    /// S7b X1: a blob authenticated but the opener cannot read its payload (OpenError::Malformed).
+    /// Not a verdict and not a passphrase failure.
+    BlobMalformed {
+        slot: Slot,
+    },
+    /// S7b X10: the authenticated lineage is not the one the caller locked. Refused before rule h.
+    LineageChanged,
     /// Not a local-checkpoint lineage: its authority is not this classifier's (AM-1).
     NotLocalCheckpoint,
     CheckpointRead(io::ErrorKind),
@@ -167,23 +213,31 @@ enum Verdict {
 
 /// Classify the store per C07 T4.3 (LOCAL) by the sealed ordered rules (module doc).
 ///
-/// PRECONDITION (documented, not enforced here): the caller holds the lineage lock (C07 FN1 :258).
+/// PRECONDITION (documented, not enforced here): the caller holds the lineage lock (C07 FN1 :258)
+/// of `expected` when it names one (begin(): the quarantined vault_id); genesis() names none.
 pub(crate) fn recover(
     store_dir: &Path,
     state_root: &Path,
     max_blob_len: usize,
     opener: &dyn LineageOpen,
+    expected: Option<&[u8; 32]>,
 ) -> Result<Recovered, RecoverError> {
     // a. Any restart, before the rows are applied (:270).
-    remove_dead_prepared_temps(store_dir)?;
+    remove_dead_temps(store_dir, prepared_temp_pid)?;
+    if let Some(vault_id) = expected {
+        remove_dead_temps(
+            &paths::checkpoint_dir(state_root, vault_id),
+            paths::head_temp_pid,
+        )?;
+    }
     // b. Both reads are bounded and finish before the opener sees either blob.
     let current_bytes = read_slot(&current_path(store_dir), max_blob_len, Slot::Current)?;
     let prepared_bytes = read_slot(&prepared_path(store_dir), max_blob_len, Slot::Prepared)?;
     if current_bytes.is_none() && prepared_bytes.is_none() {
         return Ok(Recovered::NoLineage);
     }
-    let current = open_slot(opener, current_bytes);
-    let prepared = open_slot(opener, prepared_bytes);
+    let current = open_slot(opener, current_bytes, Slot::Current)?;
+    let prepared = open_slot(opener, prepared_bytes, Slot::Prepared)?;
     // c, d. The lineage identity comes from the authenticated blob(s) only.
     let lineage = match (current.opened(), prepared.opened()) {
         (Some(c), Some(p)) if !same_lineage(&c.fields, &p.fields) => {
@@ -200,12 +254,16 @@ pub(crate) fn recover(
             return Err(RecoverError::OpenFailed { which });
         }
     };
+    // S7b X10 (F-19): the store changed since the caller's quarantined read; nothing below runs.
+    if expected.is_some_and(|vault_id| *vault_id != lineage.vault_id) {
+        return Err(RecoverError::LineageChanged);
+    }
     if lineage.protection_mode != ProtectionMode::LocalCheckpoint {
         return Err(RecoverError::NotLocalCheckpoint);
     }
     // e. The head: never rebuilt from the supplied vault (:267).
-    let head = match read_head(state_root, lineage)? {
-        Ok(head) => head,
+    let (head, head_bytes) = match read_head(state_root, lineage)? {
+        Ok(read) => read,
         Err(kind) => return Ok(Recovered::Freeze(kind)),
     };
     // f-i.
@@ -217,13 +275,13 @@ pub(crate) fn recover(
         prepared_present,
     ) {
         Verdict::Open(c) => Ok(Recovered::Open {
-            current: committed(c, &head),
+            current: committed(c, &head, head_bytes),
             stale_prepared: prepared_present,
         }),
         Verdict::Promote(p) => {
             promote(store_dir)?;
             Ok(Recovered::Promoted {
-                current: committed(p, &head),
+                current: committed(p, &head, head_bytes),
             })
         }
         Verdict::Freeze(kind) => Ok(Recovered::Freeze(kind)),
@@ -267,12 +325,13 @@ fn matches(head: &Checkpoint, blob: &Opened) -> bool {
         && head.anchor == anchor(&blob.fields.predecessor_anchor, &d)
 }
 
-fn committed(blob: Opened, head: &Checkpoint) -> CommittedBlob {
+fn committed(blob: Opened, head: &Checkpoint, head_bytes: [u8; checkpoint::LEN]) -> CommittedBlob {
     CommittedBlob {
         bytes: blob.bytes,
         fields: blob.fields,
         digest: head.digest,
         anchor: head.anchor,
+        head: head_bytes,
     }
 }
 
@@ -283,33 +342,49 @@ fn promote(store_dir: &Path) -> Result<(), RecoverError> {
     fs_store::sync_dir_checked(store_dir).map_err(RecoverError::DurableWrite)
 }
 
+/// The authenticated head and its exact bytes, or the FREEZE it calls for.
+type HeadOutcome = Result<(Checkpoint, [u8; checkpoint::LEN]), FreezeKind>;
+
 /// Rule e. `Ok(Err(kind))` is a FREEZE; `Err` is an I/O failure, not a verdict. The checkpoint
-/// directory is never created here.
-fn read_head(
-    state_root: &Path,
-    lineage: &LineageFields,
-) -> Result<Result<Checkpoint, FreezeKind>, RecoverError> {
+/// directory is never created here. The head is opened once, read once (bounded) and its exact
+/// bytes are returned with it (S7b X5); a non-regular head is a read failure, never followed.
+fn read_head(state_root: &Path, lineage: &LineageFields) -> Result<HeadOutcome, RecoverError> {
     let path = paths::head_path(&paths::checkpoint_dir(state_root, &lineage.vault_id));
-    let file = match File::open(&path) {
+    let file = match open_regular(&path) {
         Ok(file) => file,
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
             return Ok(Err(FreezeKind::CheckpointMissing));
         }
         Err(e) => return Err(RecoverError::CheckpointRead(e.kind())),
     };
-    match checkpoint::decode_from(file, &lineage.checkpoint_mac_key, lineage.protection_mode) {
-        Ok(head) if head.vault_id != lineage.vault_id => Ok(Err(FreezeKind::ForeignCheckpoint)),
-        Ok(head) => Ok(Ok(head)),
-        Err(CheckpointError::Corrupt(kind)) => Ok(Err(FreezeKind::CheckpointCorrupt(kind))),
-        Err(CheckpointError::Unsupported(kind)) => Ok(Err(FreezeKind::CheckpointUnsupported(kind))),
-        Err(CheckpointError::Read(kind)) => Err(RecoverError::CheckpointRead(kind)),
+    let bytes =
+        checkpoint::read_bounded(file).map_err(|e| RecoverError::CheckpointRead(e.kind()))?;
+    let head = match checkpoint::decode(
+        &bytes,
+        lineage.checkpoint_mac_key(),
+        lineage.protection_mode,
+    ) {
+        Ok(head) if head.vault_id != lineage.vault_id => {
+            return Ok(Err(FreezeKind::ForeignCheckpoint))
+        }
+        Ok(head) => head,
+        Err(CheckpointError::Corrupt(kind)) => return Ok(Err(FreezeKind::CheckpointCorrupt(kind))),
+        Err(CheckpointError::Unsupported(kind)) => {
+            return Ok(Err(FreezeKind::CheckpointUnsupported(kind)))
+        }
+        Err(CheckpointError::Read(kind)) => return Err(RecoverError::CheckpointRead(kind)),
+    };
+    // decode() accepted exactly LEN bytes; anything else cannot reach here.
+    match <[u8; checkpoint::LEN]>::try_from(bytes.as_slice()) {
+        Ok(head_bytes) => Ok(Ok((head, head_bytes))),
+        Err(_) => Ok(Err(FreezeKind::CheckpointCorrupt(CorruptKind::Length))),
     }
 }
 
 fn same_lineage(a: &LineageFields, b: &LineageFields) -> bool {
     a.vault_id == b.vault_id
         && a.protection_mode == b.protection_mode
-        && keys_equal(&a.checkpoint_mac_key, &b.checkpoint_mac_key)
+        && keys_equal(a.checkpoint_mac_key(), b.checkpoint_mac_key())
 }
 
 /// No early exit on the first differing byte (`subtle` is not a dependency of this crate).
@@ -327,7 +402,7 @@ fn read_slot(
     max_blob_len: usize,
     slot: Slot,
 ) -> Result<Option<Vec<u8>>, RecoverError> {
-    let file = match File::open(path) {
+    let file = match open_regular(path) {
         Ok(file) => file,
         Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
         Err(e) => {
@@ -353,28 +428,36 @@ fn read_slot(
     Ok(Some(bytes))
 }
 
-fn open_slot(opener: &dyn LineageOpen, bytes: Option<Vec<u8>>) -> SlotState {
-    match bytes {
+/// An authenticated-but-malformed blob is a typed non-verdict error (S7b X1), never "unauthenticated".
+fn open_slot(
+    opener: &dyn LineageOpen,
+    bytes: Option<Vec<u8>>,
+    slot: Slot,
+) -> Result<SlotState, RecoverError> {
+    Ok(match bytes {
         None => SlotState::Absent,
         Some(bytes) => match opener.open(&bytes) {
             Ok(fields) => SlotState::Authenticated(Opened { bytes, fields }),
-            Err(_) => SlotState::Unauthenticated,
+            Err(OpenError::Unauthenticated) => SlotState::Unauthenticated,
+            Err(OpenError::Malformed) => return Err(RecoverError::BlobMalformed { slot }),
         },
-    }
+    })
 }
 
-/// Rule a (:270). Only a regular (non-directory) entry named `vault.qsv.prepared.tmp.<pid>` whose
-/// pid is in canonical form and NOT alive is removed; everything else is left exactly as found.
-/// No directory flush follows: a resurrected dead temp is simply removed again next time.
-fn remove_dead_prepared_temps(store_dir: &Path) -> Result<(), RecoverError> {
-    let entries = match fs::read_dir(store_dir) {
+/// Rule a (:270). Only a regular (non-directory) entry of `dir` whose name `pid_of` reads as a
+/// canonical pid that is NOT alive is removed -- `vault.qsv.prepared.tmp.<pid>` in the store, and
+/// (S7b X7) `head.tmp.<pid>[.<n>]` in the locked lineage's checkpoint directory; everything else is
+/// left exactly as found. No directory flush follows: a resurrected dead temp is simply removed
+/// again next time.
+fn remove_dead_temps(dir: &Path, pid_of: fn(&OsStr) -> Option<i32>) -> Result<(), RecoverError> {
+    let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
         Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(()),
         Err(e) => return Err(RecoverError::TempCleanup(e.kind())),
     };
     for entry in entries {
         let entry = entry.map_err(|e| RecoverError::TempCleanup(e.kind()))?;
-        let Some(pid) = prepared_temp_pid(&entry.file_name()) else {
+        let Some(pid) = pid_of(&entry.file_name()) else {
             continue;
         };
         if pid_alive(pid) {
@@ -426,7 +509,6 @@ fn pid_alive(pid: i32) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::freshness::OpenFailed;
     use crate::fs_store::{arm_durable_flush_fault, DurableFlushPoint};
     use chacha20poly1305::aead::{Aead, KeyInit};
     use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce};
@@ -450,7 +532,8 @@ mod tests {
 
     /// THE TEST OPENER: a fixture for the blob, not a provider. An authenticated ChaCha20-Poly1305
     /// envelope under a random per-test key: nonce(12) || AEAD(vault_id || generation BE ||
-    /// predecessor_anchor || Kc || profile byte || random filler). A tag failure -> OpenFailed.
+    /// predecessor_anchor || Kc || profile byte || random filler). A tag failure -> Unauthenticated;
+    /// an AUTHENTIC plaintext of the wrong length or with an unknown profile byte -> Malformed.
     struct TestOpener {
         aead: ChaCha20Poly1305,
         calls: Cell<u32>,
@@ -495,17 +578,17 @@ mod tests {
     }
 
     impl LineageOpen for TestOpener {
-        fn open(&self, blob: &[u8]) -> Result<LineageFields, OpenFailed> {
+        fn open(&self, blob: &[u8]) -> Result<LineageFields, OpenError> {
             self.calls.set(self.calls.get() + 1);
             if blob.len() < 12 {
-                return Err(OpenFailed);
+                return Err(OpenError::Unauthenticated);
             }
             let plain = self
                 .aead
                 .decrypt(Nonce::from_slice(&blob[..12]), &blob[12..])
-                .map_err(|_| OpenFailed)?;
+                .map_err(|_| OpenError::Unauthenticated)?;
             if plain.len() != PLAIN {
-                return Err(OpenFailed);
+                return Err(OpenError::Malformed);
             }
             let field = |at: usize| -> [u8; 32] { plain[at..at + 32].try_into().expect("32") };
             let mut generation = [0u8; 8];
@@ -515,7 +598,8 @@ mod tests {
                 generation: u64::from_be_bytes(generation),
                 predecessor_anchor: field(40),
                 checkpoint_mac_key: Zeroizing::new(field(72)),
-                protection_mode: ProtectionMode::from_profile_byte(plain[104]).ok_or(OpenFailed)?,
+                protection_mode: ProtectionMode::from_profile_byte(plain[104])
+                    .ok_or(OpenError::Malformed)?,
             })
         }
     }
@@ -644,8 +728,15 @@ mod tests {
             paths::head_path(&paths::checkpoint_dir(&self.state, &lin.vault_id))
         }
 
+        /// As begin() calls it: under the lineage's lock, naming the lineage (S7b X10).
         fn recover(&self, lin: &Lineage) -> Result<Recovered, RecoverError> {
-            recover(&self.store, &self.state, MAX, &lin.opener)
+            recover(
+                &self.store,
+                &self.state,
+                MAX,
+                &lin.opener,
+                Some(&lin.vault_id),
+            )
         }
 
         /// Every entry under the store and state roots: relative path -> sha256 (directories 0).
@@ -879,14 +970,13 @@ mod tests {
         st.put_current(&chain[N].bytes);
         st.put_prepared(&chain[N + 1].bytes);
         st.put_head(&lin, &lin.head(&chain[N]));
-        let temp = paths::head_temp_path(&st.checkpoint_dir(&lin), dead_pid());
+        let temp = paths::head_temp_path(&st.checkpoint_dir(&lin), dead_pid(), 0);
         let next_head = lin.head(&chain[N + 1]);
         fs::write(&temp, &next_head).expect("head temp");
         assert_eq!(summary(&st.recover(&lin)), "Open(3, stale_prepared=true)");
-        assert_eq!(
-            fs::read(&temp).expect("temp untouched"),
-            next_head,
-            "a checkpoint temp is neither authority nor removed here (named residual)"
+        assert!(
+            !temp.exists(),
+            "a checkpoint temp is never authority, and a dead pid's is removed (S7b X7, D40)"
         );
     }
 
@@ -1058,7 +1148,13 @@ mod tests {
         assert_eq!(summary(&st.recover(&lin)), "NoLineage");
         let missing = st.state.join("missing");
         assert_eq!(
-            summary(&recover(&missing, &st.state, MAX, &lin.opener)),
+            summary(&recover(
+                &missing,
+                &st.state,
+                MAX,
+                &lin.opener,
+                Some(&lin.vault_id)
+            )),
             "NoLineage"
         );
         assert_eq!(lin.opener.calls.get(), 0);
@@ -1083,7 +1179,13 @@ mod tests {
         let st = Store::new();
         st.put_current(&chain[N].bytes);
         st.put_head(&lin, &lin.head(&chain[N]));
-        let r = recover(&st.store, &st.state, len - 1, &lin.opener);
+        let r = recover(
+            &st.store,
+            &st.state,
+            len - 1,
+            &lin.opener,
+            Some(&lin.vault_id),
+        );
         assert!(
             matches!(
                 r,
@@ -1096,7 +1198,7 @@ mod tests {
         );
         assert_eq!(lin.opener.calls.get(), 0, "the opener never saw it");
         st.put_prepared(&[chain[N + 1].bytes.as_slice(), &[0u8]].concat());
-        let r = recover(&st.store, &st.state, len, &lin.opener);
+        let r = recover(&st.store, &st.state, len, &lin.opener, Some(&lin.vault_id));
         assert!(
             matches!(
                 r,
@@ -1110,7 +1212,13 @@ mod tests {
         assert_eq!(lin.opener.calls.get(), 0, "the opener never saw either");
         fs::remove_file(prepared_path(&st.store)).expect("rm prepared");
         assert_eq!(
-            summary(&recover(&st.store, &st.state, len, &lin.opener)),
+            summary(&recover(
+                &st.store,
+                &st.state,
+                len,
+                &lin.opener,
+                Some(&lin.vault_id)
+            )),
             "Open(3, stale_prepared=false)",
             "exactly the bound is accepted"
         );
@@ -1158,6 +1266,125 @@ mod tests {
             "{}",
             summary(&r)
         );
+    }
+
+    // ---- S7b (SEALED_EXPECTATION_S7b.md sec 1)
+
+    /// An AUTHENTIC blob with an unknown profile byte: the opener returns Malformed.
+    fn malformed(lin: &Lineage, generation: u64, pred: &[u8; 32]) -> Vec<u8> {
+        lin.opener.seal(&lin.vault_id, generation, pred, &lin.kc, 0)
+    }
+
+    #[test]
+    fn x1_malformed_blob_is_a_typed_non_verdict() {
+        let (st, lin) = (Store::new(), Lineage::new());
+        let chain = lin.chain(N + 1);
+        st.put_current(&malformed(&lin, N as u64, &chain[N - 1].anchor));
+        st.put_head(&lin, &lin.head(&chain[N]));
+        let before = st.trees();
+        let r = st.recover(&lin);
+        assert!(
+            matches!(
+                r,
+                Err(RecoverError::BlobMalformed {
+                    slot: Slot::Current
+                })
+            ),
+            "{}",
+            summary(&r)
+        );
+        let code = r.unwrap_err().code();
+        assert_eq!(code, "vault_parse_failed");
+        assert_ne!(code, crate::msgqueue::MSGQUEUE_VAULT_LOCKED);
+        assert_eq!(st.trees(), before, "a non-verdict writes nothing");
+        // An authentic current beside a Malformed prepared slot: refused, never classified.
+        st.put_current(&chain[N].bytes);
+        st.put_prepared(&malformed(&lin, N as u64 + 1, &chain[N].anchor));
+        let r = st.recover(&lin);
+        assert!(
+            matches!(
+                r,
+                Err(RecoverError::BlobMalformed {
+                    slot: Slot::Prepared
+                })
+            ),
+            "{}",
+            summary(&r)
+        );
+        // Unauthenticated keeps its own kind.
+        fs::remove_file(prepared_path(&st.store)).expect("rm prepared");
+        st.put_current(&lin.unauthentic());
+        assert_eq!(summary(&st.recover(&lin)), "Err(OpenFailed{Current})");
+    }
+
+    #[test]
+    fn x7_rule_a_removes_dead_pid_head_temps_both_shapes() {
+        let (st, lin) = (Store::new(), Lineage::new());
+        let ck = st.checkpoint_dir(&lin);
+        let dead = dead_pid();
+        let removed = [
+            ck.join(format!("head.tmp.{dead}")),
+            paths::head_temp_path(&ck, dead, 3),
+        ];
+        let me = std::process::id();
+        let kept = [
+            ck.join(format!("head.tmp.{me}")),
+            paths::head_temp_path(&ck, me, 0),
+            ck.join(format!("head.tmp.0{dead}")),
+            ck.join(format!("head.tmp.{dead}.03")),
+            ck.join(format!("head.tmp.{dead}.")),
+            ck.join(format!("head.tmp.{dead}.1.2")),
+            ck.join("head.tmp.x"),
+            ck.join("head.tmp.99999999999"),
+        ];
+        for path in removed.iter().chain(kept.iter()) {
+            fs::write(path, b"partial").expect("plant head temp");
+        }
+        let dead_dir = paths::head_temp_path(&ck, dead_pid(), 1);
+        fs::create_dir(&dead_dir).expect("plant dir");
+        let other = Lineage::new();
+        let other_temp = paths::head_temp_path(&st.checkpoint_dir(&other), dead, 0);
+        fs::write(&other_temp, b"partial").expect("plant other lineage's temp");
+        assert_eq!(summary(&st.recover(&lin)), "NoLineage");
+        for path in &removed {
+            assert!(!path.exists(), "{} must be removed", path.display());
+        }
+        for path in &kept {
+            assert!(path.exists(), "{} must be untouched", path.display());
+        }
+        assert!(dead_dir.is_dir(), "a directory is not a temp file");
+        assert!(
+            other_temp.exists(),
+            "only the named lineage's directory is swept"
+        );
+    }
+
+    #[test]
+    fn x8_debug_never_formats_the_blob_bytes() {
+        let lin = Lineage::new();
+        let b = lin.blob(0, &[0u8; 32]);
+        let blob = || CommittedBlob {
+            bytes: vec![0xAB; 64],
+            fields: lin.opener.open(&b.bytes).expect("authentic"),
+            digest: b.digest,
+            anchor: b.anchor,
+            head: [0u8; checkpoint::LEN],
+        };
+        for text in [
+            format!("{:?}", blob()),
+            format!(
+                "{:?}",
+                Recovered::Open {
+                    current: blob(),
+                    stale_prepared: false
+                }
+            ),
+            format!("{:?}", Recovered::Promoted { current: blob() }),
+        ] {
+            assert!(text.contains("bytes_len: 64"), "{text}");
+            assert!(!text.contains("bytes: ["), "the blob was formatted: {text}");
+            assert!(!text.contains("head:"), "{text}");
+        }
     }
 
     // ---- THE TABLE: SEALED_EXPECTATION_S4.md sec 4, T01-T45, transcribed row for row.

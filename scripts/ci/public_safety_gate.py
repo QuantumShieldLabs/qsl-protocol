@@ -66,6 +66,11 @@ TRANSIENT_WAIT_HTTP_CODES = {502, 503, 504}
 # is never retried. PR #1836's advisories job died on one "HTTP 500 ... Unexpected error" from
 # /pulls/<n> that a re-run cleared.
 GITHUB_API_RETRY_DELAYS_SECONDS = (2, 5, 10)
+# A commit's check runs are read page by page up to this cap (5000 runs); past it the gate fails
+# loud instead of judging a truncated list. main's head f7542fab had 161 when one page stopped
+# being enough.
+COMMIT_CHECK_RUNS_PER_PAGE = 100
+COMMIT_CHECK_RUNS_MAX_PAGES = 50
 RED_MAIN_REPAIR_PROFILES = {
     "send_commit_vault_mock_provider_retired": {
         "failure_check": "macos-qsc-sharded-suite",
@@ -477,20 +482,48 @@ def branch_head_sha(repo: str, branch: str) -> str:
     return data["commit"]["sha"]
 
 
-def commit_check_runs(repo: str, sha: str) -> list[dict]:
-    data = github_get(
-        f"/repos/{repo}/commits/{sha}/check-runs",
-        {"per_page": "100"},
+def commit_check_runs_all_pages(
+    fetch: Callable[[str, dict[str, str]], dict], repo: str, sha: str
+) -> list[dict]:
+    """Every check run of a commit, following pages until a short page or total_count.
+
+    One page of 100 is not the commit: main's head f7542fab collected 161 check runs (scheduled
+    runs keep landing on an unmoving head), public-safety sat on page 2, and the gate reported
+    main "missing check 'public-safety'". Reaching the page cap with runs still coming fails
+    loud; a truncated list is never returned as if it were the whole commit.
+    """
+    runs: list[dict] = []
+    for page in range(1, COMMIT_CHECK_RUNS_MAX_PAGES + 1):
+        data = fetch(
+            f"/repos/{repo}/commits/{sha}/check-runs",
+            {"per_page": str(COMMIT_CHECK_RUNS_PER_PAGE), "page": str(page)},
+        )
+        batch = data.get("check_runs", [])
+        runs.extend(batch)
+        total_count = data.get("total_count")
+        if isinstance(total_count, int) and len(runs) >= total_count:
+            return runs
+        if len(batch) < COMMIT_CHECK_RUNS_PER_PAGE:
+            if isinstance(total_count, int):
+                print(
+                    f"NOTE: check runs for {sha}: short page {page} after {len(runs)} of "
+                    f"total_count={total_count}",
+                    file=sys.stderr,
+                )
+            return runs
+    raise SystemExit(
+        f"ERROR: check runs for {repo}@{sha} exceed the page cap of "
+        f"{COMMIT_CHECK_RUNS_MAX_PAGES} pages x {COMMIT_CHECK_RUNS_PER_PAGE}; refusing to judge "
+        f"a truncated list"
     )
-    return data.get("check_runs", [])
+
+
+def commit_check_runs(repo: str, sha: str) -> list[dict]:
+    return commit_check_runs_all_pages(github_get, repo, sha)
 
 
 def commit_check_runs_for_wait(repo: str, sha: str) -> list[dict]:
-    data = github_get_for_wait(
-        f"/repos/{repo}/commits/{sha}/check-runs",
-        {"per_page": "100"},
-    )
-    return data.get("check_runs", [])
+    return commit_check_runs_all_pages(github_get_for_wait, repo, sha)
 
 
 def pull_request(repo: str, number: int) -> dict:

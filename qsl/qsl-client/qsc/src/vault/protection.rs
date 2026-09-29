@@ -416,65 +416,82 @@ fn zero_fill_opened(
     file.sync_all().map_err(|_| "vault_erase_failed")
 }
 
-fn parse_vault_attempt_limit_config(raw: &str) -> Result<Option<u32>, ErrorCode> {
+// The key set of each protection file (C01 A23: today's exact keys).
+const CONFIG_KEYS: [&str; 1] = ["attempt_limit"];
+const COUNTER_KEYS: [&str; 2] = ["failed_unlocks", "last_failure_unix_s"];
+
+// NA-0788 F04/S2 (C01 O7): ONE strict scan of a protection file. A blank line or a `#` comment is
+// skipped, as before; every other line must be `key=value` for a key of THIS file, and a key may
+// appear once. An unknown line or a repeated key refuses the whole file -- the callers fail closed
+// and count nothing -- where the historical scan took the first match and skipped the rest.
+fn protection_lines<'a>(
+    raw: &'a str,
+    keys: &[&'static str],
+) -> Result<std::collections::BTreeMap<&'static str, &'a str>, ErrorCode> {
+    let mut lines = std::collections::BTreeMap::new();
     for line in raw.lines() {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') {
             continue;
         }
-        let Some(value) = trimmed.strip_prefix("attempt_limit=") else {
-            continue;
-        };
-        let value = value.trim();
-        if value.eq_ignore_ascii_case("off") {
-            return Ok(None);
-        }
-        let parsed = value.parse::<u32>().map_err(|_| ErrorCode::ParseFailed)?;
-        if !(VAULT_ATTEMPT_LIMIT_MIN..=VAULT_ATTEMPT_LIMIT_MAX).contains(&parsed) {
+        let (key, value) = keys
+            .iter()
+            .find_map(|key| {
+                let value = trimmed.strip_prefix(key)?.strip_prefix('=')?;
+                Some((*key, value))
+            })
+            .ok_or(ErrorCode::ParseFailed)?;
+        if lines.insert(key, value).is_some() {
             return Err(ErrorCode::ParseFailed);
         }
-        return Ok(Some(parsed));
     }
-    Ok(None)
+    Ok(lines)
 }
 
-fn parse_vault_failed_unlocks(raw: &str) -> Result<u32, ErrorCode> {
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        let Some(value) = trimmed.strip_prefix("failed_unlocks=") else {
-            continue;
-        };
-        return value
-            .trim()
-            .parse::<u32>()
-            .map_err(|_| ErrorCode::ParseFailed);
+// A present config file names its limit: an absent attempt_limit line is refused, not read as
+// "off" (which would disarm the wipe). An absent FILE is still the unarmed default.
+fn parse_vault_attempt_limit_config(raw: &str) -> Result<Option<u32>, ErrorCode> {
+    let lines = protection_lines(raw, &CONFIG_KEYS)?;
+    let value = lines
+        .get("attempt_limit")
+        .ok_or(ErrorCode::ParseFailed)?
+        .trim();
+    if value.eq_ignore_ascii_case("off") {
+        return Ok(None);
     }
-    Ok(0)
+    let parsed = value.parse::<u32>().map_err(|_| ErrorCode::ParseFailed)?;
+    if !(VAULT_ATTEMPT_LIMIT_MIN..=VAULT_ATTEMPT_LIMIT_MAX).contains(&parsed) {
+        return Err(ErrorCode::ParseFailed);
+    }
+    Ok(Some(parsed))
+}
+
+// A present counter file carries its counter: an absent failed_unlocks line is refused, not read
+// as 0. An absent FILE is still the never-failed default.
+fn parse_vault_failed_unlocks(raw: &str) -> Result<u32, ErrorCode> {
+    let lines = protection_lines(raw, &COUNTER_KEYS)?;
+    let value = lines.get("failed_unlocks").ok_or(ErrorCode::ParseFailed)?;
+    value
+        .trim()
+        .parse::<u32>()
+        .map_err(|_| ErrorCode::ParseFailed)
 }
 
 // The Δ4 additive field: the counter file's last-failure timestamp line the delay
 // computation needs. The historical line-scan parser skips lines it does not
-// recognize, so this field is invisible to the historical format and its own parse
-// tolerates the absent field (absent = no delay window active).
+// recognize, so this field is invisible to the historical format. It is the one OPTIONAL
+// line: its writer omits it when there is no failure time, so absent = no delay window active.
 fn parse_vault_last_failure_unix_s(raw: &str) -> Result<Option<u64>, ErrorCode> {
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        let Some(value) = trimmed.strip_prefix("last_failure_unix_s=") else {
-            continue;
-        };
-        return value
-            .trim()
-            .parse::<u64>()
-            .map(Some)
-            .map_err(|_| ErrorCode::ParseFailed);
-    }
-    Ok(None)
+    let lines = protection_lines(raw, &COUNTER_KEYS)?;
+    lines
+        .get("last_failure_unix_s")
+        .map(|value| {
+            value
+                .trim()
+                .parse::<u64>()
+                .map_err(|_| ErrorCode::ParseFailed)
+        })
+        .transpose()
 }
 
 fn protection_state_load() -> Result<VaultProtectionState, ErrorCode> {
@@ -651,5 +668,225 @@ mod na0696_zero_fill_tests {
             impostor_bytes.iter().all(|b| *b == 0xC3),
             "the refusal must land BEFORE any write"
         );
+    }
+}
+
+// NA-0788 F04/S2 (C01 O7): the protection files' strict readers. The parsers are the reader's
+// parts; t_p_o7 drives the whole reader (protection_state_load) through the guarded unlock.
+#[cfg(test)]
+mod f04_s2_strict_tests {
+    use super::*;
+
+    fn refused<T: std::fmt::Debug>(r: Result<T, ErrorCode>) -> bool {
+        matches!(r, Err(ErrorCode::ParseFailed))
+    }
+
+    #[test]
+    fn t_p_writer_shapes_decode() {
+        // Every shape protection_state_store writes.
+        assert_eq!(
+            parse_vault_attempt_limit_config("attempt_limit=5\n").ok(),
+            Some(Some(5))
+        );
+        assert_eq!(
+            parse_vault_attempt_limit_config("attempt_limit=off\n").ok(),
+            Some(None)
+        );
+        let counter = "failed_unlocks=3\nlast_failure_unix_s=77\n";
+        assert_eq!(parse_vault_failed_unlocks(counter).ok(), Some(3));
+        assert_eq!(
+            parse_vault_last_failure_unix_s(counter).ok(),
+            Some(Some(77))
+        );
+        assert_eq!(
+            parse_vault_failed_unlocks("failed_unlocks=0\n").ok(),
+            Some(0)
+        );
+        assert_eq!(
+            parse_vault_last_failure_unix_s("failed_unlocks=0\n").ok(),
+            Some(None)
+        );
+        // The historical grammar is kept: blank lines, comments, surrounding whitespace.
+        let spaced = "# note\n\n  failed_unlocks= 4 \n";
+        assert_eq!(parse_vault_failed_unlocks(spaced).ok(), Some(4));
+    }
+
+    #[test]
+    fn t_p_duplicate_key_refused() {
+        assert!(
+            parse_vault_attempt_limit_config("attempt_limit=5\n").is_ok(),
+            "control"
+        );
+        for config in [
+            "attempt_limit=5\nattempt_limit=7\n",
+            "attempt_limit=5\nattempt_limit=5\n",
+            "attempt_limit=off\nattempt_limit=5\n",
+        ] {
+            assert!(
+                refused(parse_vault_attempt_limit_config(config)),
+                "{config:?}"
+            );
+        }
+        for counter in [
+            "failed_unlocks=1\nfailed_unlocks=5\n",
+            "failed_unlocks=1\nfailed_unlocks=1\n",
+            "failed_unlocks=1\nlast_failure_unix_s=10\nlast_failure_unix_s=20\n",
+        ] {
+            assert!(refused(parse_vault_failed_unlocks(counter)), "{counter:?}");
+            assert!(
+                refused(parse_vault_last_failure_unix_s(counter)),
+                "{counter:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn t_p_unknown_line_refused() {
+        assert!(
+            parse_vault_failed_unlocks("failed_unlocks=2\n").is_ok(),
+            "control"
+        );
+        for config in [
+            "attempt_limit=5\nbogus=1\n",
+            "attempt_limit=5\nfailed_unlocks=3\n",
+            "attempt_limit=5\ngarbage\n",
+            "attempt_limit =5\n",
+        ] {
+            assert!(
+                refused(parse_vault_attempt_limit_config(config)),
+                "{config:?}"
+            );
+        }
+        for counter in [
+            "failed_unlocks=2\nbogus=1\n",
+            "failed_unlocks=2\nattempt_limit=5\n",
+            "failed_unlocks =9\nfailed_unlocks=2\n",
+        ] {
+            assert!(refused(parse_vault_failed_unlocks(counter)), "{counter:?}");
+            assert!(
+                refused(parse_vault_last_failure_unix_s(counter)),
+                "{counter:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn t_p_missing_counter_refused() {
+        assert_eq!(
+            parse_vault_failed_unlocks("failed_unlocks=0\n").ok(),
+            Some(0),
+            "control"
+        );
+        for counter in ["last_failure_unix_s=10\n", "", "# only a comment\n"] {
+            assert!(refused(parse_vault_failed_unlocks(counter)), "{counter:?}");
+        }
+    }
+
+    #[test]
+    fn t_p_missing_attempt_limit_refused() {
+        assert!(
+            parse_vault_attempt_limit_config("attempt_limit=off\n").is_ok(),
+            "control"
+        );
+        for config in ["", "\n", "# only a comment\n"] {
+            assert!(
+                refused(parse_vault_attempt_limit_config(config)),
+                "{config:?}"
+            );
+        }
+    }
+
+    // The whole reader through the guarded unlock, in an isolated child (it sets QSC_CONFIG_DIR).
+    const CHILD: &str = "F04S2_PROTECTION_CHILD";
+
+    #[test]
+    fn t_p_o7_refusal_fails_closed_and_counts_nothing() {
+        if std::env::var_os(CHILD).is_none() {
+            let name = "vault::protection::f04_s2_strict_tests::\
+                        t_p_o7_refusal_fails_closed_and_counts_nothing";
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", name, "--nocapture"])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(status.success(), "isolated protection fixture failed");
+            return;
+        }
+        use rand_core::{OsRng, RngCore};
+        let dir = tempfile::tempdir().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o700)).unwrap();
+        }
+        std::env::set_var("QSC_CONFIG_DIR", dir.path());
+        let mut seed = [0u8; 16];
+        OsRng.fill_bytes(&mut seed);
+        let pass: String = seed.iter().map(|b| format!("{b:02x}")).collect();
+        crate::vault::vault_init_directional_with_passphrase(&pass).unwrap();
+        wipe_after_failed_unlocks_arm(50).unwrap();
+        let config = dir.path().join(VAULT_SECURITY_CONFIG_NAME);
+        let counter = dir.path().join(VAULT_UNLOCK_COUNTER_NAME);
+        let vault = dir.path().join("vault.qsv");
+        assert_eq!(fs::read_to_string(&config).unwrap(), "attempt_limit=50\n");
+        let valid_counter = "failed_unlocks=2\n";
+        fs::write(&counter, valid_counter).unwrap();
+        let valid_config = fs::read(&config).unwrap();
+        let now = 1_000_000;
+        let cases: [(&str, &Path, &str); 6] = [
+            (
+                "duplicate counter",
+                &counter,
+                "failed_unlocks=2\nfailed_unlocks=0\n",
+            ),
+            (
+                "unknown counter line",
+                &counter,
+                "failed_unlocks=2\nbogus=1\n",
+            ),
+            ("missing counter", &counter, "last_failure_unix_s=1\n"),
+            (
+                "duplicate limit",
+                &config,
+                "attempt_limit=50\nattempt_limit=1\n",
+            ),
+            (
+                "unknown config line",
+                &config,
+                "attempt_limit=50\nbogus=1\n",
+            ),
+            ("missing limit", &config, "# armed?\n"),
+        ];
+        for (label, path, text) in cases {
+            fs::write(path, text).unwrap();
+            let files = || [&config, &counter, &vault].map(|p| fs::read(p).unwrap());
+            let before = files();
+            let status = protection_status_at(now).map(|s| s.failed_unlocks);
+            assert_eq!(status, Err("vault_attempt_limit_io"), "{label}: status");
+            for attempt in ["wrong-passphrase", pass.as_str()] {
+                let outcome = unlock_guarded_at(attempt, now);
+                assert_eq!(
+                    outcome,
+                    Err("vault_attempt_limit_io"),
+                    "{label}: fail closed"
+                );
+            }
+            assert_eq!(files(), before, "{label}: nothing written, nothing counted");
+            fs::write(&config, &valid_config).unwrap();
+            fs::write(&counter, valid_counter).unwrap();
+            let status = protection_status_at(now).map(|s| (s.failed_unlocks, s.wipe_after));
+            assert_eq!(
+                status,
+                Ok((2, Some(50))),
+                "{label}: the count is the seeded one"
+            );
+        }
+        // Control arm: the valid files count a wrong passphrase.
+        let outcome = unlock_guarded_at("wrong-passphrase", now);
+        let rejected = GuardedUnlockOutcome::Rejected {
+            failed_unlocks: 3,
+            retry_after_s: unlock_delay_schedule_s(3),
+        };
+        assert_eq!(outcome, Ok(rejected));
     }
 }

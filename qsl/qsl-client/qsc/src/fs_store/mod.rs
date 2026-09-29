@@ -79,6 +79,9 @@ pub(crate) enum AckModeConfigState {
 /// any non-empty line without `=` fails the parse, which is what `doctor`'s `file_parseable` check
 /// depends on. What changed is only that a *well-formed* file which happens not to mention a
 /// particular key is no longer "corrupt" — it is simply a file that does not set that key.
+///
+/// NA-0788 F04/S2 (C01 T1 row 15): a key set TWICE is contradictory and fails the parse, where a
+/// first-match reader would silently ignore the second line.
 fn read_config_kv(path: &Path) -> Result<Vec<(String, String)>, ErrorCode> {
     let mut f = File::open(path).map_err(|_| ErrorCode::IoReadFailed)?;
     let mut buf = String::new();
@@ -93,6 +96,9 @@ fn read_config_kv(path: &Path) -> Result<Vec<(String, String)>, ErrorCode> {
         let (k, v) = line.split_once('=').ok_or(ErrorCode::ParseFailed)?;
         let k = k.trim();
         if k.is_empty() {
+            return Err(ErrorCode::ParseFailed);
+        }
+        if out.iter().any(|(seen, _)| seen == k) {
             return Err(ErrorCode::ParseFailed);
         }
         out.push((k.to_string(), v.trim().to_string()));
@@ -966,5 +972,100 @@ mod durable_write_tests {
         fn durable_dir_flush_failure_is_reported() {
             run_child("red", "G365_CHILD ");
         }
+    }
+}
+
+// NA-0788 F04/S2: config.txt through read_config_kv and its three callers.
+#[cfg(test)]
+mod f04_s2_config_kv_tests {
+    use super::*;
+
+    fn config(text: &str) -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o700)).expect("chmod 0700");
+        }
+        let path = dir.path().join("config.txt");
+        fs::write(&path, text).expect("seed");
+        (dir, path)
+    }
+
+    #[test]
+    fn t_c_duplicate_key_refused() {
+        let (_dir, path) = config("policy_profile=strict\nack_mode=legacy\n");
+        assert_eq!(read_config_kv(&path).expect("control").len(), 2);
+        assert_eq!(
+            read_policy_profile(&path).expect("control"),
+            Some("strict".to_string())
+        );
+        assert_eq!(
+            read_ack_mode_state(&path).expect("control"),
+            AckModeConfigState::RetiredKeyPresent("legacy".to_string())
+        );
+        for text in [
+            "policy_profile=baseline\npolicy_profile=strict\n",
+            "policy_profile=baseline\npolicy_profile=baseline\n",
+            "policy_profile=baseline\n policy_profile = strict\n",
+            "ack_mode=legacy\nack_mode=lease\n",
+        ] {
+            let (_dir, path) = config(text);
+            assert!(
+                matches!(read_config_kv(&path), Err(ErrorCode::ParseFailed)),
+                "{text:?}"
+            );
+            assert!(
+                matches!(read_policy_profile(&path), Err(ErrorCode::ParseFailed)),
+                "{text:?}"
+            );
+            let ack = read_ack_mode_state(&path);
+            assert!(matches!(ack, Err(ErrorCode::ParseFailed)), "{text:?}");
+        }
+    }
+
+    #[test]
+    fn t_c_p8_write_config_key_refuses_a_duplicate_without_writing() {
+        let text = "policy_profile=baseline\npolicy_profile=strict\n";
+        let (dir, path) = config(text);
+        let written = write_config_key(&path, POLICY_KEY, "strict", ConfigSource::EnvOverride);
+        assert!(matches!(written, Err(ErrorCode::ParseFailed)));
+        assert_eq!(
+            fs::read_to_string(&path).unwrap(),
+            text,
+            "the file is unchanged"
+        );
+        let mut names: Vec<_> = fs::read_dir(dir.path())
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        names.sort();
+        assert_eq!(names, ["config.txt"], "no temp file left behind");
+        let (_dir, path) = config("policy_profile=baseline\n");
+        write_config_key(&path, POLICY_KEY, "strict", ConfigSource::EnvOverride).expect("control");
+        assert_eq!(
+            fs::read_to_string(&path).unwrap(),
+            "policy_profile=strict\n"
+        );
+    }
+
+    #[test]
+    fn t_c_rt_write_config_key_round_trip() {
+        let (_dir, path) = config("");
+        let src = ConfigSource::EnvOverride;
+        write_config_key(&path, POLICY_KEY, "baseline", src).unwrap();
+        write_config_key(&path, ACK_MODE_KEY, "legacy", src).unwrap();
+        write_config_key(&path, POLICY_KEY, "strict", src).unwrap();
+        let kv = read_config_kv(&path).unwrap();
+        let expected = [(POLICY_KEY, "strict"), (ACK_MODE_KEY, "legacy")];
+        let expected: Vec<(String, String)> = expected
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect();
+        assert_eq!(kv, expected);
+        assert_eq!(
+            read_policy_profile(&path).unwrap(),
+            Some("strict".to_string())
+        );
     }
 }

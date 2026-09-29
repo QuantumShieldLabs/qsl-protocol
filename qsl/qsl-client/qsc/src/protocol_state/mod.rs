@@ -1416,7 +1416,9 @@ pub(crate) const REVIEW_WRITE_HEADROOM: usize = 524_288;
 #[serde(deny_unknown_fields)]
 pub(crate) struct CapacityOwner {
     pub(crate) generation: u64,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub(crate) peers: std::collections::BTreeMap<String, PeerReserve>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub(crate) entries: std::collections::BTreeMap<String, OwnerEntry>,
 }
 #[derive(Clone, Serialize, Deserialize)]
@@ -1463,6 +1465,7 @@ pub(crate) struct Charge {
 pub(crate) struct SessionControlReserve {
     pub(crate) sid: String,
     pub(crate) generation: u64,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub(crate) grant_peer_epoch: Option<u64>,
     pub(crate) send_request: String,
     pub(crate) recv_epoch_state: String,
@@ -1686,10 +1689,17 @@ impl SessionControlReserve {
     }
 }
 
+impl CapacityOwner {
+    // The ONE decoder of the owner record (F04 S1): the vault's aggregate check and
+    // directional_owner_load both route here, so one strict reading holds for both.
+    pub(crate) fn decode(raw: &str) -> Result<Self, &'static str> {
+        serde_json::from_str(raw).map_err(|_| "directional_owner_tampered")
+    }
+}
 pub(crate) fn directional_owner_load()->Result<CapacityOwner,&'static str> {
     let layout=approved_directional_layout()?;
     let raw=vault::secret_get(layout.owner_key)?.ok_or("directional_reserve_missing")?;
-    serde_json::from_str(&raw).map_err(|_|"directional_owner_tampered")
+    CapacityOwner::decode(&raw)
 }
 impl SessionControlReserve {
     pub(crate) fn fresh(sid:[u8;16])->Self {

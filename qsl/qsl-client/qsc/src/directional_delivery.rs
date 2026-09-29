@@ -181,6 +181,7 @@ struct EpochReceipts {
     next: u32,
     prefix: u32,
     confirmed: u32,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     terminal: Option<u32>,
     holes: BTreeSet<u32>,
 }
@@ -220,13 +221,11 @@ struct Flight {
     // Exact bytes included at seal; relay acceptance does not confirm this proof.
     closure_proof: String,
 }
-fn response_default_pending()->bool {true}
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Disposition {
     hash: Key,
     receipt: Vec<u8>,
-    #[serde(default="response_default_pending")]
     response_pending: bool,
 }
 #[derive(Clone, Serialize, Deserialize)]
@@ -249,14 +248,22 @@ pub(crate) struct Transaction {
     useful_send_closure: bool,
     pub(crate) generation: u64,
     pub(crate) core: Core,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     send: BTreeMap<u64, EpochReceipts>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     recv: BTreeMap<u64, EpochReceipts>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     flights: BTreeMap<String, Flight>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     dispositions: BTreeMap<String, Disposition>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     events: BTreeMap<String, Application>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     completed: BTreeMap<String, Key>,
     request_sent: bool,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     recv_floor: Option<u64>,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     send_floor: Option<u64>,
     demand: bool,
     since_boundary: u32,
@@ -1500,5 +1507,495 @@ mod f03_s9_distinct_codes_tests {
             (60001, Some("INTEGRATION_LENGTH")),
         ];
         assert_eq!(got, want);
+    }
+}
+
+// NA-0788 F04/S1: the Transaction tree and the owner decode STRICTLY (C01 T1 rows 15 and 21,
+// C07 T6). Each case goes through the real decoder with its existing code, after a control
+// arm shows the unmodified record decodes. Key-shaped fixture bytes are drawn at run time.
+#[cfg(test)]
+mod f04_s1_strict_tests {
+    use super::*;
+    use crate::directional_core::{Epoch, LocalTarget};
+    use crate::protocol_state::{
+        CapacityOwner, Charge, OwnerEntry, PeerReserve, SessionControlReserve,
+    };
+    use rand_core::{OsRng, RngCore};
+    use serde_json::Value;
+
+    const TAMPERED: Option<&str> = Some("TRANSACTION_TAMPERED");
+    const OWNER_TAMPERED: Option<&str> = Some("directional_owner_tampered");
+
+    fn fresh<const N: usize>() -> [u8; N] {
+        std::array::from_fn(|_| OsRng.next_u32() as u8)
+    }
+    fn opt<T>(none: bool, v: T) -> Option<T> {
+        if none {
+            None
+        } else {
+            Some(v)
+        }
+    }
+    fn epoch(id: u64, terminal: Option<u32>) -> Epoch {
+        Epoch {
+            id,
+            dir: 0,
+            dh: fresh(),
+            ec: fresh(),
+            pq: fresh(),
+            hk: fresh(),
+            adv: fresh(),
+            next: 2,
+            terminal,
+            skipped: BTreeMap::from([(1, fresh())]),
+        }
+    }
+    fn receipts(sid: [u8; 16], epoch: u64, terminal: Option<u32>) -> EpochReceipts {
+        let context = ReceiptContext {
+            sid,
+            direction: 0,
+            epoch,
+            dh: fresh(),
+            key: fresh(),
+        };
+        EpochReceipts {
+            context,
+            next: 1,
+            prefix: 1,
+            confirmed: 0,
+            terminal,
+            holes: BTreeSet::from([3]),
+        }
+    }
+    /// Every map holds one entry; every Option is Some, or None when `none` is set.
+    fn sample(none: bool) -> Transaction {
+        let sid = fresh();
+        let core = Core {
+            sid,
+            role: 0,
+            root: fresh(),
+            seq: 1,
+            digest: fresh(),
+            owner: 0,
+            own_priv: fresh(),
+            own_pub: fresh(),
+            peer_pub: fresh(),
+            send: opt(none, epoch(1, Some(2))),
+            recv: BTreeMap::from([(0, epoch(0, opt(none, 1)))]),
+            active_recv: opt(none, 0),
+            local: BTreeMap::from([(
+                0,
+                LocalTarget {
+                    pk: vec![1],
+                    sk: vec![2],
+                },
+            )]),
+            local_next: 1,
+            local_consumed_prefix: 0,
+            peer: BTreeMap::from([(0, vec![3])]),
+            peer_max: 1,
+            peer_selected_prefix: 0,
+            last_in: opt(none, fresh()),
+            last_out: vec![4],
+        };
+        let flight = Flight {
+            body_hash: fresh(),
+            intent_hash: fresh(),
+            epoch: 1,
+            slot: 0,
+            id: "m".into(),
+            wire: vec![5],
+            accepted: false,
+            closure_proof: String::new(),
+        };
+        let disposition = Disposition {
+            hash: fresh(),
+            receipt: vec![6],
+            response_pending: false,
+        };
+        let event = Application {
+            id: "e".into(),
+            body: vec![7],
+        };
+        Transaction {
+            version: String::from_utf8(INTEGRATION_PROFILE.to_vec()).unwrap(),
+            reserve: None,
+            received_reference: None,
+            useful_send_closure: false,
+            generation: 1,
+            core,
+            send: BTreeMap::from([(1, receipts(sid, 1, opt(none, 1)))]),
+            recv: BTreeMap::from([(0, receipts(sid, 0, opt(none, 0)))]),
+            flights: BTreeMap::from([(slot_key(1, 0), flight)]),
+            dispositions: BTreeMap::from([(slot_key(0, 0), disposition)]),
+            events: BTreeMap::from([("e".into(), event)]),
+            completed: BTreeMap::from([("c".into(), fresh())]),
+            request_sent: false,
+            recv_floor: opt(none, 0),
+            send_floor: opt(none, 0),
+            demand: false,
+            since_boundary: 0,
+            last_boundary: 0,
+        }
+    }
+    fn owner(sid: [u8; 16], generation: u64, none: bool) -> CapacityOwner {
+        let mut control = SessionControlReserve::fresh(sid);
+        control.generation = generation;
+        control.grant_peer_epoch = opt(none, 0);
+        let peer = PeerReserve {
+            peer: "bob".into(),
+            sid,
+            generation,
+            control_bound: 0,
+            peer_future: 0,
+            vault_future: 0,
+            control,
+        };
+        let entry = OwnerEntry {
+            ticket: "t".into(),
+            peer: "bob".into(),
+            sid,
+            direction: 0,
+            operation: "o".into(),
+            state: 0,
+            epoch: 0,
+            slot: 0,
+            reference_state: 0,
+            content: fresh(),
+            generation,
+            projection: 0,
+            wire_hash: fresh(),
+            charge: Charge { vault_bytes: 0 },
+        };
+        CapacityOwner {
+            generation,
+            peers: BTreeMap::from([("bob".into(), peer)]),
+            entries: BTreeMap::from([("t".into(), entry)]),
+        }
+    }
+    fn value<T: Serialize>(v: &T) -> Value {
+        serde_json::to_value(v).unwrap()
+    }
+    fn tx_value() -> Value {
+        let v = value(&sample(false));
+        assert!(Transaction::decode(&v.to_string()).is_ok(), "control arm");
+        v
+    }
+    fn owner_value() -> Value {
+        let v = value(&owner(fresh(), 1, false));
+        assert!(CapacityOwner::decode(&v.to_string()).is_ok(), "control arm");
+        v
+    }
+    fn tx(raw: &str) -> Option<&'static str> {
+        Transaction::decode(raw).err()
+    }
+    fn own(raw: &str) -> Option<&'static str> {
+        CapacityOwner::decode(raw).err()
+    }
+    /// The node at `pointer` replaced by raw JSON text: a Value cannot hold a repeated key.
+    fn splice(mut v: Value, pointer: &str, raw: &str) -> String {
+        *v.pointer_mut(pointer).unwrap() = Value::String("F04S1_SPLICE".into());
+        serde_json::to_string(&v)
+            .unwrap()
+            .replacen("\"F04S1_SPLICE\"", raw, 1)
+    }
+    /// The map at `pointer` with its entry written twice, identically.
+    fn duplicated(v: Value, pointer: &str) -> String {
+        let map = v.pointer(pointer).unwrap().as_object().unwrap();
+        assert_eq!(map.len(), 1);
+        let (k, e) = map.iter().next().unwrap();
+        let raw = format!("{{{k}:{e},{k}:{e}}}", k = serde_json::to_string(k).unwrap());
+        splice(v.clone(), pointer, &raw)
+    }
+    fn without(mut v: Value, pointer: &str, field: &str) -> String {
+        let node = v.pointer_mut(pointer).unwrap().as_object_mut().unwrap();
+        assert!(node.remove(field).is_some(), "{pointer}/{field}");
+        v.to_string()
+    }
+    fn with_null(mut v: Value, pointer: &str, field: &str) -> String {
+        let node = v.pointer_mut(pointer).unwrap().as_object_mut().unwrap();
+        assert!(
+            node.insert(field.into(), Value::Null).is_some(),
+            "{pointer}/{field}"
+        );
+        v.to_string()
+    }
+    fn with_extra(mut v: Value, pointer: &str) -> String {
+        let node = v.pointer_mut(pointer).unwrap().as_object_mut().unwrap();
+        assert!(node.insert("extra".into(), Value::from(0)).is_none());
+        v.to_string()
+    }
+
+    // T-A1: the removed default (response_default_pending) answered TRUE for an absent field.
+    #[test]
+    fn t_a1_disposition_without_response_pending_refused() {
+        let raw = without(tx_value(), "/dispositions/0:0", "response_pending");
+        assert_eq!(tx(&raw), TAMPERED);
+    }
+
+    // T-A2: one test per map (C01 T1 row 15), each through its real decoder.
+    #[test]
+    fn t_a2_duplicate_key_transaction_send() {
+        assert_eq!(tx(&duplicated(tx_value(), "/send")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_transaction_recv() {
+        assert_eq!(tx(&duplicated(tx_value(), "/recv")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_transaction_flights() {
+        assert_eq!(tx(&duplicated(tx_value(), "/flights")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_transaction_dispositions() {
+        assert_eq!(tx(&duplicated(tx_value(), "/dispositions")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_transaction_events() {
+        assert_eq!(tx(&duplicated(tx_value(), "/events")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_transaction_completed() {
+        assert_eq!(tx(&duplicated(tx_value(), "/completed")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_core_recv() {
+        assert_eq!(tx(&duplicated(tx_value(), "/core/recv")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_core_local() {
+        assert_eq!(tx(&duplicated(tx_value(), "/core/local")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_core_peer() {
+        assert_eq!(tx(&duplicated(tx_value(), "/core/peer")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_epoch_skipped() {
+        assert_eq!(tx(&duplicated(tx_value(), "/core/send/skipped")), TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_owner_peers() {
+        assert_eq!(own(&duplicated(owner_value(), "/peers")), OWNER_TAMPERED);
+    }
+    #[test]
+    fn t_a2_duplicate_key_owner_entries() {
+        assert_eq!(own(&duplicated(owner_value(), "/entries")), OWNER_TAMPERED);
+    }
+    #[test]
+    fn t_a2_escaped_spelling_of_one_key_refused() {
+        let v = tx_value();
+        let e = v["events"]["e"].to_string();
+        let raw = splice(v, "/events", &format!("{{\"e\":{e},\"\\u0065\":{e}}}"));
+        assert_eq!(tx(&raw), TAMPERED);
+    }
+
+    // T-A3: an unknown field inside core and each nested core type.
+    #[test]
+    fn t_a3_unknown_field_core() {
+        assert_eq!(tx(&with_extra(tx_value(), "/core")), TAMPERED);
+    }
+    #[test]
+    fn t_a3_unknown_field_core_send() {
+        assert_eq!(tx(&with_extra(tx_value(), "/core/send")), TAMPERED);
+    }
+    #[test]
+    fn t_a3_unknown_field_core_recv() {
+        assert_eq!(tx(&with_extra(tx_value(), "/core/recv/0")), TAMPERED);
+    }
+    #[test]
+    fn t_a3_unknown_field_core_local() {
+        assert_eq!(tx(&with_extra(tx_value(), "/core/local/0")), TAMPERED);
+    }
+
+    // T-A4: each Option field ABSENT is refused; PRESENT as null decodes as None.
+    fn absent_refused_null_accepted(pointer: &str, field: &str) -> Transaction {
+        assert_eq!(tx(&without(tx_value(), pointer, field)), TAMPERED);
+        Transaction::decode(&with_null(tx_value(), pointer, field)).unwrap()
+    }
+    #[test]
+    fn t_a4_transaction_recv_floor_required_null_accepted() {
+        let t = absent_refused_null_accepted("", "recv_floor");
+        assert!(t.recv_floor.is_none());
+    }
+    #[test]
+    fn t_a4_transaction_send_floor_required_null_accepted() {
+        let t = absent_refused_null_accepted("", "send_floor");
+        assert!(t.send_floor.is_none());
+    }
+    #[test]
+    fn t_a4_receipts_terminal_required_null_accepted() {
+        let t = absent_refused_null_accepted("/send/1", "terminal");
+        assert!(t.send[&1].terminal.is_none());
+    }
+    #[test]
+    fn t_a4_core_send_required_null_accepted() {
+        let t = absent_refused_null_accepted("/core", "send");
+        assert!(t.core.send.is_none());
+    }
+    #[test]
+    fn t_a4_core_active_recv_required_null_accepted() {
+        let t = absent_refused_null_accepted("/core", "active_recv");
+        assert!(t.core.active_recv.is_none());
+    }
+    #[test]
+    fn t_a4_core_last_in_required_null_accepted() {
+        let t = absent_refused_null_accepted("/core", "last_in");
+        assert!(t.core.last_in.is_none());
+    }
+    #[test]
+    fn t_a4_epoch_terminal_required_null_accepted() {
+        let t = absent_refused_null_accepted("/core/send", "terminal");
+        assert!(t.core.send.unwrap().terminal.is_none());
+    }
+    #[test]
+    fn t_a4_control_grant_peer_epoch_required_null_accepted() {
+        let control = "/peers/bob/control";
+        let field = "grant_peer_epoch";
+        assert_eq!(own(&without(owner_value(), control, field)), OWNER_TAMPERED);
+        let decoded = CapacityOwner::decode(&with_null(owner_value(), control, field)).unwrap();
+        assert!(decoded.peers["bob"].control.grant_peer_epoch.is_none());
+    }
+
+    // T-RT: what the writers produce decodes and re-encodes to the same bytes, nothing lost.
+    #[test]
+    fn t_rt_records_round_trip_through_the_strict_decoders() {
+        for none in [false, true] {
+            let raw = sample(none).encode().unwrap();
+            assert_eq!(Transaction::decode(&raw).unwrap().encode().unwrap(), raw);
+            let raw = serde_json::to_string(&owner(fresh(), 1, none)).unwrap();
+            let decoded = CapacityOwner::decode(&raw).unwrap();
+            assert_eq!(serde_json::to_string(&decoded).unwrap(), raw);
+        }
+    }
+
+    // N5 measured: the writers emit every Option field, as null when None.
+    #[test]
+    fn t_w_writers_emit_every_option_field() {
+        let v = value(&sample(true));
+        for (pointer, field) in [
+            ("", "recv_floor"),
+            ("", "send_floor"),
+            ("/send/1", "terminal"),
+            ("/recv/0", "terminal"),
+            ("/core", "send"),
+            ("/core", "active_recv"),
+            ("/core", "last_in"),
+            ("/core/recv/0", "terminal"),
+        ] {
+            let node = v.pointer(pointer).unwrap().as_object().unwrap();
+            assert_eq!(node.get(field), Some(&Value::Null), "{pointer}/{field}");
+        }
+        let o = value(&owner(fresh(), 1, true));
+        let grant = &o["peers"]["bob"]["control"]["grant_peer_epoch"];
+        assert_eq!(grant, &Value::Null);
+        assert!(Transaction::decode(&v.to_string()).is_ok());
+        assert!(CapacityOwner::decode(&o.to_string()).is_ok());
+    }
+
+    // T-C3 and T-P8 through a REAL vault open: the refusal keeps its code and writes nothing.
+    // Isolated in a child process (the timeline fixture pattern): it sets QSC_CONFIG_DIR.
+    const CHILD: &str = "F04S1_VAULT_CHILD";
+    #[test]
+    fn t_c3_p8_vault_open_refusals_keep_codes_and_file() {
+        if std::env::var_os(CHILD).is_none() {
+            let name = "directional_delivery::f04_s1_strict_tests::\
+                        t_c3_p8_vault_open_refusals_keep_codes_and_file";
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", name, "--nocapture"])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(status.success(), "isolated vault fixture failed");
+            return;
+        }
+        use argon2::{Algorithm, Argon2, Params, Version};
+        use chacha20poly1305::aead::{Aead as _, KeyInit, Payload};
+        use chacha20poly1305::{ChaCha20Poly1305, Nonce};
+        let dir = tempfile::tempdir().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = std::fs::Permissions::from_mode(0o700);
+            std::fs::set_permissions(dir.path(), mode).unwrap();
+        }
+        std::env::set_var("QSC_CONFIG_DIR", dir.path());
+        let pass: String = fresh::<16>().iter().map(|b| format!("{b:02x}")).collect();
+        crate::vault::vault_init_directional_with_passphrase(&pass).unwrap();
+        let path = dir.path().join("vault.qsv");
+        let original = std::fs::read(&path).unwrap();
+        assert!(crate::vault::open_session_with_passphrase(&pass).is_ok());
+        let u32_at = |i: usize| u32::from_le_bytes(original[i..i + 4].try_into().unwrap());
+        let params = Params::new(u32_at(9), u32_at(13), u32_at(17), Some(32)).unwrap();
+        let mut key: Key = fresh();
+        Argon2::new(Algorithm::Argon2id, Version::V0x13, params)
+            .hash_password_into(pass.as_bytes(), &original[25..41], &mut key)
+            .unwrap();
+        let cipher = ChaCha20Poly1305::new(chacha20poly1305::Key::from_slice(&key));
+        let sealed = Payload {
+            msg: &original[53..],
+            aad: &original[..53],
+        };
+        let plain = cipher
+            .decrypt(Nonce::from_slice(&original[41..53]), sealed)
+            .unwrap();
+        let payload: Value = serde_json::from_slice(&plain).unwrap();
+        let layout = crate::protocol_state::approved_directional_layout().unwrap();
+        let t = sample(false);
+        let sid = t.core.sid;
+        let good = value(&t).to_string();
+        let grant = "grant_peer_epoch";
+        let cases = [
+            (
+                "stale-generation",
+                value(&owner(sid, 2, false)).to_string(),
+                good.clone(),
+                "directional_stale_generation",
+            ),
+            (
+                "transaction-duplicate-events",
+                value(&owner(sid, 1, false)).to_string(),
+                duplicated(value(&t), "/events"),
+                "TRANSACTION_TAMPERED",
+            ),
+            (
+                "owner-missing-grant_peer_epoch",
+                without(value(&owner(sid, 1, false)), "/peers/bob/control", grant),
+                good.clone(),
+                "directional_owner_tampered",
+            ),
+            (
+                "control-matching-generation",
+                value(&owner(sid, 1, false)).to_string(),
+                good.clone(),
+                "directional_owner_invariant",
+            ),
+        ];
+        for (name, owner_raw, tx_raw, expected) in cases {
+            let mut p = payload.clone();
+            p["secrets"][layout.owner_key] = Value::String(owner_raw);
+            p["secrets"][format!("{}bob", layout.peer_prefix)] = Value::String(tx_raw);
+            let bytes = serde_json::to_vec(&p).unwrap();
+            let mut header = original[..53].to_vec();
+            let ct_len = u32::try_from(bytes.len() + 16).unwrap();
+            header[21..25].copy_from_slice(&ct_len.to_le_bytes());
+            header[41..53].copy_from_slice(&fresh::<12>());
+            let plain = Payload {
+                msg: &bytes,
+                aad: &header,
+            };
+            let sealed = cipher
+                .encrypt(Nonce::from_slice(&header[41..53]), plain)
+                .unwrap();
+            let mut raw = header;
+            raw.extend(sealed);
+            std::fs::write(&path, &raw).unwrap();
+            let mtime = std::fs::metadata(&path).unwrap().modified().unwrap();
+            let got = crate::vault::open_session_with_passphrase(&pass).err();
+            assert_eq!(got, Some(expected), "{name}");
+            assert_eq!(std::fs::read(&path).unwrap(), raw, "{name}: file bytes");
+            let after = std::fs::metadata(&path).unwrap().modified().unwrap();
+            assert_eq!(after, mtime, "{name}: file mtime");
+        }
     }
 }

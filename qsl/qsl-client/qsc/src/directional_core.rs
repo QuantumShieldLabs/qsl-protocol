@@ -119,6 +119,7 @@ pub(crate) fn open_typed(p: &[u8]) -> R<(u8, Vec<u8>)> {
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Epoch {
     pub(crate) id: u64,
     pub(crate) dir: u8,
@@ -128,7 +129,9 @@ pub(crate) struct Epoch {
     pub(crate) hk: Key,
     pub(crate) adv: Key,
     pub(crate) next: u32,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub(crate) terminal: Option<u32>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub(crate) skipped: BTreeMap<u32, Key>,
 }
 impl Epoch {
@@ -164,6 +167,7 @@ impl Epoch {
     }
 }
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct LocalTarget {
     pub(crate) pk: Vec<u8>,
     pub(crate) sk: Vec<u8>,
@@ -175,6 +179,7 @@ impl Drop for LocalTarget {
 }
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Core {
     pub(crate) sid: [u8; 16],
     pub(crate) role: u8,
@@ -185,15 +190,21 @@ pub(crate) struct Core {
     pub(crate) own_priv: Key,
     pub(crate) own_pub: Key,
     pub(crate) peer_pub: Key,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub(crate) send: Option<Epoch>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub(crate) recv: BTreeMap<u64, Epoch>,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub(crate) active_recv: Option<u64>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub(crate) local: BTreeMap<u32, LocalTarget>,
     pub(crate) local_next: u32,
     pub(crate) local_consumed_prefix: u32,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub(crate) peer: BTreeMap<u32, Vec<u8>>,
     pub(crate) peer_max: u32,
     pub(crate) peer_selected_prefix: u32,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub(crate) last_in: Option<Key>,
     pub(crate) last_out: Vec<u8>,
 }

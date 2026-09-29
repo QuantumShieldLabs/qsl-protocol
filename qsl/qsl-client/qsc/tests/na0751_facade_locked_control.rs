@@ -2,7 +2,7 @@
 //!
 //! ⚠ The subject of this control is a PROCESS ATOMIC — `VAULT_UNLOCKED_THIS_RUN`
 //! (`lib.rs:190`), read by `vault_unlocked()` (`:196`). It is not per-identity and not
-//! per-config-dir, and `vault_init_with_passphrase` is documented at `vault/mod.rs:220-221` as
+//! per-config-dir, and `vault_init_directional_with_passphrase` is documented at `vault/mod.rs:220-221` as
 //! having "No process unlock-state side effect" — so a fresh config directory does NOT reset
 //! it. Isolating this control by DIRECTORY would prove nothing: if any earlier test in the
 //! same binary unlocked, the pre-check would not fire and the assertion would either fail
@@ -78,9 +78,9 @@ fn na0751_locked_control_fires_on_a_genuinely_default_flag() {
     env::set_var("QSC_CONFIG_DIR", &cfg);
     env::set_var("QSC_QSP_SEED", "1");
 
-    // (1) A vault that exists but was NEVER unlocked. `vault_init_with_passphrase` has no
+    // (1) A vault that exists but was NEVER unlocked. `vault_init_directional_with_passphrase` has no
     // process unlock-state side effect, so the flag stays false.
-    qsc::vault::vault_init_with_passphrase("correct horse battery staple")
+    qsc::vault::vault_init_directional_with_passphrase("correct horse battery staple")
         .expect("vault init");
     assert!(!qsc::vault_unlocked(), "init must not unlock");
 

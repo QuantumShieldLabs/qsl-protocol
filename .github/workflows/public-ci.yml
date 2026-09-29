@@ -563,9 +563,11 @@ jobs:
           # completes in ceil(K/S) waves and the aggregate waits for the LAST one.
           # Measured: org plan `free` => 20 concurrent standard jobs, 5 macOS.
           # THIS REPO'S OWN PER-PUSH DEMAND IS ALREADY TWO macOS WAVES BEFORE ANY
-          # CONTENDER EXISTS: 5 macos-qsc-sharded-suite shards + the REQUIRED
-          # macos-qsc-qshield-build = 6 jobs against 5 slots, so ceil(6/5) = 2 is
-          # STRUCTURAL, not an allowance. The third wave is the allowance, and it
+          # CONTENDER EXISTS: 6 macos-qsc-sharded-suite shards (including bounded directional CI) + the REQUIRED
+          # macos-qsc-qshield-build = 7 jobs against 5 slots, so ceil(7/5) = 2 is
+          # STRUCTURAL, not an allowance. Two such demands total14, ceil(14/5)=3.
+          # The directional test has a600s test/600s compile bound within90m.
+          # The third wave is the allowance, and it
           # buys exactly ONE concurrent contender -- a second PR's or push's macOS
           # matrix, or a dispatch. The pool is ORG-WIDE across this org's repos, so
           # foreign demand consumes that same third wave.

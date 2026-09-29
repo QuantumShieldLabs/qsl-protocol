@@ -131,7 +131,7 @@ fn na0751_invite_surface_is_driven_in_process_against_the_relay_fixture() {
     // A REAL vault, created and unlocked in-process — the capability `set_vault_unlocked`
     // (`lib.rs:192`) and `unlock_with_passphrase` (`vault/mod.rs:203`) provide. No shaping
     // precedent is claimed for this: `NA_0671` is cited for the capability only.
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
     qsc::identity::identity_ensure("self").expect("identity");
@@ -195,7 +195,7 @@ fn na0751_w11_the_expiry_overlay_and_its_boundary_second() {
     let _g = guard();
     let cfg = fresh("expiry");
     set_env_once(&cfg);
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
     qsc::identity::identity_ensure("self").expect("identity");
@@ -228,7 +228,7 @@ fn na0751_invite_revoke_commits_locally_and_the_list_is_how_a_screen_reads_it() 
     let _g = guard();
     let cfg = fresh("revoke");
     set_env_once(&cfg);
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
     qsc::identity::identity_ensure("self").expect("identity");

@@ -248,7 +248,7 @@ fn path_bytes(path: &Path) -> Option<Vec<u8>> {
 
 fn derive_mock_vault_key(bytes: &[u8]) -> ([u8; 32], [u8; 16], u8, u32, u32, u32, usize, usize) {
     assert!(bytes.len() > 25, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV02");
+    assert_eq!(&bytes[0..6], b"QSCV03");
     let key_source = bytes[6];
     assert_eq!(key_source, 1, "expected passphrase vault");
     let salt_len = bytes[7] as usize;
@@ -310,7 +310,7 @@ fn write_mock_vault_json(cfg: &Path, payload: &Value) {
     // NA-0694 (D628 §2e F2): the header is assembled FIRST so it can be bound as the
     // encrypt AAD (ct_len = plaintext + 16-byte tag), matching the product's envelopes.
     let mut out = Vec::with_capacity(25 + salt.len() + nonce.len() + plaintext.len() + 16);
-    out.extend_from_slice(b"QSCV02");
+    out.extend_from_slice(b"QSCV03");
     out.push(key_source);
     out.push(16);
     out.push(12);

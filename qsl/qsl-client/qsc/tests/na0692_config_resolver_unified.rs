@@ -13,7 +13,7 @@
 //
 // External-crate-shaped: only the pub library surface is touched (the NA-0658
 // pattern), reaching the private resolver through
-// `vault_init_with_passphrase` -> `vault_init_core` -> `vault_path_resolved`.
+// `vault_init_directional_with_passphrase` -> `vault_init_core` -> `vault_path_resolved`.
 //
 // ⚠ BOTH TESTS MUTATE PROCESS-GLOBAL STATE — the environment AND the working
 // directory — so every test serializes on this file's own ENV_LOCK, and every
@@ -27,7 +27,7 @@
 // dir makes the relative-path case contained and directly observable instead of
 // destructive. This file must not later acquire a test that does not take the lock.
 
-use qsc::vault::vault_init_with_passphrase;
+use qsc::vault::vault_init_directional_with_passphrase;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Mutex, MutexGuard, OnceLock};
@@ -137,7 +137,7 @@ fn a_blank_like_override_puts_the_vault_under_the_config_dir(tag: &str, blank_va
     std::env::set_var("QSC_DISABLE_KEYCHAIN", "1");
     std::env::set_current_dir(&cwd).expect("move the process CWD into the case dir");
 
-    let result = vault_init_with_passphrase(PASS);
+    let result = vault_init_directional_with_passphrase(PASS);
 
     let expected_dir = xdg.join("qsc");
     let expected_vault = expected_dir.join("vault.qsv");

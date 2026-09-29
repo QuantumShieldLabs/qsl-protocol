@@ -71,6 +71,7 @@ const STORE_KEY_SECRET: &str = "quarantine_store_key_v1";
 
 const STORE_KEY_LEN: usize = 32;
 const NONCE_LEN: usize = 12;
+#[cfg(test)]
 const RECORD_VERSION: u8 = 1;
 
 /// ⚠ MEASURED, NOT CHOSEN — and measured by a predecessor rather than by this lane: both
@@ -78,6 +79,7 @@ const RECORD_VERSION: u8 = 1;
 /// how `owed_receipts` derived the same number. A quarantined item must not outlive the
 /// retention window of the relay that delivered it; past that point the relay has dropped its
 /// copy too, and holding ours only pretends to a recoverability nothing else still supports.
+#[cfg(test)]
 pub(crate) const QUARANTINE_TTL_SECS: u64 = 604_800;
 
 /// ⚠ GLOBAL, NOT PER-PEER — D-1328 Ruling 1, and the distinction is load-bearing.
@@ -86,6 +88,7 @@ pub(crate) const QUARANTINE_TTL_SECS: u64 = 604_800;
 /// failed*, so its sender may be unattributable at the moment we store it. Bucketing by peer
 /// would require an attribution we do not have, and inventing one would file items under the
 /// wrong contact. The cap is therefore global, and eviction is oldest-first.
+#[cfg(test)]
 pub(crate) const QUARANTINE_MAX_ENTRIES: usize = 256;
 
 /// The global byte ceiling, **derived from two constants already in the tree** rather than
@@ -96,6 +99,7 @@ pub(crate) const QUARANTINE_MAX_ENTRIES: usize = 256;
 /// its size is already bounded by the relay's advertised `limits.max_body_bytes`; adding a
 /// second, client-invented per-entry limit would reject items the relay had already accepted —
 /// destroying exactly what this module exists to preserve.
+#[cfg(test)]
 pub(crate) const QUARANTINE_MAX_BYTES: usize = QUARANTINE_MAX_ENTRIES * 65_536;
 
 // Failure causes are `&'static str` constants, NOT new `ErrorCode` variants — the D599
@@ -254,6 +258,7 @@ fn quarantine_root(cfg_dir: &Path) -> PathBuf {
 /// ⚠ A RELAY ITEM ID MUST NEVER APPEAR IN A FILENAME — the rule `dedup::mailbox_store_key` and
 /// `msgqueue::contact_key` both state for their own identifiers. Filenames are visible
 /// metadata even when the contents are encrypted, and a relay item id is a live correlator.
+#[cfg(test)]
 fn mint_entry_id(relay_item_id: &str, captured_at: u64) -> String {
     let c = StdCrypto;
     let h = c.sha512(format!("{}|{}", relay_item_id, captured_at).as_bytes());
@@ -262,6 +267,7 @@ fn mint_entry_id(relay_item_id: &str, captured_at: u64) -> String {
 
 /// Zero-padded timestamp first, so a plain lexicographic listing is already oldest-first —
 /// which is the order eviction needs, with no sort and no second source of truth.
+#[cfg(test)]
 fn record_name(captured_at: u64, entry_id: &str) -> String {
     format!("{:020}_{}.qrec", captured_at, entry_id)
 }
@@ -276,6 +282,7 @@ fn record_aad(entry_id: &str) -> Vec<u8> {
     format!("qsc.quarantine.v1|{}", entry_id).into_bytes()
 }
 
+#[cfg(test)]
 fn encrypt_record(
     key: &[u8; STORE_KEY_LEN],
     aad: &[u8],
@@ -354,6 +361,7 @@ fn scan(cfg_dir: &Path) -> Vec<(PathBuf, u64, usize)> {
 /// ⚠ THE MARKER IS NOT DECORATION. An expired quarantine entry is a real loss — it is the very
 /// data this module exists to keep — so it leaves a witness for the same reason an eviction
 /// does: **a drop with no witness is the defect this lane was created to remove.**
+#[cfg(test)]
 fn prune_expired(cfg_dir: &Path, now: u64) {
     let mut expired = 0usize;
     for (path, ts, _) in scan(cfg_dir) {
@@ -372,6 +380,7 @@ fn prune_expired(cfg_dir: &Path, now: u64) {
 }
 
 /// Enforce the GLOBAL caps, oldest-evicted, **every eviction witnessed**.
+#[cfg(test)]
 fn enforce_caps(cfg_dir: &Path) {
     let mut items = scan(cfg_dir);
     let mut total: usize = items.iter().map(|(_, _, s)| *s).sum();
@@ -402,59 +411,12 @@ fn enforce_caps(cfg_dir: &Path) {
 // Write
 // ---------------------------------------------------------------------------
 
-/// Capture an item that the caller is about to ack away.
-///
-/// ⚠ **FAIL-CLOSED, AND THE CONSEQUENCE IS RATIFIED (D-1328, STOP #002 concurrence 1).** If
-/// this returns `Err`, the caller **MUST NOT ack**. The item then keeps redelivering — a loud,
-/// witnessed availability degradation, deliberately chosen over silent destruction. **That
-/// redelivery loop is a DECISION, not a regression**, and a future reader must not "fix" it:
-/// NA-0644's backstop exists to end a poison loop and D-1327 §3a records a lane that predicted
-/// a wedge from redelivery and was wrong, so the pull toward killing the loop is strong and
-/// wrong here.
-// ⚠ ARGUED, NOT SILENT (D-1328 Ruling 10's standard, settled by Ruling 13). These nine arguments
-// ARE the capture record's own fields -- cfg dir and source, the relay item id, the two independent
-// discriminators (subclass and content kind, which by Rulings 2 and 7 neither implies), the reason,
-// the site, the bytes, and the clock. A params struct here would add a type whose only purpose is
-// to satisfy a lint: it would remove no decision, no argument, and no call site, and would put a
-// second name on the same nine fields. Revisit if a TENTH is ever wanted -- that would be evidence
-// the function is accreting responsibilities rather than fields.
-//
-// ⚠ The params-struct form is DEFERRED, NOT REJECTED (Ruling 13 rider i), and the counter-argument
-// is kept rather than buried: positional same-typed discriminators are a standing TRANSPOSITION
-// hazard that named-field construction would remove. Today that line is held by the Ruling 11.2 and
-// 11.3 pins instead; the refactor is natural to the ENG-0083 consolidation context.
-#[allow(clippy::too_many_arguments)]
-pub(crate) fn capture_at(
-    cfg_dir: &Path,
-    source: ConfigSource,
-    relay_item_id: &str,
-    subclass: Subclass,
-    content: ContentKind,
-    reason: &str,
-    site: &str,
-    data: &[u8],
-    now: u64,
-) -> Result<String, &'static str> {
-    let key = store_key()?;
-    capture_with_key_at(
-        &key,
-        cfg_dir,
-        source,
-        relay_item_id,
-        subclass,
-        content,
-        reason,
-        site,
-        data,
-        now,
-    )
-}
-
 /// The key-injectable inner. ⚠ Split out for the same reason `msgqueue` keeps a `test_key()`
 /// helper and the clock keeps `_at` seams: the file-level behaviour — write failure, capping,
 /// eviction — must be provable **without standing up a vault**, or the guards that matter most
 /// would be the ones hardest to test and therefore the ones left untested.
 #[allow(clippy::too_many_arguments)]
+#[cfg(test)]
 fn capture_with_key_at(
     key: &[u8; STORE_KEY_LEN],
     cfg_dir: &Path,

@@ -1,4 +1,4 @@
-pub const VAULT_MAGIC: &[u8; 6] = b"QSCV02";
+pub const VAULT_MAGIC: &[u8; 6] = b"QSCV03";
 
 // NA-0694 (D628, D-1334): the ONE owner of vault-magic recognition, shared by the unlock
 // parser below and `vault_status` — the same anti-divergence property as the single header
@@ -15,7 +15,7 @@ pub enum VaultMagicClass {
 pub fn classify_vault_magic(magic: &[u8]) -> VaultMagicClass {
     if magic == VAULT_MAGIC {
         VaultMagicClass::Current
-    } else if magic == b"QSCV01" {
+    } else if magic == b"QSCV01" || magic == b"QSCV02" {
         VaultMagicClass::KnownOld
     } else {
         VaultMagicClass::Unknown

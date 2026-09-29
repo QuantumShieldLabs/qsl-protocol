@@ -8,6 +8,8 @@
 // - the guarded path is ALWAYS ON (fails safe): every wrong attempt through it counts
 //   into a persisted counter; from the 3rd consecutive failure an escalating delay
 //   (5 s doubling, capped at 300 s) refuses attempts without decrypting
+// - C01 O7: a version or format refusal returns Err(code), uncounted; Rejected/Wiped only
+//   for a passphrase-authentication failure
 // - a delay-window refusal never increments the counter; clock rollback never
 //   shortens the wait
 // - wipe-after-N is a SEPARATE explicit opt-in (absent config file = no wipe, ever)
@@ -141,7 +143,8 @@ pub fn unlock_guarded(passphrase: &str) -> Result<GuardedUnlockOutcome, &'static
 
 /// The guarded unlock with an explicit clock reading (unix seconds) — the
 /// test-visible clock seam. `unlock_guarded` delegates here with the real clock;
-/// behavior is identical.
+/// behavior is identical. Err(code) for a version or format refusal (uncounted);
+/// Rejected/Wiped only for a passphrase-authentication failure (C01 O7).
 pub fn unlock_guarded_at(
     passphrase: &str,
     now_unix_s: u64,
@@ -155,7 +158,17 @@ pub fn unlock_guarded_at(
             retry_after_s: wait,
         });
     }
-    if let Ok(session) = authenticate_with_passphrase(passphrase) {
+    // NA-0785 F03 S8 (C01 O7): only a passphrase-authentication failure counts. Every
+    // other refusal of the unlock path (version, format, KDF header, provider, the
+    // post-AEAD payload checks, the empty passphrase) returns its own unchanged code
+    // BEFORE the counter below: no counter write, no delay, no wipe.
+    let attempt = authenticate_with_passphrase(passphrase);
+    if let Err(refusal) = &attempt {
+        if !refusal.is_passphrase_authentication_failure() {
+            return Err(refusal.code());
+        }
+    }
+    if let Ok(session) = attempt {
         finish_ownership_unlock(session)?;
         // Best-effort reset, the historical semantics: written only when there is
         // something to reset, and a persist failure must not undo the unlock.

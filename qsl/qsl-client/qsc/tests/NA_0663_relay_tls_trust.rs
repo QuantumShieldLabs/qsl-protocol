@@ -190,7 +190,7 @@ fn test_root(tag: &str) -> PathBuf {
     root
 }
 
-/// A config dir with a mock vault and one contact, ready to `relay send`.
+/// Fresh authenticated directional peers, ready to exercise the real TLS send.
 fn prepared_cfg(tag: &str) -> (PathBuf, PathBuf) {
     let base = test_root(tag);
     let cfg = base.join("cfg");
@@ -198,28 +198,11 @@ fn prepared_cfg(tag: &str) -> (PathBuf, PathBuf) {
     let payload = base.join("msg.bin");
     fs::write(&payload, b"na0663 tls trust payload").expect("write payload");
 
-    common::init_mock_vault(&cfg);
-    let added = common::qsc_std_command()
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .args([
-            "contacts",
-            "add",
-            "--label",
-            "peer",
-            "--fp",
-            "fp-test",
-            "--route-token",
-            ROUTE_TOKEN_PEER,
-        ])
-        .output()
-        .expect("run contacts add");
-    assert!(
-        added.status.success(),
-        "contacts add failed: {}",
-        String::from_utf8_lossy(&added.stdout)
+    let peer_cfg = base.join("peer-cfg");
+    create_dir_700(&peer_cfg);
+    common::init_directional_pair(
+        &cfg, "tls-client", "na0663_client_directional_fixture_route", 
+        &peer_cfg, "peer", ROUTE_TOKEN_PEER,
     );
     (cfg, payload)
 }
@@ -227,9 +210,6 @@ fn prepared_cfg(tag: &str) -> (PathBuf, PathBuf) {
 fn base_send_command(cfg: &Path) -> std::process::Command {
     let mut cmd = common::qsc_std_command();
     cmd.env("QSC_CONFIG_DIR", cfg)
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
         .env("QSC_MARK_FORMAT", "plain");
     cmd
 }

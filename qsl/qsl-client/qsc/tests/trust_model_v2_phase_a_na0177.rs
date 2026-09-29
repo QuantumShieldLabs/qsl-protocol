@@ -13,11 +13,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 const CONTACTS_SECRET_KEY: &str = "contacts.json";
 const ROUTE_TOKEN_BOB: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-const VAULT_MAGIC: &[u8; 6] = b"QSCV02";
+const VAULT_MAGIC: &[u8; 6] = b"QSCV03";
 
 #[derive(Serialize, Deserialize)]
 struct VaultPayload {
     version: u8,
+    protocol: String,
     secrets: BTreeMap<String, String>,
 }
 
@@ -60,9 +61,9 @@ fn unique_test_dir(tag: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .expect("clock")
         .as_nanos();
-    std::env::current_dir()
-        .expect("cwd")
-        .join("target")
+    std::env::var_os("CARGO_TARGET_DIR")
+        .map(PathBuf::from)
+        .expect("shared CARGO_TARGET_DIR")
         .join("qsc-tests")
         .join(format!("{tag}-{}-{nonce}", std::process::id()))
 }

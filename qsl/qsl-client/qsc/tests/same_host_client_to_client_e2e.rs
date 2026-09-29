@@ -57,7 +57,7 @@ fn ensure_dir_700(path: &Path) {
 
 fn init_mock_vault_isolated(iso: &common::TestIsolation, cfg: &Path) {
     let passphrase_file =
-        common::write_passphrase_file(cfg, "vault-init", common::TEST_MOCK_VAULT_PASSPHRASE);
+        common::write_passphrase_file(&iso.root, "vault-init", common::TEST_MOCK_VAULT_PASSPHRASE);
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("qsc"));
     iso.apply_to(&mut cmd);
     let out = cmd
@@ -66,6 +66,8 @@ fn init_mock_vault_isolated(iso: &common::TestIsolation, cfg: &Path) {
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--key-source",
             "passphrase",

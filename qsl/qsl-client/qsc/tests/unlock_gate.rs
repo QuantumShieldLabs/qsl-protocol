@@ -350,6 +350,8 @@ fn retired_passphrase_env_and_argv_paths_fail_closed() {
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--passphrase-env",
             "QSC_PASSPHRASE",
@@ -373,6 +375,8 @@ fn retired_passphrase_env_and_argv_paths_fail_closed() {
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--passphrase",
             "test-passphrase",

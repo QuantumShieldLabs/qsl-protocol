@@ -63,7 +63,7 @@ use qsc::vault::protection::{
 };
 use qsc::vault::{
     secret_get, secret_set, set_process_passphrase, unlock_with_passphrase,
-    vault_init_with_passphrase,
+    vault_init_directional_with_passphrase,
 };
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -239,7 +239,7 @@ fn nested_commit_emits_debug_instrument_and_transaction_lands() {
 fn destroy_residue_set_enumerated_by_name() {
     let _g = env_lock();
     let cfg = fresh_lib_env("residue_set");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
     unlock_with_passphrase(PASS).expect("unlock");
     secret_set("na0696.residue", "resident-value").expect("seed secret");
     wipe_after_failed_unlocks_arm(3).expect("arm the limit (vault_security.txt)");
@@ -313,7 +313,7 @@ fn destroy_residue_set_enumerated_by_name() {
 fn destroy_passphrase_vault_flow_unchanged() {
     let _g = env_lock();
     let cfg = fresh_lib_env("pass_flow");
-    vault_init_with_passphrase(PASS).expect("init");
+    vault_init_directional_with_passphrase(PASS).expect("init");
     unlock_with_passphrase(PASS).expect("unlock");
     secret_set("na0696.k", "na0696-v").expect("seed secret");
 
@@ -358,6 +358,8 @@ fn keychain_unsupported_load_split_headless() {
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--key-source",
             "keychain",
@@ -386,6 +388,8 @@ mod seam_armed {
             .args([
                 "vault",
                 "init",
+                "--protocol",
+                "directional-v1",
                 "--non-interactive",
                 "--key-source",
                 "keychain",

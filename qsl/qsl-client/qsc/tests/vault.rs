@@ -32,7 +32,7 @@ fn rewrite_passphrase_vault_profile(
     let vault_file = cfg.join("vault.qsv");
     let bytes = fs::read(&vault_file).unwrap();
     assert!(bytes.len() > 39, "vault envelope too short");
-    assert_eq!(&bytes[0..6], b"QSCV02");
+    assert_eq!(&bytes[0..6], b"QSCV03");
     assert_eq!(bytes[6], 1, "expected passphrase vault");
 
     let salt_len = bytes[7] as usize;
@@ -81,7 +81,7 @@ fn rewrite_passphrase_vault_profile(
     // encrypt AAD (ct_len = plaintext + 16-byte tag), exactly as the product writes it.
     let mut out =
         Vec::with_capacity(6 + 1 + 1 + 1 + 4 * 4 + salt_len + nonce_len + plaintext.len() + 16);
-    out.extend_from_slice(b"QSCV02");
+    out.extend_from_slice(b"QSCV03");
     out.push(1);
     out.push(16);
     out.push(12);
@@ -122,7 +122,7 @@ fn vault_init_noninteractive_requires_passphrase_no_mutation() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_NONINTERACTIVE", "1")
-        .args(["vault", "init"]);
+        .args(["vault", "init", "--protocol", "directional-v1"]);
 
     cmd.assert()
         .failure()
@@ -152,6 +152,8 @@ fn vault_init_invalid_key_source_redacts_stderr() {
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--key-source",
             "bogus",
             "--passphrase-file",
@@ -191,7 +193,7 @@ fn vault_init_with_passphrase_creates_encrypted_file_and_redacts() {
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_DISABLE_KEYCHAIN", "1")
         .env("QSC_NONINTERACTIVE", "1")
-        .args(["vault", "init", "--passphrase-stdin"])
+        .args(["vault", "init", "--protocol", "directional-v1", "--passphrase-stdin"])
         .write_stdin(pass);
 
     cmd.assert()
@@ -261,7 +263,7 @@ fn vault_init_yubikey_stub_fails_no_mutation() {
     cmd.env("QSC_TEST_ROOT", &base)
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_NONINTERACTIVE", "1")
-        .args(["vault", "init", "--key-source", "yubikey"]);
+        .args(["vault", "init", "--protocol", "directional-v1", "--key-source", "yubikey"]);
 
     cmd.assert()
         .failure()
@@ -289,7 +291,7 @@ fn vault_init_mock_provider_rejected_without_mutation() {
     cmd.env("QSC_TEST_ROOT", &base)
         .env("QSC_CONFIG_DIR", &cfg)
         .env("QSC_NONINTERACTIVE", "1")
-        .args(["vault", "init", "--key-source", "mock"]);
+        .args(["vault", "init", "--protocol", "directional-v1", "--key-source", "mock"]);
 
     cmd.assert()
         .failure()
@@ -457,7 +459,7 @@ fn vault_init_on_unsafe_default_home_ancestry_refuses_with_unsafe_parent_perms()
         .env("QSC_NONINTERACTIVE", "1")
         .env_remove("QSC_CONFIG_DIR")
         .env_remove("XDG_CONFIG_HOME")
-        .args(["vault", "init", "--passphrase-stdin"])
+        .args(["vault", "init", "--protocol", "directional-v1", "--passphrase-stdin"])
         .write_stdin(pass);
     cmd.assert()
         .failure()
@@ -465,4 +467,68 @@ fn vault_init_on_unsafe_default_home_ancestry_refuses_with_unsafe_parent_perms()
 
     assert!(!expected.exists());
     assert!(!unexpected.exists());
+}
+
+#[test]
+fn directional_vault_requires_explicit_fresh_opt_in_and_preserves_existing_state() {
+    let base = tempfile::tempdir_in(test_root()).unwrap();
+    let cfg = base.path().join("cfg");
+    fs::create_dir(&cfg).unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&cfg, fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    for selection in [None, Some("unknown-profile")] {
+        let mut cmd = qsc_cmd();
+        cmd.env("QSC_CONFIG_DIR", &cfg)
+            .args(["vault", "init", "--passphrase-stdin"])
+            .write_stdin(common::TEST_MOCK_VAULT_PASSPHRASE);
+        if let Some(selection) = selection {
+            cmd.args(["--protocol", selection]);
+        }
+        cmd.assert().failure().stdout(predicate::str::contains("directional_profile_required"));
+        assert!(!cfg.join("vault.qsv").exists());
+    }
+    let prior = cfg.join("existing-development-state");
+    fs::write(&prior, b"preserve development state").unwrap();
+    let mut cmd = qsc_cmd();
+    cmd.env("QSC_CONFIG_DIR", &cfg)
+        .args(["vault", "init", "--protocol", "directional-v1", "--passphrase-stdin"])
+        .write_stdin(common::TEST_MOCK_VAULT_PASSPHRASE);
+    cmd.assert().failure().stdout(predicate::str::contains("directional_fresh_vault_required"));
+    assert_eq!(fs::read(prior).unwrap(), b"preserve development state");
+    assert!(!cfg.join("vault.qsv").exists());
+}
+
+#[test]
+fn directional_vault_refuses_old_magic_and_authenticated_header_tampering() {
+    let base = tempfile::tempdir_in(test_root()).unwrap();
+    let cfg = base.path().join("cfg");
+    common::init_mock_vault(&cfg);
+    let path = cfg.join("vault.qsv");
+    let original = fs::read(&path).unwrap();
+    assert_eq!(&original[..6], b"QSCV03");
+    for magic in [b"QSCV01", b"QSCV02", b"QSCV04"] {
+        let mut altered = original.clone();
+        altered[..6].copy_from_slice(magic);
+        fs::write(&path, &altered).unwrap();
+        let mut cmd = qsc_cmd();
+        cmd.env("QSC_CONFIG_DIR", &cfg)
+            .args(["vault", "unlock", "--non-interactive", "--passphrase-stdin"])
+            .write_stdin(common::TEST_MOCK_VAULT_PASSPHRASE);
+        cmd.assert().failure();
+        assert_eq!(fs::read(&path).unwrap(), altered);
+    }
+    // Salt is part of the authenticated header. Keep the supported discriminator
+    // and KDF profile valid so this reaches authentication, not version refusal.
+    let mut altered = original.clone();
+    altered[25] ^= 1;
+    fs::write(&path, &altered).unwrap();
+    let mut cmd = qsc_cmd();
+    cmd.env("QSC_CONFIG_DIR", &cfg)
+        .args(["vault", "unlock", "--non-interactive", "--passphrase-stdin"])
+        .write_stdin(common::TEST_MOCK_VAULT_PASSPHRASE);
+    cmd.assert().failure().stdout(predicate::str::contains("vault_locked"));
+    assert_eq!(fs::read(&path).unwrap(), altered);
 }

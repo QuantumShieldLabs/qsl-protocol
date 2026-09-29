@@ -427,26 +427,6 @@ pub(super) fn contact_requests_store_save(store: &ContactRequestsStore) -> Resul
     }
 }
 
-pub(super) fn contact_request_upsert(
-    alias: &str,
-    device_id: Option<&str>,
-    reason: Option<&str>,
-) -> Result<(), ErrorCode> {
-    if !channel_label_ok(alias) {
-        return Err(ErrorCode::ParseFailed);
-    }
-    let mut store = contact_requests_store_load()?;
-    let rec = ContactRequestRecord {
-        alias: alias.to_string(),
-        device_id: device_id.map(short_device_marker),
-        state: "PENDING".to_string(),
-        reason: reason.map(|v| v.to_string()),
-        seen_at: None,
-    };
-    store.requests.insert(alias.to_string(), rec);
-    contact_requests_store_save(&store)
-}
-
 pub(super) fn contact_request_remove(alias: &str) -> Result<bool, ErrorCode> {
     if !channel_label_ok(alias) {
         return Err(ErrorCode::ParseFailed);
@@ -610,26 +590,6 @@ pub(super) fn emit_cli_contact_request(action: &str, peer: &str, device: Option<
     } else {
         emit_cli_named_marker(
             "QSC_CONTACT_REQUEST",
-            &[("action", action), ("peer", safe_peer.as_str())],
-        );
-    }
-}
-
-pub(super) fn emit_tui_contact_request(action: &str, peer: &str, device: Option<&str>) {
-    let safe_peer = short_peer_marker(peer);
-    let safe_device = device.map(short_device_marker);
-    if let Some(dev) = safe_device.as_ref() {
-        emit_tui_named_marker(
-            "QSC_TUI_CONTACT_REQUEST",
-            &[
-                ("action", action),
-                ("peer", safe_peer.as_str()),
-                ("device", dev),
-            ],
-        );
-    } else {
-        emit_tui_named_marker(
-            "QSC_TUI_CONTACT_REQUEST",
             &[("action", action), ("peer", safe_peer.as_str())],
         );
     }
@@ -1055,7 +1015,7 @@ pub fn contacts_add(
     // would invert the epic's own dependency-chain safety property. It retires once
     // messaging is proven end to end and the invite path can provision those tests.
     let route_token = match route_token {
-        Some(raw) => Some(normalize_route_token(raw).map_err(|code| CliError::code(code))?),
+        Some(raw) => Some(normalize_route_token(raw).map_err(CliError::code)?),
         None => return Err(CliError::code(CONTACTS_ROUTE_TOKEN_REQUIRED)),
     };
     let rec = ContactRecord {
@@ -1112,7 +1072,7 @@ pub fn contacts_device_add(label: &str, fp: &str, route_token: Option<&str>) -> 
         .ok_or_else(|| CliError::code("peer_unknown"))?;
     normalize_contact_record(label, &mut rec);
     let route_token = route_token
-        .map(|raw| normalize_route_token(raw).map_err(|code| CliError::code(code)))
+        .map(|raw| normalize_route_token(raw).map_err(CliError::code))
         .transpose()?;
     let device_id = device_id_short(label, None, fp);
     if contact_device_find_index(&rec, device_id.as_str())?.is_some() {
@@ -1321,7 +1281,7 @@ pub fn contacts_device_verify(label: &str, device: &str, fp: &str) -> CliResult 
         Some(device),
         load_trust_onboarding_mode_from_account(),
     );
-    return Err(CliError::code("verification_mismatch"));
+    Err(CliError::code("verification_mismatch"))
 }
 
 pub fn contacts_device_trust(label: &str, device: &str, confirm: bool) -> CliResult {
@@ -1453,7 +1413,7 @@ pub fn contacts_device_primary_show(label: &str) -> CliResult {
 
 pub fn contacts_route_set(label: &str, route_token: &str) -> CliResult {
     require_unlocked("contacts_route_set")?;
-    let token = normalize_route_token(route_token).map_err(|code| CliError::code(code))?;
+    let token = normalize_route_token(route_token).map_err(CliError::code)?;
     let mut rec = contacts_entry_read(label)
         .map_err(|_| CliError::code("contacts_store_unavailable"))?
         .unwrap_or(ContactRecord {
@@ -1632,7 +1592,7 @@ pub fn contacts_trust_mode_set(mode: TrustMode) -> CliResult {
             crate::output::emit_raw_payload_line(&format!("trust_mode={}", mode.as_str()));
             Ok(())
         }
-        Err(_) => return Err(CliError::code("contacts_store_unavailable")),
+        Err(_) => Err(CliError::code("contacts_store_unavailable")),
     }
 }
 

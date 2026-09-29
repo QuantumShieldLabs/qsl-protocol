@@ -173,6 +173,30 @@ fn seed_authenticated_pair(alice_cfg: &Path, bob_cfg: &Path) {
     );
 }
 
+// Establish the supported profile through the normal authenticated CLI callers.
+// Seed fallback cannot stand in for a directional vault transaction.
+fn establish_directional_pair(base: &Path, relay: &str) -> (PathBuf, PathBuf) {
+    let alice = base.join("alice");
+    let bob = base.join("bob");
+    create_dir_700(&alice);
+    create_dir_700(&bob);
+    common::init_mock_vault(&alice);
+    common::init_mock_vault(&bob);
+    seed_authenticated_pair(&alice, &bob);
+    relay_inbox_set(&alice, ROUTE_TOKEN_ALICE);
+    relay_inbox_set(&bob, ROUTE_TOKEN_BOB);
+    for (cfg, action, label, peer) in [
+        (&alice, "init", "alice", "bob"),
+        (&bob, "poll", "bob", "alice"),
+        (&alice, "poll", "alice", "bob"),
+        (&bob, "poll", "bob", "alice"),
+    ] {
+        let out = run_qsc(cfg, &["handshake", action, "--as", label, "--peer", peer, "--relay", relay]);
+        assert!(out.status.success(), "{}", combined_output(&out));
+    }
+    (alice, bob)
+}
+
 #[test]
 fn send_refuses_when_protocol_inactive() {
     let base = safe_test_root().join(format!("na0094_send_inactive_{}", std::process::id()));
@@ -379,11 +403,11 @@ fn handshake_midpoint_protocol_gate_stays_honest() {
     let alice_send_text = combined_output(&alice_send);
     assert!(alice_send.status.success(), "{alice_send_text}");
     assert!(
-        alice_send_text.contains("event=qsp_pack ok=true"),
+        alice_send_text.contains("event=msgqueue_enqueued state=QUEUED"),
         "{alice_send_text}"
     );
     assert!(
-        alice_send_text.contains("event=send_commit"),
+        alice_send_text.contains("QSC_DELIVERY state=accepted_by_relay"),
         "{alice_send_text}"
     );
 
@@ -417,128 +441,57 @@ fn handshake_midpoint_protocol_gate_stays_honest() {
 #[test]
 fn send_allows_when_protocol_active() {
     let server = common::start_inbox_server(1024 * 1024, 32);
-    let base = safe_test_root().join(format!("na0094_send_active_{}", std::process::id()));
+    let base = safe_test_root().join(format!("directional_send_active_{}", std::process::id()));
     create_dir_700(&base);
-    let cfg = base.join("cfg");
-    create_dir_700(&cfg);
-    common::init_mock_vault(&cfg);
-    contacts_route_set(&cfg, "bob", ROUTE_TOKEN_BOB);
+    let (alice, _bob) = establish_directional_pair(&base, server.base_url());
     let msg = base.join("msg.bin");
-    fs::write(&msg, b"hello").expect("write msg");
-
-    let output = common::qsc_std_command()
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env(
-            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
-            common::TEST_MOCK_VAULT_PASSPHRASE,
-        )
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "send",
-            "--transport",
-            "relay",
-            "--relay",
-            server.base_url(),
-            "--to",
-            "bob",
-            "--file",
-            msg.to_str().unwrap(),
-        ])
-        .output()
-        .expect("send active");
+    fs::write(&msg, b"hello").unwrap();
+    let output = run_qsc(&alice, &["send", "--transport", "relay", "--relay", server.base_url(), "--to", "bob", "--file", msg.to_str().unwrap()]);
     let out = combined_output(&output);
-    assert!(output.status.success(), "send should succeed");
-    assert!(out.contains("event=qsp_pack ok=true"), "missing qsp_pack");
-    assert!(out.contains("event=send_commit"), "missing send_commit");
+    assert!(output.status.success(), "{out}");
+    assert!(out.contains("event=msgqueue_enqueued state=QUEUED"), "{out}");
+    assert!(out.contains("QSC_DELIVERY state=accepted_by_relay"), "{out}");
+    assert_eq!(common::queued_record_count(&alice), 1, "authoritative ordinary operation retains its queue row");
+    let flights = server.drain_channel(ROUTE_TOKEN_BOB);
+    assert_eq!(flights.len(), 1);
+    assert!(flights[0].starts_with(b"NDE1"));
+    // Normal discard cannot orphan the retained exact directional flight.
+    let queue_dir = fs::read_dir(alice.join("msgqueue_v1")).unwrap()
+        .map(Result::unwrap).find(|entry| entry.path().is_dir()).unwrap().path();
+    let row = fs::read_dir(queue_dir).unwrap().map(Result::unwrap)
+        .find(|entry| entry.path().extension().is_some_and(|ext| ext == "rec")).unwrap().path();
+    let row_before = fs::read(&row).unwrap();
+    let stem = row.file_stem().unwrap().to_str().unwrap();
+    let (_, msg_id) = stem.split_once('_').expect("sequence and message ID");
+    let discard = run_qsc(&alice, &["outbox", "discard", "--to", "bob", "--msg-id", msg_id,
+        "--relay", server.base_url(), "--confirm"]);
+    let discarded = combined_output(&discard);
+    assert!(!discard.status.success(), "{discarded}");
+    assert!(discarded.contains("code=directional_discard_refused"), "{discarded}");
+    assert_eq!(fs::read(&row).unwrap(), row_before, "refusal preserves the exact queue record");
+    assert_eq!(common::queued_record_count(&alice), 1);
 }
 
 #[test]
 fn receive_allows_when_protocol_active() {
     let server = common::start_inbox_server(1024 * 1024, 32);
-    let base = safe_test_root().join(format!("na0094_recv_active_{}", std::process::id()));
+    let base = safe_test_root().join(format!("directional_recv_active_{}", std::process::id()));
     create_dir_700(&base);
-    let cfg = base.join("cfg");
-    create_dir_700(&cfg);
-    common::init_mock_vault(&cfg);
-    contacts_route_set(&cfg, "bob", ROUTE_TOKEN_BOB);
+    let (alice, bob) = establish_directional_pair(&base, server.base_url());
     let out_dir = base.join("out");
     create_dir_700(&out_dir);
     let msg = base.join("msg.bin");
-    fs::write(&msg, b"hello").expect("write msg");
-
-    let output_send = common::qsc_std_command()
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env(
-            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
-            common::TEST_MOCK_VAULT_PASSPHRASE,
-        )
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "send",
-            "--transport",
-            "relay",
-            "--relay",
-            server.base_url(),
-            "--to",
-            "bob",
-            "--file",
-            msg.to_str().unwrap(),
-        ])
-        .output()
-        .expect("send for receive");
-    assert!(output_send.status.success(), "send for receive failed");
-
-    let output_recv = common::qsc_std_command()
-        .env("QSC_CONFIG_DIR", &cfg)
-        .env(
-            common::TEST_MOCK_VAULT_PASSPHRASE_ENV,
-            common::TEST_MOCK_VAULT_PASSPHRASE,
-        )
-        .env("QSC_QSP_SEED", "1")
-        .env("QSC_ALLOW_SEED_FALLBACK", "1")
-        .env("QSC_UNSAFE_TEST_SEED_FALLBACK", "1")
-        .env("QSC_MARK_FORMAT", "plain")
-        .args([
-            "receive",
-            "--transport",
-            "relay",
-            "--relay",
-            server.base_url(),
-            "--mailbox",
-            ROUTE_TOKEN_BOB,
-            "--from",
-            "bob",
-            "--max",
-            "1",
-            "--out",
-            out_dir.to_str().unwrap(),
-        ])
-        .output()
-        .expect("receive active");
-    let out = combined_output(&output_recv);
-    assert!(output_recv.status.success(), "receive should succeed");
-    assert!(
-        out.contains("event=qsp_unpack ok=true"),
-        "missing qsp_unpack"
-    );
-    assert!(out.contains("event=recv_commit"), "missing recv_commit");
-
-    let secret_patterns = [
-        "TOKEN",
-        "SECRET",
-        "KEY",
-        "PASS",
-        "PRIVATE",
-        "BEARER",
-        "CREDENTIAL",
-    ];
-    for pat in secret_patterns {
+    fs::write(&msg, b"hello").unwrap();
+    let sent = run_qsc(&alice, &["send", "--transport", "relay", "--relay", server.base_url(), "--to", "bob", "--file", msg.to_str().unwrap()]);
+    assert!(sent.status.success(), "{}", combined_output(&sent));
+    let receive = run_qsc(&bob, &["receive", "--transport", "relay", "--relay", server.base_url(), "--mailbox", ROUTE_TOKEN_BOB, "--from", "alice", "--max", "1", "--out", out_dir.to_str().unwrap()]);
+    let out = combined_output(&receive);
+    assert!(receive.status.success(), "{out}");
+    let payloads: Vec<_> = fs::read_dir(&out_dir).unwrap().map(Result::unwrap).filter(|entry| entry.path().extension().is_some_and(|extension| extension == "bin")).collect();
+    assert_eq!(payloads.len(), 1, "exactly one committed projection");
+    assert_eq!(fs::read(payloads[0].path()).unwrap(), b"hello");
+    assert!(server.drain_channel(ROUTE_TOKEN_ALICE).iter().any(|wire| wire.starts_with(b"NDR1")), "authenticated delivery releases a protocol receipt");
+    for pat in ["TOKEN", "SECRET", "KEY", "PASS", "PRIVATE", "BEARER", "CREDENTIAL"] {
         assert!(!out.contains(pat), "secret pattern in receive output");
     }
 }

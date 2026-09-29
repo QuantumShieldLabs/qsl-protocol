@@ -1803,3 +1803,54 @@ NA-0056 (public demo/client v1): apps/qsl-tui + scripts/demo + DOC-TST-RELAY-TUI
   adds real-relay refusal, pending/session preservation, metadata/legacy/corruption
   and original-conversation message regressions. No collision recovery, new wire,
   cryptography or storage format is introduced; see the independent guard decision.
+
+
+- NA-0780 first-release directional draft, Goals G4: DOC-CAN-003 reserves the
+  exact profile/wire/KDF and development vault identifiers; DECISIONS records
+  fresh opt-in, incompatible-state refusal and F9 single-channel scope.
+  Changed-interface implementation and acceptance remain pending.
+
+
+### NA-0780 directional option and receipt contract (draft implementation)
+
+Goals: G4. The fixed first-release directional profile has no optional padding or
+metadata seed/bucketing support. Explicit send padding, bucket and seed requests
+refuse before payload reads, queue writes or network effects. Absence selects
+fixed framing, not the old implicit Standard padding profile. Directional exact
+receipts are mandatory: default/Delivered and explicit Immediate are supported;
+Off/Batched, batch-window and jitter overrides refuse. Explicit saved receipt
+policy values must be supported or operations refuse without clearing them.
+Absent saved policy does not inherit the old Batched default.
+
+Receive pacing options retain their existing bounded scheduler behavior. Explicit
+legacy coexistence, attachment service/file limits/file-confirm options, receive
+bucketing and metadata seed refuse before output/store/pull effects. Retired
+selects the only supported non-legacy receive path. Fixed wire, byte, record,
+context, skip and event limits are unchanged. No file option replaces those
+limits. File-send explicitly refuses before reading/staging/uploading because
+this slice has no directional attachment descriptor/assembly consumer; attachment
+storage/cryptography are not rewritten or reset.
+
+Message delivery is handled by durable directional receipts and Delivered
+projection; obsolete Message/FileComplete internal receipt producers/variants and
+unused metadata plumbing are removed. The attachment completion arm is retained
+with its consumer, but attachment operations remain explicitly unsupported in
+this slice. No legacy crypto is restored. QueueFull and RetryExhausted name the
+existing failure results; callback unit errors, capacities, attempts (including
+zero), backoff/jitter and CLI failure codes are preserved. No release readiness,
+macOS/relay acceptance or external independent review is claimed.
+
+
+NA-0780 local integration acceptance (2026-09-14, Goals: G4): both receive
+orderings and 56 application rounds completed with 2,112 independently verified
+phase records, exit zero, in 2h43m26s. The backpressure-aware fixture retains the
+same queued operation through bounded normal receive/retry and requires durable
+Delivered plus the original exact delivery counts. Profile/authentication,
+retirement and process-cut/stale-generation assertions also completed. This is
+Linux local mock-relay evidence; required new-head CI, focused independent review
+and actual relay/macOS acceptance remain separate gates.
+
+Attachment and padding support remain unfinished first-release work. Their
+explicit refusals are interim limitations, not removal from the roadmap.
+Conditional PQ recovery, older-complete-backup rollback exposure and unproven
+power-loss guarantees remain as stated above; no default activation or release.

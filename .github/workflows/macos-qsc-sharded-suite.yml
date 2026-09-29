@@ -133,7 +133,7 @@ jobs:
             --assert-workflow .github/workflows/macos-qsc-sharded-suite.yml \
             --expect-runners ubuntu-latest,macos-latest \
             --expect-job-runner shard=macos-latest \
-            --max-shards 5
+            --max-shards 6
 
   shard:
     name: macos-qsc-shard-${{ matrix.shard }}
@@ -159,7 +159,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3, 4]
+        shard: [0, 1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
@@ -169,7 +169,28 @@ jobs:
         with:
           shared-key: macos-qsc-sharded-suite
           save-if: ${{ github.ref == 'refs/heads/main' && matrix.shard == 0 }}
+      - uses: actions/setup-python@v5
+        if: matrix.shard == 5
+        with:
+          python-version: '3.12'
+      - name: Run bounded directional target (one exact test, two fresh orderings)
+        if: matrix.shard == 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/ci/qsc_directional_ci.py --output "$RUNNER_TEMP/na0780-directional"
+          python3 scripts/ci/qsc_shard_check.py --manifest scripts/ci/QSC_SHARD_MANIFEST_MACOS.txt --verify-log 5 "$RUNNER_TEMP/na0780-directional/test.log"
+      - uses: actions/upload-artifact@v4
+        if: always() && matrix.shard == 5
+        with:
+          name: na0780-directional-macos-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/na0780-directional/result.json
+            ${{ runner.temp }}/na0780-directional/compile.json
+            ${{ runner.temp }}/na0780-directional/test.log
+          if-no-files-found: error
       - name: Run this shard's targets (own exit; log kept for reconciliation)
+        if: matrix.shard != 5
         shell: bash
         env:
           SHARD: ${{ matrix.shard }}

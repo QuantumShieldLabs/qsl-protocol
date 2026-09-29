@@ -36,3 +36,25 @@ CI integration:
   - **ENG-0034 (P2, CLOSED at NA-0628 — D-1251/D-1252):** the X25519 DH output was never checked for the all-zero (non-contributory) value, and only one of Curve25519's small-order encodings was rejected on ingress. A symbolic DH model **cannot** decide this (the theory idealizes the group), so it was answered by code inspection against RFC 7748 §6.1. **Now fixed: every LIVE X25519 DH output fails closed on the all-zero value (`REJECT_S2_DH_NONCONTRIBUTORY`), with additive negative conformance vectors and a byte-scan proving the existing set unchanged.** The CODE obstacle to post-compromise claim language is removed; the claim remains blocked by the A1–A8 abstractions, ENG-0035, and independent human review.
   - **ENG-0035 (P3):** ProVerif does not terminate on the design-locked 2-boundary unrolling. The main model was reduced to one DH boundary + one PQ reseed — the reduction is stated in the model header and no query was weakened — and the **Tamarin option is re-presented** for that query shape.
 - Next candidates: a Tamarin lane for the multi-epoch unrolling (ENG-0035), IFF the post-compromise claim is being pursued (a review of a model with a known non-terminating query reviews the wrong artifact); extending the model to out-of-order/skip-window receives (abstraction A7). (ENG-0034 remediation is DONE — NA-0628.)
+
+## NA-0780 directional integration draft
+
+The first-release directional transaction is a new verification target. Earlier
+Suite-2 symbolic results do not prove this implementation. Its model must include
+exact-flight retention, authenticated exact-wire receipts, directional epoch
+ownership, bounded receive contexts, committed closure, queue projection and the
+vault commit/release boundary. Rejected or failed persistence operations must not
+release speculative ciphertext or discard authoritative obligations.
+
+The project-local profile and storage identifiers are reserved in DOC-CAN-003.
+Focused executable checks cover exact profile admission, transcript binding,
+fresh-vault opt-in, incompatible-format refusal and single-channel admission.
+Prior isolated-candidate results remain revision-specific evidence for unchanged
+core logic; production integration requires its own changed-interface validation.
+No model or independent cryptographic acceptance of this draft is claimed.
+
+Actual relay lease/ACK/retention behavior and macOS persistence/concurrency remain
+release gates. Restoring old complete state can restore exposed key/nonce state;
+format refusal is not backup-rollback detection or power-loss protection. PQ
+recovery remains conditional on an unexposed honest target and a delivered event.
+These limits do not relax the canonical G1–G5 security or release requirements.

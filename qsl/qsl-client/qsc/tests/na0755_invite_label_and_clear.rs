@@ -79,7 +79,7 @@ fn na0755_b2_the_recipient_label_never_becomes_the_identity_label() {
     let _g = guard();
     let cfg = fresh("transpose");
     set_env_once(&cfg);
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
 
@@ -128,7 +128,7 @@ fn na0755_b2_control_the_two_label_slots_are_not_interchangeable() {
     let _g = guard();
     let cfg = fresh("transpose_ctl");
     set_env_once(&cfg);
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
     qsc::identity::identity_ensure("self").expect("identity");
@@ -250,7 +250,7 @@ fn na0755_invite_clear_acts_on_creating_only() {
     let _g = guard();
     let cfg = fresh("clear");
     set_env_once(&cfg);
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
     qsc::identity::identity_ensure("self").expect("identity");
@@ -292,7 +292,7 @@ fn na0755_invite_clear_refuses_a_live_row_with_the_short_wire_code() {
     let _g = guard();
     let cfg = fresh("clear_live");
     set_env_once(&cfg);
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
     qsc::identity::identity_ensure("self").expect("identity");
@@ -352,7 +352,7 @@ fn na0755_invite_clear_carries_the_lock_gate_its_siblings_carry() {
     let _g = guard();
     let cfg = fresh("clear_locked");
     set_env_once(&cfg);
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::set_vault_unlocked(false);
     assert_eq!(
         qsc::invite::invite_clear("anything").expect_err("locked refuses"),
@@ -381,7 +381,7 @@ fn na0755_a2_the_label_never_reaches_the_marker_stream() {
     set_env_once(&cfg);
     // Route markers into the in-process buffer so the whole stream is capturable.
     qsc::output::set_marker_routing(qsc::output::MarkerRouting::InApp);
-    qsc::vault::vault_init_with_passphrase(PASS).expect("vault init");
+    qsc::vault::vault_init_directional_with_passphrase(PASS).expect("vault init");
     qsc::vault::unlock_with_passphrase(PASS).expect("unlock");
     qsc::set_vault_unlocked(true);
     qsc::identity::identity_ensure("self").expect("identity");

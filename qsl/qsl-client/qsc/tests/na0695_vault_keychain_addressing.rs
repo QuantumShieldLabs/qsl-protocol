@@ -111,6 +111,8 @@ fn keychain_explicit_unsupported_refuses_without_mutation() {
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--key-source",
             "keychain",
@@ -155,6 +157,8 @@ fn keychain_seam_inert_without_cfg() {
         .args([
             "vault",
             "init",
+            "--protocol",
+            "directional-v1",
             "--non-interactive",
             "--key-source",
             "keychain",
@@ -195,6 +199,8 @@ mod seam_armed {
             .args([
                 "vault",
                 "init",
+                "--protocol",
+                "directional-v1",
                 "--non-interactive",
                 "--key-source",
                 "keychain",

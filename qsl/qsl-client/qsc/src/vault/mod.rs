@@ -318,7 +318,7 @@ fn retain_ownership_in_session(
     let (dir, source) = crate::fs_store::config_dir().map_err(store_err_marker)?;
     let _lock = lock_store_exclusive(&dir, source).map_err(store_err_marker)?;
     // Re-read under the lock using the already authenticated key, not another KDF.
-    let bytes = fs::read(&session.vault_path).map_err(|_| "vault_missing")?;
+    let bytes = read_vault_file(&session.vault_path).map_err(|e| e.code("vault_missing"))?;
     session.payload = decrypt_payload(&VaultRuntime {
         envelope: parse_envelope(&bytes)?,
         key: session.key,
@@ -399,7 +399,7 @@ pub fn secret_set(name: &str, value: &str) -> Result<(), &'static str> {
         env.envelope.kdf_m_kib,
         env.envelope.kdf_t,
         env.envelope.kdf_p,
-        plaintext.len() as u32 + 16,
+        envelope_ct_len(plaintext.len())?,
         &env.envelope.salt,
         nonce.as_slice().try_into().map_err(|_| "encrypt_failed")?,
     );
@@ -454,7 +454,7 @@ pub fn secret_set_with_passphrase(
         env.envelope.kdf_m_kib,
         env.envelope.kdf_t,
         env.envelope.kdf_p,
-        plaintext.len() as u32 + 16,
+        envelope_ct_len(plaintext.len())?,
         &env.envelope.salt,
         nonce.as_slice().try_into().map_err(|_| "encrypt_failed")?,
     );
@@ -569,7 +569,7 @@ fn persist_session_with_ownership(
     let _lock = lock_store_exclusive(&dir, source).map_err(store_err_marker)?;
     // Even another process may have appended history since this session opened.
     // Preserve the authoritative encrypted record, never the session's stale copy.
-    let bytes = fs::read(&session.vault_path).map_err(|_| "vault_missing")?;
+    let bytes = read_vault_file(&session.vault_path).map_err(|e| e.code("vault_missing"))?;
     let latest = decrypt_payload(&VaultRuntime {
         envelope: parse_envelope(&bytes)?,
         key: session.key,
@@ -630,7 +630,7 @@ fn persist_session_with_ownership(
         session.envelope.kdf_m_kib,
         session.envelope.kdf_t,
         session.envelope.kdf_p,
-        plaintext.len() as u32 + 16,
+        envelope_ct_len(plaintext.len())?,
         &session.envelope.salt,
         nonce.as_slice().try_into().map_err(|_| "encrypt_failed")?,
     );
@@ -793,12 +793,17 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>, directional:
     // NA-0694 (D628 §5.2, ENG-0107): here the encrypt runs BEFORE the header bytes are
     // written, so the AAD is built first from the same inputs the serializer below uses —
     // ct_len is plaintext + the 16-byte Poly1305 tag.
+    // F04/S3b D29: the length is checked, never truncated by a cast.
+    let ct_len = match envelope_ct_len(plaintext.len()) {
+        Ok(n) => n,
+        Err(code) => return Err(fail_core_buffers(code, &mut pass_bytes, &mut key_bytes)),
+    };
     let aad = envelope_header_bytes(
         key_source_tag(key_source),
         KDF_M_KIB,
         KDF_T,
         KDF_P,
-        plaintext.len() as u32 + 16,
+        ct_len,
         &salt,
         &nonce_bytes,
     );
@@ -878,7 +883,7 @@ fn vault_init_core(key_source: KeySource, mut pass: Option<String>, directional:
         KDF_M_KIB,
         KDF_T,
         KDF_P,
-        ciphertext.len() as u32,
+        ct_len,
         &salt,
         &nonce_bytes,
     ));
@@ -964,9 +969,9 @@ fn vault_status() -> CliResult {
         return Err(CliError::code("vault_missing"));
     }
 
-    let bytes = match fs::read(&vault_path) {
+    let bytes = match read_vault_file(&vault_path) {
         Ok(b) => b,
-        Err(_) => return Err(CliError::code("vault_read_failed")),
+        Err(e) => return Err(CliError::code(e.code("vault_read_failed"))),
     };
 
     if bytes.len() < 6 + 1 {
@@ -1079,6 +1084,49 @@ static PERF_VAULT_ENCRYPT_WRITES: AtomicU64 = AtomicU64::new(0);
 static VAULT_WRITE_EPOCH: AtomicU64 = AtomicU64::new(0);
 static PROCESS_PASSPHRASE: OnceLock<Mutex<Option<String>>> = OnceLock::new();
 
+// NA-0788 F04/S3b N1 (I06, C01 D34): THE vault-file cap -- R-07's bound, now one constant for
+// every vault read: the aggregate plus the 53-byte header and the 16-byte tag (16,777,285).
+const VAULT_FILE_CAP: usize = crate::protocol_state::REVIEW_AGGREGATE_CANDIDATE + HEADER_LEN + 16;
+
+/// Why a bounded vault read failed. Each call site keeps its own existing code for an open or
+/// read failure; an oversized file is always `vault_file_oversized` (QRC-0020).
+#[derive(Debug, PartialEq, Eq)]
+enum VaultFileError {
+    Open,
+    Read,
+    Oversized,
+}
+
+impl VaultFileError {
+    fn code(self, io_code: &'static str) -> &'static str {
+        match self {
+            VaultFileError::Oversized => crate::freshness::codes::VAULT_FILE_OVERSIZED,
+            VaultFileError::Open | VaultFileError::Read => io_code,
+        }
+    }
+}
+
+/// THE ONE BOUNDED VAULT READER (F04/S3b N1): every vault-file read goes through here. At most
+/// cap + 1 bytes are ever read from `source` -- the byte limit is on the read itself, not a stat
+/// taken before it, so a file that grows in between is still bounded -- and more than the cap
+/// refuses before anything is parsed.
+fn read_vault_limited(source: impl Read) -> Result<Vec<u8>, VaultFileError> {
+    let mut bytes = Vec::new();
+    source
+        .take(VAULT_FILE_CAP as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|_| VaultFileError::Read)?;
+    if bytes.len() > VAULT_FILE_CAP {
+        return Err(VaultFileError::Oversized);
+    }
+    Ok(bytes)
+}
+
+/// The vault file at `path`, through the one bounded reader.
+fn read_vault_file(path: &Path) -> Result<Vec<u8>, VaultFileError> {
+    read_vault_limited(fs::File::open(path).map_err(|_| VaultFileError::Open)?)
+}
+
 fn load_vault_runtime() -> Result<(PathBuf, VaultRuntime), &'static str> {
     load_vault_runtime_with_passphrase(None)
 }
@@ -1088,7 +1136,7 @@ fn load_vault_runtime_with_passphrase(
 ) -> Result<(PathBuf, VaultRuntime), &'static str> {
     let (_cfg_dir, vault_path, _source) = vault_path_resolved()?;
     PERF_VAULT_FILE_READS.fetch_add(1, Ordering::Relaxed);
-    let bytes = fs::read(&vault_path).map_err(|_| "vault_missing")?;
+    let bytes = read_vault_file(&vault_path).map_err(|e| e.code("vault_missing"))?;
     let envelope = parse_envelope(&bytes)?;
     let mut key = [0u8; 32];
     derive_runtime_key(&envelope, &mut key, passphrase_override)?;
@@ -1228,6 +1276,16 @@ fn envelope_header_bytes(
     buf.extend_from_slice(nonce);
     debug_assert_eq!(buf.len(), HEADER_LEN);
     buf
+}
+
+/// The envelope's ct_len for `plaintext_len` bytes sealed with the 16-byte tag (F04/S3b, D29): a
+/// length that does not fit the header's u32 refuses, never truncated by an `as` cast. The code is
+/// the one the directional writer already returned for exactly this condition.
+fn envelope_ct_len(plaintext_len: usize) -> Result<u32, &'static str> {
+    plaintext_len
+        .checked_add(16)
+        .and_then(|n| u32::try_from(n).ok())
+        .ok_or("directional_capacity_overflow")
 }
 
 fn encode_envelope(env: &VaultRuntime, nonce: &[u8], ciphertext: &[u8]) -> Vec<u8> {
@@ -1446,11 +1504,9 @@ fn keychain_load_key(salt: &[u8; 16], out: &mut [u8; 32]) -> Result<(), Provider
                 })?
             }
         };
-        let bytes = hex_decode(&secret).ok_or(ProviderError::ProviderFailed)?;
-        if bytes.len() != 32 {
+        if !key_from_hex(&secret, out) {
             return Err(ProviderError::ProviderFailed);
         }
-        out.copy_from_slice(&bytes);
         Ok(())
     }
     #[cfg(not(feature = "keychain"))]
@@ -1548,24 +1604,31 @@ fn hex_encode(bytes: &[u8]) -> String {
     out
 }
 
-#[cfg(feature = "keychain")]
-fn hex_decode(s: &str) -> Option<Vec<u8>> {
-    if !s.len().is_multiple_of(2) {
-        return None;
+/// The keychain entry's 32-byte key from its hex (F04/S3b N5, I-B5): any length other than 64
+/// hex characters refuses FIRST, before anything is decoded; the decode fills a fixed stack
+/// buffer (no allocation) and `out` is written only when every digit decoded.
+#[cfg(any(feature = "keychain", test))]
+fn key_from_hex(secret: &str, out: &mut [u8; 32]) -> bool {
+    let digits = secret.as_bytes();
+    if digits.len() != 2 * out.len() {
+        return false;
     }
-    let mut out = Vec::with_capacity(s.len() / 2);
-    let bytes = s.as_bytes();
-    let mut i = 0usize;
-    while i < bytes.len() {
-        let hi = hex_nibble(bytes[i])?;
-        let lo = hex_nibble(bytes[i + 1])?;
-        out.push((hi << 4) | lo);
-        i += 2;
+    let mut key = [0u8; 32];
+    for (byte, pair) in key.iter_mut().zip(digits.chunks_exact(2)) {
+        match (hex_nibble(pair[0]), hex_nibble(pair[1])) {
+            (Some(hi), Some(lo)) => *byte = (hi << 4) | lo,
+            _ => {
+                key.zeroize();
+                return false;
+            }
+        }
     }
-    Some(out)
+    out.copy_from_slice(&key);
+    key.zeroize();
+    true
 }
 
-#[cfg(feature = "keychain")]
+#[cfg(any(feature = "keychain", test))]
 fn hex_nibble(c: u8) -> Option<u8> {
     match c {
         b'0'..=b'9' => Some(c - b'0'),
@@ -1972,19 +2035,16 @@ mod na0695_keychain_refuse_unit {
 // Application and execution remain gated independently of operator allocation.
 fn read_directional_runtime(path:&Path, authenticated_key:Option<[u8;32]>)
     ->Result<VaultRuntime,&'static str> {
-    use crate::protocol_state::REVIEW_AGGREGATE_CANDIDATE;
     // Bound reads on the opened handle, including nonce/tag/header allowance.
     // This conditional proposal is NOT a claim existing vaults fit this budget.
-    let cap=REVIEW_AGGREGATE_CANDIDATE.checked_add(HEADER_LEN+16)
-        .ok_or("directional_capacity_overflow")?;
+    // F04/S3b N1 (D34): the one bounded reader, on this same handle; an oversized file is
+    // vault_file_oversized, not the aggregate's backpressure code.
     let file=fs::File::open(path).map_err(|_|"vault_missing")?;
     let metadata=file.metadata().map_err(|_|"vault_parse_failed")?;
-    if !metadata.is_file() || metadata.len()>cap as u64 {
+    if !metadata.is_file() {
         return Err("directional_aggregate_waiting");
     }
-    let mut bytes=Vec::new();
-    file.take(cap as u64+1).read_to_end(&mut bytes).map_err(|_|"vault_parse_failed")?;
-    if bytes.len()>cap {return Err("directional_aggregate_waiting");}
+    let bytes = read_vault_limited(file).map_err(|e| e.code("vault_parse_failed"))?;
     let envelope=parse_envelope(&bytes)?;
     let mut key=authenticated_key.unwrap_or([0;32]);
     if authenticated_key.is_none() {derive_runtime_key(&envelope,&mut key,None)?;}
@@ -1996,7 +2056,7 @@ fn read_directional_runtime(path:&Path, authenticated_key:Option<[u8;32]>)
 fn read_session_runtime(session:&VaultSession)->Result<VaultRuntime,&'static str> {
     let runtime = if session.payload.version == PAYLOAD_VERSION
         && session.payload.protocol == OWNER_FREE_PROFILE {
-        let bytes = fs::read(&session.vault_path).map_err(|_| "vault_missing")?;
+        let bytes = read_vault_file(&session.vault_path).map_err(|e| e.code("vault_missing"))?;
         VaultRuntime { envelope: parse_envelope(&bytes)?, key: session.key }
     } else { read_directional_runtime(&session.vault_path,Some(session.key))? };
     let current = decrypt_payload(&runtime)?;
@@ -2088,8 +2148,7 @@ fn write_directional_payload(path:&Path,source:ConfigSource,env:&VaultRuntime,
     payload:&VaultPayload)->Result<(),&'static str> {
     check_directional_aggregate(payload)?;
     let plaintext=serde_json::to_vec(payload).map_err(|_|"vault_payload_serialize_failed")?;
-    let ct_len=plaintext.len().checked_add(16)
-        .and_then(|n|u32::try_from(n).ok()).ok_or("directional_capacity_overflow")?;
+    let ct_len = envelope_ct_len(plaintext.len())?;
     let cipher=ChaCha20Poly1305::new(Key::from_slice(&env.key));
     #[cfg(qsc_rng_failure_test_seam)]
     let nonce=vault_rng_nonce("QSC.VAULT.SESSION_PERSIST.NONCE")?;
@@ -2289,5 +2348,403 @@ mod r02_layout_tests {
             r#"{"version":4,"protocol":"NA0780-OWNER-FREE-01","secrets":{"name":"first","name":"second"}}"#,
             r#"{"version":4,"version":3,"protocol":"NA0780-OWNER-FREE-01","secrets":{}}"#,
         ] { assert!(serde_json::from_str::<VaultPayload>(raw).is_err()); }
+    }
+}
+
+// NA-0788 F04/S3b: the one bounded vault reader on every read path (N1), the envelope's exact
+// length through a real vault (N2), the owner-free window (R4), the pins of the old code's
+// callers (A2), the keychain hex length (N5) and the checked ct_len (D29). A path test runs in an
+// isolated child process (the S1 pattern) so it owns QSC_CONFIG_DIR and the process passphrase.
+#[cfg(test)]
+mod f04_s3b_bounds_tests {
+    use super::*;
+    use sha2::{Digest, Sha256};
+    use std::io;
+
+    const CHILD: &str = "QSC_F04_S3B_CHILD";
+    const OVERSIZED: &str = crate::freshness::codes::VAULT_FILE_OVERSIZED;
+    /// What the bytes-read instrument may add on top of cap + 1 (its own /proc reads).
+    #[cfg(target_os = "linux")]
+    const SLACK: u64 = 65_536;
+
+    /// Runs the named test again in a child process; true only inside that child.
+    fn in_child(name: &str) -> bool {
+        if std::env::var_os(CHILD).is_some() {
+            return true;
+        }
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args(["--exact", &format!("vault::f04_s3b_bounds_tests::{name}")])
+            .args(["--nocapture", "--test-threads=1"])
+            .env(CHILD, "1")
+            .status()
+            .unwrap();
+        assert!(status.success(), "isolated fixture {name} failed");
+        false
+    }
+
+    struct Fixture {
+        _dir: tempfile::TempDir,
+        path: PathBuf,
+        pass: String,
+    }
+
+    /// A fresh 0700 config directory for this child and a random passphrase, set for the process.
+    fn fixture() -> Fixture {
+        let dir = tempfile::tempdir().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o700)).unwrap();
+        }
+        std::env::set_var("QSC_CONFIG_DIR", dir.path());
+        let mut raw = [0u8; 16];
+        OsRng.fill_bytes(&mut raw);
+        let pass: String = raw.iter().map(|b| format!("{b:02x}")).collect();
+        set_process_passphrase(Some(&pass));
+        let path = dir.path().join("vault.qsv");
+        Fixture {
+            _dir: dir,
+            path,
+            pass,
+        }
+    }
+
+    fn write_file(path: &Path, bytes: &[u8]) {
+        fs::write(path, bytes).unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(path, fs::Permissions::from_mode(0o600)).unwrap();
+        }
+    }
+
+    /// A REAL owner-free vault, sealed through the product's own header and envelope builders
+    /// under an Argon2 key from the fixture's passphrase, whose file is exactly `file_len` bytes.
+    fn owner_free_vault(fx: &Fixture, file_len: usize) -> Vec<u8> {
+        let mut payload = VaultPayload::empty(false).unwrap();
+        payload
+            .secrets
+            .insert("f04_s3b_filler".into(), String::new());
+        let base = serde_json::to_vec(&payload).unwrap().len();
+        let plain_len = file_len - HEADER_LEN - 16;
+        payload
+            .secrets
+            .insert("f04_s3b_filler".into(), "f".repeat(plain_len - base));
+        let plaintext = serde_json::to_vec(&payload).unwrap();
+        assert_eq!(plaintext.len(), plain_len);
+        let mut salt = [0u8; 16];
+        OsRng.fill_bytes(&mut salt);
+        let mut nonce = [0u8; 12];
+        OsRng.fill_bytes(&mut nonce);
+        let mut runtime = VaultRuntime {
+            envelope: VaultRuntimeEnvelope {
+                key_source: 1,
+                salt,
+                kdf_m_kib: KDF_M_KIB,
+                kdf_t: KDF_T,
+                kdf_p: KDF_P,
+                ciphertext: Vec::new(),
+            },
+            key: [0u8; 32],
+        };
+        derive_runtime_key(&runtime.envelope, &mut runtime.key, Some(&fx.pass)).unwrap();
+        let ct_len = envelope_ct_len(plain_len).unwrap();
+        let aad = envelope_header_bytes(1, KDF_M_KIB, KDF_T, KDF_P, ct_len, &salt, &nonce);
+        let sealed = Payload {
+            msg: &plaintext,
+            aad: &aad,
+        };
+        let ciphertext = ChaCha20Poly1305::new(Key::from_slice(&runtime.key))
+            .encrypt(Nonce::from_slice(&nonce), sealed)
+            .unwrap();
+        let bytes = encode_envelope(&runtime, &nonce, &ciphertext);
+        assert_eq!(bytes.len(), file_len);
+        write_file(&fx.path, &bytes);
+        bytes
+    }
+
+    /// Bytes this thread has read so far: `rchar` of /proc/thread-self/io.
+    #[cfg(target_os = "linux")]
+    fn rchar() -> u64 {
+        let io = fs::read_to_string("/proc/thread-self/io").unwrap();
+        let line = io.lines().find_map(|l| l.strip_prefix("rchar:")).unwrap();
+        line.trim().parse().unwrap()
+    }
+
+    /// `read` on a SPARSE file four times the cap refuses as oversized and, on Linux, this thread
+    /// read at most cap + 1 bytes (plus the instrument's slack); an unbounded read reads 4 x cap.
+    fn assert_bounded(fx: &Fixture, read: impl FnOnce() -> Option<String>) {
+        let file = fs::File::create(&fx.path).unwrap();
+        file.set_len(4 * VAULT_FILE_CAP as u64).unwrap();
+        drop(file);
+        #[cfg(target_os = "linux")]
+        let before = rchar();
+        let refusal = read();
+        #[cfg(target_os = "linux")]
+        {
+            let read = rchar() - before;
+            assert!(
+                read <= VAULT_FILE_CAP as u64 + 1 + SLACK,
+                "read {read} bytes"
+            );
+        }
+        assert_eq!(refusal.as_deref(), Some(OVERSIZED));
+    }
+
+    fn err<T>(result: Result<T, &'static str>) -> Option<String> {
+        result.err().map(String::from)
+    }
+
+    fn status() -> Option<String> {
+        match vault_status() {
+            Ok(()) => None,
+            Err(CliError::Code(code)) => Some(code),
+            Err(CliError::Emitted) => Some("emitted".into()),
+        }
+    }
+
+    struct Counting<R>(R, u64);
+    impl<R: Read> Read for Counting<R> {
+        fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+            let n = self.0.read(buf)?;
+            self.1 += n as u64;
+            Ok(n)
+        }
+    }
+
+    #[test]
+    fn t_n1_one_reader_reads_at_most_cap_plus_one() {
+        assert_eq!(VAULT_FILE_CAP, 16_777_285);
+        let cap = VAULT_FILE_CAP as u64;
+        let mut endless = Counting(io::repeat(0x5a), 0);
+        assert_eq!(
+            read_vault_limited(&mut endless),
+            Err(VaultFileError::Oversized)
+        );
+        assert_eq!(endless.1, cap + 1);
+        let mut exact = Counting(io::repeat(0x5a).take(cap), 0);
+        let bytes = read_vault_limited(&mut exact).unwrap();
+        assert_eq!((bytes.len(), exact.1), (VAULT_FILE_CAP, cap));
+        let mut over = Counting(io::repeat(0x5a).take(cap + 1), 0);
+        assert_eq!(
+            read_vault_limited(&mut over),
+            Err(VaultFileError::Oversized)
+        );
+        assert_eq!(over.1, cap + 1);
+    }
+
+    #[test]
+    fn t_n1_r01_unlock_read_bounded() {
+        if !in_child("t_n1_r01_unlock_read_bounded") {
+            return;
+        }
+        let fx = fixture();
+        owner_free_vault(&fx, VAULT_FILE_CAP);
+        let (_, runtime) = load_vault_runtime_with_passphrase(Some(&fx.pass)).unwrap();
+        assert!(
+            decrypt_payload(&runtime).is_ok(),
+            "at the cap: read and opened"
+        );
+        let over = owner_free_vault(&fx, VAULT_FILE_CAP + 1);
+        let load = || err(load_vault_runtime_with_passphrase(Some(&fx.pass)));
+        assert_eq!(load().as_deref(), Some(OVERSIZED));
+        assert_eq!(fs::read(&fx.path).unwrap(), over);
+        assert_bounded(&fx, load);
+    }
+
+    #[test]
+    fn t_n1_r04_retain_ownership_read_bounded() {
+        if !in_child("t_n1_r04_retain_ownership_read_bounded") {
+            return;
+        }
+        let fx = fixture();
+        owner_free_vault(&fx, VAULT_FILE_CAP);
+        let mut session = open_session_with_passphrase(&fx.pass).unwrap();
+        assert_eq!(retain_ownership_in_session(&mut session, None), Ok(()));
+        let over = owner_free_vault(&fx, VAULT_FILE_CAP + 1);
+        assert_eq!(
+            retain_ownership_in_session(&mut session, None),
+            Err(OVERSIZED)
+        );
+        assert_eq!(fs::read(&fx.path).unwrap(), over);
+        assert_bounded(&fx, || err(retain_ownership_in_session(&mut session, None)));
+    }
+
+    #[test]
+    fn t_n1_r05_persist_read_bounded() {
+        if !in_child("t_n1_r05_persist_read_bounded") {
+            return;
+        }
+        let fx = fixture();
+        owner_free_vault(&fx, VAULT_FILE_CAP);
+        let mut session = open_session_with_passphrase(&fx.pass).unwrap();
+        assert_eq!(persist_session_with_ownership(&mut session, None), Ok(()));
+        let over = owner_free_vault(&fx, VAULT_FILE_CAP + 1);
+        assert_eq!(
+            persist_session_with_ownership(&mut session, None),
+            Err(OVERSIZED)
+        );
+        assert_eq!(fs::read(&fx.path).unwrap(), over);
+        assert_bounded(&fx, || {
+            err(persist_session_with_ownership(&mut session, None))
+        });
+    }
+
+    #[test]
+    fn t_n1_r06_owner_free_session_read_bounded() {
+        if !in_child("t_n1_r06_owner_free_session_read_bounded") {
+            return;
+        }
+        let fx = fixture();
+        owner_free_vault(&fx, VAULT_FILE_CAP);
+        let session = open_session_with_passphrase(&fx.pass).unwrap();
+        assert_eq!(session.payload.protocol, OWNER_FREE_PROFILE);
+        assert!(read_session_runtime(&session).is_ok(), "at the cap");
+        let over = owner_free_vault(&fx, VAULT_FILE_CAP + 1);
+        let read = || err(read_session_runtime(&session));
+        assert_eq!(read().as_deref(), Some(OVERSIZED));
+        assert_eq!(fs::read(&fx.path).unwrap(), over);
+        assert_bounded(&fx, read);
+    }
+
+    #[test]
+    fn t_n1_r07_directional_read_bounded() {
+        if !in_child("t_n1_r07_directional_read_bounded") {
+            return;
+        }
+        let fx = fixture();
+        owner_free_vault(&fx, VAULT_FILE_CAP);
+        let read = || err(read_directional_runtime(&fx.path, Some([0u8; 32])));
+        assert_eq!(read(), None, "at the cap");
+        let over = owner_free_vault(&fx, VAULT_FILE_CAP + 1);
+        assert_eq!(read().as_deref(), Some(OVERSIZED));
+        assert_eq!(fs::read(&fx.path).unwrap(), over);
+        assert_bounded(&fx, read);
+        let absent = fx.path.with_extension("absent");
+        assert_eq!(
+            err(read_directional_runtime(&absent, Some([0u8; 32]))).as_deref(),
+            Some("vault_missing")
+        );
+    }
+
+    #[test]
+    fn t_n1_r10_status_read_bounded() {
+        if !in_child("t_n1_r10_status_read_bounded") {
+            return;
+        }
+        let fx = fixture();
+        owner_free_vault(&fx, VAULT_FILE_CAP);
+        assert_eq!(status(), None, "at the cap");
+        let over = owner_free_vault(&fx, VAULT_FILE_CAP + 1);
+        assert_eq!(status().as_deref(), Some(OVERSIZED));
+        assert_eq!(fs::read(&fx.path).unwrap(), over);
+        assert_bounded(&fx, status);
+    }
+
+    #[test]
+    fn t_n1_r11_destroy_peek_read_bounded() {
+        if !in_child("t_n1_r11_destroy_peek_read_bounded") {
+            return;
+        }
+        let fx = fixture();
+        let destroy = || {
+            let token = protection::DestroyConfirmToken::confirm(&fx.pass);
+            err(protection::destroy_with_passphrase(&fx.pass, token))
+        };
+        let over = owner_free_vault(&fx, VAULT_FILE_CAP + 1);
+        assert_eq!(destroy().as_deref(), Some(OVERSIZED));
+        assert_eq!(fs::read(&fx.path).unwrap(), over, "nothing destroyed");
+        assert_bounded(&fx, destroy);
+        assert!(fx.path.exists(), "nothing destroyed");
+        owner_free_vault(&fx, VAULT_FILE_CAP);
+        assert_eq!(destroy(), None, "at the cap: read, then destroyed");
+        assert!(!fx.path.exists());
+    }
+
+    #[test]
+    fn t_n2_real_vault_trailing_byte_refused_on_unlock() {
+        if !in_child("t_n2_real_vault_trailing_byte_refused_on_unlock") {
+            return;
+        }
+        let fx = fixture();
+        let exact = owner_free_vault(&fx, 1024);
+        let (_, runtime) = load_vault_runtime_with_passphrase(Some(&fx.pass)).unwrap();
+        assert!(decrypt_payload(&runtime).is_ok(), "exact length: opened");
+        let mut tail = exact;
+        tail.push(0);
+        write_file(&fx.path, &tail);
+        assert_eq!(
+            err(load_vault_runtime_with_passphrase(Some(&fx.pass))).as_deref(),
+            Some("vault_parse_failed")
+        );
+        assert_eq!(fs::read(&fx.path).unwrap(), tail);
+    }
+
+    // RULING_NA0788_S3_stop R4: an owner-free vault has no write-side cap, so one past the read
+    // cap can exist; it is refused loudly on read and left exactly as it was.
+    #[test]
+    fn t_a4_owner_free_oversized_vault_refused_and_unchanged() {
+        if !in_child("t_a4_owner_free_oversized_vault_refused_and_unchanged") {
+            return;
+        }
+        let fx = fixture();
+        let digest = Sha256::digest(owner_free_vault(&fx, VAULT_FILE_CAP + 1));
+        assert_eq!(secret_get("f04_s3b_probe"), Err(OVERSIZED));
+        assert_eq!(secret_set("f04_s3b_probe", "v"), Err(OVERSIZED));
+        assert_eq!(Sha256::digest(fs::read(&fx.path).unwrap()), digest);
+    }
+
+    // A2: the old code's matchers (vault/mod.rs commit_directional_pair's admission wrapper and
+    // the two saturation searches in tests/na0780_directional_integration.rs) match the
+    // aggregate check's code, which is unchanged; R-07 keeps it for a path that is not a file.
+    #[test]
+    fn t_a2_pin_old_code_callers() {
+        let mut owned = VaultPayload::empty(true).unwrap();
+        assert_eq!(check_directional_aggregate(&owned), Ok(()));
+        let filler = "f".repeat(crate::protocol_state::REVIEW_AGGREGATE_CANDIDATE);
+        owned.secrets.insert("f04_s3b_filler".into(), filler);
+        assert_eq!(
+            check_directional_aggregate(&owned),
+            Err("directional_aggregate_waiting")
+        );
+        let dir = tempfile::tempdir().unwrap();
+        assert_eq!(
+            err(read_directional_runtime(dir.path(), Some([0u8; 32]))).as_deref(),
+            Some("directional_aggregate_waiting")
+        );
+    }
+
+    #[test]
+    fn t_n5_keychain_hex_length_checked_before_decode() {
+        let key: [u8; 32] = std::array::from_fn(|i| (i * 7 + 1) as u8);
+        let hex: String = key.iter().map(|b| format!("{b:02x}")).collect();
+        let mut out = [0u8; 32];
+        assert!(key_from_hex(&hex, &mut out));
+        assert_eq!(out, key);
+        let untouched = [0xa5u8; 32];
+        let mut non_hex = hex.clone();
+        non_hex.replace_range(10..11, "g");
+        let (extra, long) = (format!("{hex}00"), "0".repeat(2_097_152));
+        let wrong = [
+            &hex[..62],
+            &hex[..63],
+            extra.as_str(),
+            long.as_str(),
+            non_hex.as_str(),
+        ];
+        for secret in wrong {
+            let mut out = untouched;
+            assert!(!key_from_hex(secret, &mut out), "{} chars", secret.len());
+            assert_eq!(out, untouched);
+        }
+    }
+
+    #[test]
+    fn t_d29_ct_len_checked_not_truncated() {
+        assert_eq!(envelope_ct_len(0), Ok(16));
+        assert_eq!(envelope_ct_len(u32::MAX as usize - 16), Ok(u32::MAX));
+        for len in [u32::MAX as usize - 15, 1usize << 32, usize::MAX] {
+            assert_eq!(envelope_ct_len(len), Err("directional_capacity_overflow"));
+        }
     }
 }

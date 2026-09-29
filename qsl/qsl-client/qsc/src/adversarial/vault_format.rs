@@ -63,7 +63,9 @@ pub fn parse_vault_envelope(bytes: &[u8]) -> Result<VaultEnvelopeView, &'static 
         u32::from_le_bytes([bytes[off], bytes[off + 1], bytes[off + 2], bytes[off + 3]]) as usize;
     off += 4;
     let need = off + salt_len + nonce_len + ct_len;
-    if bytes.len() < need {
+    // NA-0788 F04/S3b N2: the envelope is exactly its header and ct_len bytes. A short one and
+    // one with trailing bytes after the ciphertext are both refused (bytes nothing authenticates).
+    if bytes.len() != need {
         return Err("vault_parse_failed");
     }
     let mut salt = [0u8; 16];
@@ -94,5 +96,41 @@ mod tests {
             parse_vault_envelope(b"QSCV01").unwrap_err(),
             "vault_parse_failed"
         );
+    }
+}
+
+// NA-0788 F04/S3b N2: an envelope is exactly its header and ct_len bytes.
+#[cfg(test)]
+mod f04_s3b_envelope_tests {
+    use super::*;
+
+    /// A structurally valid envelope (canonical header fields) carrying `ct_len` bytes.
+    fn envelope(ct_len: u32) -> Vec<u8> {
+        let mut out = VAULT_MAGIC.to_vec();
+        out.extend_from_slice(&[1, 16, 12]);
+        for field in [19_456u32, 2, 1, ct_len] {
+            out.extend_from_slice(&field.to_le_bytes());
+        }
+        out.extend_from_slice(&[0x11; 16]);
+        out.extend_from_slice(&[0x22; 12]);
+        out.extend(std::iter::repeat_n(0x33, ct_len as usize));
+        out
+    }
+
+    #[test]
+    fn t_n2_envelope_trailing_bytes_refused() {
+        let exact = envelope(44);
+        let view = parse_vault_envelope(&exact).unwrap();
+        assert_eq!(view.ciphertext.len(), 12 + 44);
+        let mut one = exact.clone();
+        one.push(0);
+        let mut many = exact.clone();
+        many.extend_from_slice(&[0u8; 4096]);
+        for refused in [&one[..], &many[..], &exact[..exact.len() - 1]] {
+            assert_eq!(
+                parse_vault_envelope(refused).unwrap_err(),
+                "vault_parse_failed"
+            );
+        }
     }
 }

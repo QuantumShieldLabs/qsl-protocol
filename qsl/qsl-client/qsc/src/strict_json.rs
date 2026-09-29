@@ -16,7 +16,25 @@ where
     K: Deserialize<'de> + Ord,
     V: Deserialize<'de>,
 {
-    struct Unique<K, V>(PhantomData<(K, V)>);
+    unique_map_at_most(deserializer, usize::MAX)
+}
+
+/// The refusal of a map with more entries than its limit; see `is_over_limit`.
+pub(crate) const OVER_LIMIT: &str = "map entry limit exceeded";
+
+/// `unique_map` that also COUNTS (NA-0788 F04/S3b N3, I06): the key after the `limit`th entry
+/// refuses with `OVER_LIMIT` before its value is parsed, so at most `limit` values are built.
+/// `unique_map` is this visitor with no reachable limit.
+pub(crate) fn unique_map_at_most<'de, D, K, V>(
+    deserializer: D,
+    limit: usize,
+) -> Result<BTreeMap<K, V>, D::Error>
+where
+    D: Deserializer<'de>,
+    K: Deserialize<'de> + Ord,
+    V: Deserialize<'de>,
+{
+    struct Unique<K, V>(usize, PhantomData<(K, V)>);
     impl<'de, K, V> Visitor<'de> for Unique<K, V>
     where
         K: Deserialize<'de> + Ord,
@@ -31,7 +49,11 @@ where
             A: MapAccess<'de>,
         {
             let mut entries = BTreeMap::new();
-            while let Some((key, value)) = map.next_entry::<K, V>()? {
+            while let Some(key) = map.next_key::<K>()? {
+                if entries.len() == self.0 {
+                    return Err(A::Error::custom(OVER_LIMIT));
+                }
+                let value = map.next_value::<V>()?;
                 if entries.insert(key, value).is_some() {
                     return Err(A::Error::custom("duplicate map key"));
                 }
@@ -39,7 +61,13 @@ where
             Ok(entries)
         }
     }
-    deserializer.deserialize_map(Unique(PhantomData))
+    deserializer.deserialize_map(Unique(limit, PhantomData))
+}
+
+/// True when a JSON decode stopped at a map over its limit, so a decoder can keep its own
+/// capacity code for it (serde_json renders a custom error as its message, then the position).
+pub(crate) fn is_over_limit(error: &serde_json::Error) -> bool {
+    error.is_data() && error.to_string().starts_with(OVER_LIMIT)
 }
 
 /// A field that must be PRESENT. Through `deserialize_with`, serde refuses an absent field

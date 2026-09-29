@@ -311,7 +311,9 @@ pub fn destroy_with_passphrase(
     // The key-source peek: a light read through THE parser (D-1334's one owner);
     // read/parse failures map to the existing markers.
     let (cfg_dir, vault_path, source) = super::vault_path_resolved()?;
-    let peek_bytes = fs::read(&vault_path).map_err(|_| "vault_missing")?;
+    // F04/S3b N1: through the one bounded vault reader (an oversized file refuses here, before
+    // anything is destroyed).
+    let peek_bytes = super::read_vault_file(&vault_path).map_err(|e| e.code("vault_missing"))?;
     let peeked_key_source =
         crate::adversarial::vault_format::parse_vault_envelope(&peek_bytes)?.key_source;
     if peeked_key_source == 2 {

@@ -151,8 +151,14 @@ impl PausedCause {
 // The record (DESIGN §1)
 // ---------------------------------------------------------------------------
 
+/// NA-0788 F04/S2 (C01 T1 rows 15, 19 and 21): the record decodes STRICTLY. An unknown field, a
+/// missing field (an `Option` must be present; `null` is its None), a repeated `ack_map` key and
+/// any `v` other than RECORD_VERSION refuse the whole record: decrypt_record surfaces each as
+/// MSGQUEUE_RECORD_TAMPERED. Writers are unchanged: `encrypt_record` serialises every field.
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct QueuedMessage {
+    #[serde(deserialize_with = "current_record_version")]
     pub v: u8,
     /// 128-bit CSPRNG, lowercase hex. See `mint_msg_id` for why this does NOT reuse
     /// `invite::wire_id`.
@@ -163,17 +169,21 @@ pub struct QueuedMessage {
     pub seq: u64,
     pub state: MsgState,
     /// Sub-state of QUEUED. Always `None` unless `state == Queued`.
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub paused_cause: Option<PausedCause>,
     /// The plaintext body, encrypted at rest under the store key.
     pub body: Vec<u8>,
     /// Per-device delivery (DESIGN F1). SINGLE entry in v1; the map SHAPE is what lets
     /// Tier-1.5 multi-device ride later without a schema change.
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub ack_map: BTreeMap<String, u64>,
     /// DESIGN F4 disappearing-messages hook. DORMANT in v1: nothing reads it.
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub expires_at: Option<u64>,
     pub enqueued_at: u64,
     pub attempts: u32,
     pub next_attempt_at: u64,
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub last_error: Option<String>,
 
     // -----------------------------------------------------------------------
@@ -200,20 +210,33 @@ pub struct QueuedMessage {
     // is ACCEPTED, NAMED, and FILED for a convergence lane -- deliberately not converged
     // here.
     /// The packed envelope. `Some` => already packed; REPLAY, never re-pack.
-    #[serde(default)]
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub ciphertext: Option<Vec<u8>>,
     /// The ratchet state to commit once the relay accepts `ciphertext`.
-    #[serde(default)]
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub next_state: Option<Vec<u8>>,
     /// The routing channel `ciphertext` was packed for.
-    #[serde(default)]
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub channel: Option<String>,
     // Exact candidate ciphertext identity survives projection/clear_inflight.
-    #[serde(default)]
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub directional_wire_hash: Option<[u8;32]>,
     /// Opaque authenticated successor intent; concrete policy is fixed at enqueue.
-    #[serde(default)]
+    #[serde(deserialize_with = "crate::strict_json::required")]
     pub directional_intent: Option<Vec<u8>>,
+}
+
+/// NA-0788 F04/S2: the record version is CHECKED on read, not only written. Every writer emits
+/// RECORD_VERSION; any other value refuses the record.
+fn current_record_version<'de, D>(deserializer: D) -> Result<u8, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let v = u8::deserialize(deserializer)?;
+    if v != RECORD_VERSION {
+        return Err(serde::de::Error::custom("unsupported record version"));
+    }
+    Ok(v)
 }
 
 impl QueuedMessage {
@@ -2153,4 +2176,321 @@ pub(crate) fn directional_packed_validate(rec: &QueuedMessage) -> Result<(), &'s
         return Err("directional_queue_conflict");
     }
     Ok(())
+}
+
+// NA-0788 F04/S2: the queue record through its REAL reader (read_record -> decrypt_record). Each
+// plaintext is sealed under the record's own AAD with a test key, so every shape reaches serde.
+#[cfg(test)]
+mod f04_s2_strict_tests {
+    use super::*;
+    use serde_json::{json, Value};
+
+    const ID: &str = "0123456789abcdef0123456789abcdef";
+    const SEQ: u64 = 4;
+    // The key `tests::install_test_store_key` puts in the process-wide slot; t_q_p8 uses it too.
+    const KEY: [u8; STORE_KEY_LEN] = [7u8; STORE_KEY_LEN];
+
+    fn full() -> QueuedMessage {
+        QueuedMessage {
+            v: RECORD_VERSION,
+            msg_id: ID.to_string(),
+            peer: "alice".to_string(),
+            seq: SEQ,
+            state: MsgState::Queued,
+            paused_cause: Some(PausedCause::VaultLocked),
+            body: b"hi".to_vec(),
+            ack_map: [("dev".to_string(), 7u64)].into_iter().collect(),
+            expires_at: Some(9),
+            enqueued_at: 1,
+            attempts: 2,
+            next_attempt_at: 3,
+            last_error: Some("x".to_string()),
+            ciphertext: Some(vec![1]),
+            next_state: Some(vec![2]),
+            channel: Some("c".to_string()),
+            directional_wire_hash: Some([5u8; 32]),
+            directional_intent: Some(vec![3]),
+        }
+    }
+
+    fn value(rec: &QueuedMessage) -> Value {
+        serde_json::to_value(rec).unwrap()
+    }
+
+    fn seal(path: &Path, ck: &str, msg_id: &str, seq: u64, plaintext: &str) {
+        let cipher = ChaCha20Poly1305::new(Key::from_slice(&KEY));
+        let nonce = [1u8; NONCE_LEN];
+        let aad = record_aad(ck, msg_id, seq);
+        let sealed = Payload {
+            msg: plaintext.as_bytes(),
+            aad: &aad,
+        };
+        let mut out = nonce.to_vec();
+        out.extend_from_slice(&cipher.encrypt(Nonce::from_slice(&nonce), sealed).unwrap());
+        fs::write(path, out).unwrap();
+    }
+
+    fn read(plaintext: &str) -> Result<QueuedMessage, &'static str> {
+        let dir = tempfile::tempdir().unwrap();
+        let ck = contact_key("alice");
+        let path = dir.path().join(record_name(SEQ, ID));
+        seal(&path, &ck, ID, SEQ, plaintext);
+        let before = fs::read(&path).unwrap();
+        let out = read_record(&KEY, &ck, &path);
+        assert_eq!(fs::read(&path).unwrap(), before, "the reader never writes");
+        out
+    }
+
+    fn edited(edit: impl FnOnce(&mut serde_json::Map<String, Value>)) -> String {
+        let mut v = value(&full());
+        edit(v.as_object_mut().unwrap());
+        v.to_string()
+    }
+
+    fn required_null_accepted(field: &str) {
+        let good = read(&value(&full()).to_string()).expect("control: the full record decodes");
+        assert!(!value(&good)[field].is_null(), "control carries {field}");
+        let absent = edited(|m| {
+            m.remove(field).unwrap();
+        });
+        assert_eq!(
+            read(&absent).unwrap_err(),
+            MSGQUEUE_RECORD_TAMPERED,
+            "absent {field}"
+        );
+        let null = edited(|m| {
+            m.insert(field.to_string(), Value::Null);
+        });
+        let back = read(&null).expect("an explicit null decodes");
+        assert!(value(&back)[field].is_null(), "null {field} is None");
+    }
+
+    #[test]
+    fn t_q_a6a_ciphertext_required_null_accepted() {
+        required_null_accepted("ciphertext");
+    }
+
+    #[test]
+    fn t_q_a6a_next_state_required_null_accepted() {
+        required_null_accepted("next_state");
+    }
+
+    #[test]
+    fn t_q_a6a_channel_required_null_accepted() {
+        required_null_accepted("channel");
+    }
+
+    #[test]
+    fn t_q_a6a_directional_wire_hash_required_null_accepted() {
+        required_null_accepted("directional_wire_hash");
+    }
+
+    #[test]
+    fn t_q_a6a_directional_intent_required_null_accepted() {
+        required_null_accepted("directional_intent");
+    }
+
+    #[test]
+    fn t_q_a6a_paused_cause_required_null_accepted() {
+        required_null_accepted("paused_cause");
+    }
+
+    #[test]
+    fn t_q_a6a_expires_at_required_null_accepted() {
+        required_null_accepted("expires_at");
+    }
+
+    #[test]
+    fn t_q_a6a_last_error_required_null_accepted() {
+        required_null_accepted("last_error");
+    }
+
+    #[test]
+    fn t_q_a6a_non_option_fields_absent_refused() {
+        assert!(read(&value(&full()).to_string()).is_ok(), "control");
+        for field in [
+            "v",
+            "msg_id",
+            "peer",
+            "seq",
+            "state",
+            "body",
+            "ack_map",
+            "enqueued_at",
+            "attempts",
+            "next_attempt_at",
+        ] {
+            let absent = edited(|m| {
+                m.remove(field).unwrap();
+            });
+            assert_eq!(
+                read(&absent).unwrap_err(),
+                MSGQUEUE_RECORD_TAMPERED,
+                "absent {field}"
+            );
+        }
+    }
+
+    #[test]
+    fn t_q_a6b_unknown_field_refused() {
+        assert!(read(&value(&full()).to_string()).is_ok(), "control");
+        for extra in [json!(1), Value::Null] {
+            let unknown = edited(|m| {
+                m.insert("zz_unknown".to_string(), extra);
+            });
+            assert_eq!(read(&unknown).unwrap_err(), MSGQUEUE_RECORD_TAMPERED);
+        }
+    }
+
+    #[test]
+    fn t_q_a6c_duplicate_ack_map_key_refused() {
+        let good = value(&full()).to_string();
+        let one = r#""ack_map":{"dev":7}"#;
+        assert_eq!(good.matches(one).count(), 1);
+        assert_eq!(read(&good).expect("control").ack_map.len(), 1);
+        let two = good.replace(one, r#""ack_map":{"dev":7,"dev2":8}"#);
+        assert_eq!(read(&two).expect("two distinct keys").ack_map.len(), 2);
+        for dup in [
+            r#""ack_map":{"dev":7,"dev":8}"#,
+            r#""ack_map":{"dev":7,"dev":7}"#,
+            r#""ack_map":{"dev":7,"dev":8}"#,
+        ] {
+            let text = good.replace(one, dup);
+            assert_eq!(read(&text).unwrap_err(), MSGQUEUE_RECORD_TAMPERED, "{dup}");
+        }
+    }
+
+    #[test]
+    fn t_q_a6d_record_version_checked() {
+        let at = |v: Value| {
+            edited(|m| {
+                m.insert("v".to_string(), v);
+            })
+        };
+        assert_eq!(
+            read(&at(json!(RECORD_VERSION))).expect("control").v,
+            RECORD_VERSION
+        );
+        for other in [0u64, 2, 255] {
+            assert_eq!(
+                read(&at(json!(other))).unwrap_err(),
+                MSGQUEUE_RECORD_TAMPERED,
+                "v={other}"
+            );
+        }
+    }
+
+    #[test]
+    fn t_q_rt_records_round_trip_through_the_strict_reader() {
+        let mut queued = full();
+        queued.paused_cause = None;
+        queued.ack_map.clear();
+        queued.expires_at = None;
+        queued.last_error = None;
+        queued.ciphertext = None;
+        queued.next_state = None;
+        queued.channel = None;
+        queued.directional_wire_hash = None;
+        let mut bare = queued.clone();
+        bare.directional_intent = None;
+        let mut delivered = full();
+        delivered.state = MsgState::Delivered;
+        delivered.paused_cause = None;
+        let dir = tempfile::tempdir().unwrap();
+        let ck = contact_key("alice");
+        for rec in [full(), queued, bare, delivered] {
+            let aad = record_aad(&ck, &rec.msg_id, rec.seq);
+            let path = dir.path().join(record_name(rec.seq, &rec.msg_id));
+            fs::write(&path, encrypt_record(&KEY, &aad, &rec).unwrap()).unwrap();
+            let back = read_record(&KEY, &ck, &path).expect("the writer's record decodes");
+            assert_eq!(value(&back), value(&rec), "no field lost");
+        }
+    }
+
+    #[test]
+    fn t_q_w_writer_emits_every_field() {
+        let mut rec = full();
+        rec.paused_cause = None;
+        rec.expires_at = None;
+        rec.last_error = None;
+        rec.ciphertext = None;
+        rec.next_state = None;
+        rec.channel = None;
+        rec.directional_wire_hash = None;
+        rec.directional_intent = None;
+        let v = value(&rec);
+        let keys: Vec<&str> = v.as_object().unwrap().keys().map(String::as_str).collect();
+        assert_eq!(keys.len(), 18, "{keys:?}");
+        for field in [
+            "paused_cause",
+            "expires_at",
+            "last_error",
+            "ciphertext",
+            "next_state",
+            "channel",
+            "directional_wire_hash",
+            "directional_intent",
+        ] {
+            assert!(v[field].is_null(), "{field} is emitted as null");
+        }
+    }
+
+    #[test]
+    fn t_q_p8_refusal_leaves_the_store_unchanged() {
+        *store_key_slot().lock().unwrap() = Some(KEY);
+        let dir = tempfile::tempdir().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o700)).unwrap();
+        }
+        let cfg = dir.path();
+        let src = ConfigSource::EnvOverride;
+        // Not yet packed: save's own wire-hash check is not what this test is about.
+        let mut good = full();
+        good.seq = 0;
+        good.ciphertext = None;
+        good.next_state = None;
+        good.channel = None;
+        good.directional_wire_hash = None;
+        write_record(cfg, src, &good).unwrap();
+        let other = "fedcba9876543210fedcba9876543210";
+        let planted = contact_dir(cfg, "alice").join(record_name(1, other));
+        let mut tampered = value(&full());
+        tampered["seq"] = json!(1);
+        tampered["msg_id"] = json!(other);
+        tampered["zz_unknown"] = json!(1);
+        seal(
+            &planted,
+            &contact_key("alice"),
+            other,
+            1,
+            &tampered.to_string(),
+        );
+        let snapshot = || {
+            let mut files: Vec<(PathBuf, Vec<u8>)> = fs::read_dir(contact_dir(cfg, "alice"))
+                .unwrap()
+                .map(|e| e.unwrap().path())
+                .map(|p| (p.clone(), fs::read(&p).unwrap()))
+                .collect();
+            files.sort();
+            files
+        };
+        let before = snapshot();
+        assert_eq!(
+            load_contact(cfg, "alice").unwrap_err(),
+            MSGQUEUE_RECORD_TAMPERED
+        );
+        let mut next = good.clone();
+        next.attempts += 1;
+        assert_eq!(save(cfg, src, &next).unwrap_err(), MSGQUEUE_RECORD_TAMPERED);
+        assert_eq!(snapshot(), before, "a refusal writes nothing");
+        fs::remove_file(&planted).unwrap();
+        assert_eq!(load_contact(cfg, "alice").expect("control").len(), 1);
+        save(cfg, src, &next).expect("control: save");
+        assert_eq!(
+            load_contact(cfg, "alice").unwrap()[0].attempts,
+            next.attempts
+        );
+    }
 }

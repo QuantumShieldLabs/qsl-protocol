@@ -2,7 +2,7 @@
 //!
 //! ```text
 //! <STATE>/qsl/freshness/<64 lowercase hex of vault_id>/head        the QSLFRESH checkpoint (D31)
-//! <STATE>/qsl/freshness/<64 lowercase hex of vault_id>/head.tmp.<pid>   its temporary
+//! <STATE>/qsl/freshness/<64 lowercase hex of vault_id>/head.tmp.<pid>.<n>   its temporary
 //! <STATE>/qsl/freshness/<64 lowercase hex of vault_id>/lock        the lineage lock PATH (D32; the lock is S5's)
 //! ```
 //!
@@ -10,8 +10,12 @@
 //! A20 sibling, so CLI tests of the real binary can redirect it), else `$XDG_STATE_HOME` if set
 //! and absolute, else `$HOME/.local/state`. Every root that is used must be absolute: a
 //! cwd-relative root would give one lineage two checkpoint and lock locations (D32 / FN1).
+//!
+//! S7b X7 (F-10, OWED D40): the head temp is `head.tmp.<pid>.<n>`, n a per-process counter (txn's),
+//! so no two writes of one process share a name; recovery's rule a removes a dead pid's head temp
+//! of either shape (the `head.tmp.<pid>` of S5 included).
 
-use crate::fs_store::perms_group_or_world_writable;
+use crate::fs_store::{perms_group_or_world_writable, sync_dir_checked};
 use std::env;
 use std::ffi::{OsStr, OsString};
 use std::fs;
@@ -27,6 +31,7 @@ const QSL_DIR: &str = "qsl";
 const FRESHNESS_DIR: &str = "freshness";
 const HEAD_FILE: &str = "head";
 const LOCK_FILE: &str = "lock";
+const HEAD_TEMP_PREFIX: &str = "head.tmp.";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum StateRootError {
@@ -43,6 +48,8 @@ pub(crate) enum CheckpointDirError {
     NotADirectory,
     GroupOrWorldWritable,
     Io(io::ErrorKind),
+    /// S7b X6: a component this call created could not be flushed into its parent.
+    DirFlush,
 }
 
 pub(crate) fn state_root() -> Result<PathBuf, StateRootError> {
@@ -93,8 +100,29 @@ pub(crate) fn head_path(dir: &Path) -> PathBuf {
     dir.join(HEAD_FILE)
 }
 
-pub(crate) fn head_temp_path(dir: &Path, pid: u32) -> PathBuf {
-    dir.join(format!("head.tmp.{pid}"))
+pub(crate) fn head_temp_path(dir: &Path, pid: u32, seq: u64) -> PathBuf {
+    dir.join(format!("{HEAD_TEMP_PREFIX}{pid}.{seq}"))
+}
+
+/// The pid of a head temp name of either shape, `head.tmp.<pid>` (S5) or `head.tmp.<pid>.<n>`,
+/// in CANONICAL decimal only (no sign, no leading zero, so never pid 0; within pid_t; n is "0" or
+/// has no leading zero). Anything else is None and is never removed.
+pub(crate) fn head_temp_pid(name: &OsStr) -> Option<i32> {
+    let rest = name.to_str()?.strip_prefix(HEAD_TEMP_PREFIX)?;
+    let (pid, seq) = match rest.split_once('.') {
+        Some((pid, seq)) => (pid, Some(seq)),
+        None => (rest, None),
+    };
+    let canonical = |d: &str| !d.is_empty() && d.bytes().all(|b| b.is_ascii_digit());
+    if !canonical(pid) || pid.starts_with('0') {
+        return None;
+    }
+    if let Some(seq) = seq {
+        if !canonical(seq) || (seq.len() > 1 && seq.starts_with('0')) {
+            return None;
+        }
+    }
+    pid.parse().ok()
 }
 
 pub(crate) fn lock_path(dir: &Path) -> PathBuf {
@@ -103,7 +131,8 @@ pub(crate) fn lock_path(dir: &Path) -> PathBuf {
 
 /// Create the checkpoint directory (mode 0700 for every component this call creates) and
 /// REFUSE a root or component that is a symlink, not a directory, or group/world-writable.
-/// An existing private directory is accepted as it is (no chmod repair).
+/// An existing private directory is accepted as it is (no chmod repair). S7b X6 (F-08): each
+/// component this call CREATES is flushed into its parent (a hardening; no power-loss claim).
 pub(crate) fn ensure_checkpoint_dir(
     root: &Path,
     vault_id: &[u8; 32],
@@ -122,9 +151,10 @@ pub(crate) fn ensure_checkpoint_dir(
     let hex = crate::hex_encode(vault_id);
     let mut cur = root.to_path_buf();
     for comp in [QSL_DIR, FRESHNESS_DIR, hex.as_str()] {
+        let parent = cur.clone();
         cur.push(comp);
         match fs::DirBuilder::new().mode(0o700).create(&cur) {
-            Ok(()) => {}
+            Ok(()) => sync_dir_checked(&parent).map_err(|_| CheckpointDirError::DirFlush)?,
             Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {}
             Err(e) => return Err(CheckpointDirError::Io(e.kind())),
         }
@@ -255,7 +285,7 @@ mod tests {
     fn path6_head_temp_and_lock_names() {
         let dir = checkpoint_dir(Path::new("/s"), &syn_vault_id());
         assert_eq!(head_path(&dir), dir.join("head"));
-        assert_eq!(head_temp_path(&dir, 4242), dir.join("head.tmp.4242"));
+        assert_eq!(head_temp_path(&dir, 4242, 7), dir.join("head.tmp.4242.7"));
         assert_eq!(lock_path(&dir), dir.join("lock"));
     }
 
@@ -328,5 +358,65 @@ mod tests {
         let first = ensure_checkpoint_dir(&root, &syn_vault_id()).expect("first");
         let second = ensure_checkpoint_dir(&root, &syn_vault_id()).expect("second");
         assert_eq!(first, second);
+    }
+
+    // ---- S7b (SEALED_EXPECTATION_S7b.md sec 1)
+
+    #[test]
+    fn x6_created_components_are_flushed_into_their_parents() {
+        use crate::fs_store::{arm_durable_flush_fault, DurableFlushPoint};
+        let fresh = || {
+            let td = tempfile::tempdir().expect("tempdir");
+            fs::set_permissions(td.path(), fs::Permissions::from_mode(0o700)).expect("chmod");
+            td
+        };
+        for skip in 0..3 {
+            let td = fresh();
+            arm_durable_flush_fault(DurableFlushPoint::Dir, skip);
+            let r = ensure_checkpoint_dir(td.path(), &syn_vault_id());
+            assert_eq!(
+                r,
+                Err(CheckpointDirError::DirFlush),
+                "flush {skip} is checked"
+            );
+            assert_eq!(r.unwrap_err().code(), "storage_durability_failed");
+        }
+        // Exactly three: the fourth flush is never reached, so the fault is still armed.
+        let td = fresh();
+        arm_durable_flush_fault(DurableFlushPoint::Dir, 3);
+        let dir = ensure_checkpoint_dir(td.path(), &syn_vault_id()).expect("three flushes pass");
+        arm_durable_flush_fault(DurableFlushPoint::Dir, 0);
+        assert_eq!(ensure_checkpoint_dir(td.path(), &syn_vault_id()), Ok(dir));
+        assert!(
+            sync_dir_checked(td.path()).is_err(),
+            "an existing tree creates nothing and flushes nothing"
+        );
+    }
+
+    #[test]
+    fn x7_head_temp_names_are_unique_and_both_shapes_parse() {
+        let dir = checkpoint_dir(Path::new("/s"), &syn_vault_id());
+        assert_ne!(head_temp_path(&dir, 4242, 0), head_temp_path(&dir, 4242, 1));
+        let pid = |s: &str| head_temp_pid(OsStr::new(s));
+        assert_eq!(pid("head.tmp.4242"), Some(4242), "S5's shape");
+        assert_eq!(pid("head.tmp.4242.0"), Some(4242));
+        assert_eq!(pid("head.tmp.4242.17"), Some(4242));
+        for bad in [
+            "head.tmp.04242",
+            "head.tmp.0",
+            "head.tmp.0.1",
+            "head.tmp.4242.",
+            "head.tmp.4242.01",
+            "head.tmp.4242.1.2",
+            "head.tmp.4242.x",
+            "head.tmp.x",
+            "head.tmp.",
+            "head.tmp.-1",
+            "head.tmp.99999999999",
+            "head",
+            "head.tmp4242",
+        ] {
+            assert_eq!(pid(bad), None, "{bad:?} is not a head temp");
+        }
     }
 }

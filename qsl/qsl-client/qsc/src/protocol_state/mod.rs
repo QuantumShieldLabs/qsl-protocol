@@ -1412,19 +1412,28 @@ pub(crate) fn approved_directional_layout()->Result<DirectionalLayout, &'static 
 pub(crate) const REVIEW_AGGREGATE_CANDIDATE: usize = 16_777_216;
 pub(crate) const REVIEW_WRITE_HEADROOM: usize = 524_288;
 
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone)]
 pub(crate) struct CapacityOwner {
     pub(crate) generation: u64,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub(crate) peers: std::collections::BTreeMap<String, PeerReserve>,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
     pub(crate) entries: std::collections::BTreeMap<String, OwnerEntry>,
 }
+/// The owner's version-1 fields (NA-0788 F04/S5 E2): the strict definition behind the schema reader.
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "CapacityOwner", deny_unknown_fields)]
+struct CapacityOwnerV1 {
+    generation: u64,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    peers: std::collections::BTreeMap<String, PeerReserve>,
+    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    entries: std::collections::BTreeMap<String, OwnerEntry>,
+}
+crate::strict_json::versioned_record!(CapacityOwner, CapacityOwnerV1, deserialize_top);
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct PeerReserve {
     pub(crate) peer: String,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) sid: [u8;16],
     pub(crate) generation: u64,
     // Proposed reservation maxima and still-unmaterialized liabilities. Actual
@@ -1439,6 +1448,7 @@ pub(crate) struct PeerReserve {
 pub(crate) struct OwnerEntry {
     pub(crate) ticket: String,
     pub(crate) peer: String,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) sid: [u8;16],
     pub(crate) direction: u8,
     pub(crate) operation: String,
@@ -1446,10 +1456,12 @@ pub(crate) struct OwnerEntry {
     pub(crate) epoch: u64,
     pub(crate) slot: u32,
     pub(crate) reference_state: u8,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) content: [u8;32],
     pub(crate) generation: u64,
     // Remaining encoded projection credit; zero means materialized, not retired.
     pub(crate) projection: u64,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) wire_hash: [u8;32],
     pub(crate) charge: Charge,
 }
@@ -1693,7 +1705,19 @@ impl CapacityOwner {
     // The ONE decoder of the owner record (F04 S1): the vault's aggregate check and
     // directional_owner_load both route here, so one strict reading holds for both.
     pub(crate) fn decode(raw: &str) -> Result<Self, &'static str> {
-        serde_json::from_str(raw).map_err(|_| "directional_owner_tampered")
+        // F04/S5 E2: the schema version is read from the whole text before any field is decoded.
+        match crate::strict_json::schema_of(raw) {
+            Ok(crate::strict_json::SCHEMA_VERSION) => {}
+            Ok(_) => return Err(crate::strict_json::RECORD_VERSION_UNSUPPORTED),
+            Err(_) => return Err("directional_owner_tampered"),
+        }
+        serde_json::from_str(raw).map_err(|e| {
+            if crate::strict_json::is_version_unsupported(&e) {
+                crate::strict_json::RECORD_VERSION_UNSUPPORTED
+            } else {
+                "directional_owner_tampered"
+            }
+        })
     }
 }
 pub(crate) fn directional_owner_load()->Result<CapacityOwner,&'static str> {

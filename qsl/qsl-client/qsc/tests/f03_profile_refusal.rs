@@ -450,10 +450,6 @@ fn lp(x: &[u8]) -> Vec<u8> {
     out
 }
 
-fn bytes_of(value: &serde_json::Value) -> Vec<u8> {
-    serde_json::from_value(value.clone()).unwrap()
-}
-
 /// A receipt for `wire` at `slot` under the SENDER's stored receipt context, with the AD's
 /// integration-profile field set to `integration_profile` (directional_delivery.rs:49-63, 80-87).
 fn receipt_under(
@@ -465,17 +461,17 @@ fn receipt_under(
     use quantumshield_refimpl::crypto::stdcrypto::StdCrypto;
     use quantumshield_refimpl::crypto::traits::{Aead as RefAead, Hash as RefHash};
     let mut prefix = b"NDR1".to_vec();
-    prefix.extend(bytes_of(&context["sid"]));
+    prefix.extend(common::stored_bytes(&context["sid"]));
     prefix.push(context["direction"].as_u64().unwrap() as u8);
     prefix.extend(context["epoch"].as_u64().unwrap().to_be_bytes());
-    prefix.extend(bytes_of(&context["dh"]));
+    prefix.extend(common::stored_bytes(&context["dh"]));
     prefix.extend(slot.to_be_bytes());
     let mut ad = lp(integration_profile);
     ad.extend(lp(CORE_PROFILE));
     ad.extend(&prefix);
     let mut nonce = [0u8; 12];
     nonce[8..].copy_from_slice(&slot.to_be_bytes());
-    let key: [u8; 32] = bytes_of(&context["key"]).try_into().unwrap();
+    let key: [u8; 32] = common::stored_bytes(&context["key"]).try_into().unwrap();
     let digest = RefHash::sha512(&StdCrypto, wire);
     prefix.extend(RefAead::seal(&StdCrypto, &key, &nonce, &ad, &digest[..32]));
     prefix
@@ -542,7 +538,7 @@ fn b5_foreign_profile_receipt_is_not_admitted() {
     let (epoch, slot) = flight_key.split_once(':').unwrap();
     let slot: u32 = slot.parse().unwrap();
     let context = tx["send"][epoch]["context"].clone();
-    let wire = bytes_of(&flight["wire"]);
+    let wire = common::stored_bytes(&flight["wire"]);
 
     receive(bob, b_route, "alice", "bob_in");
     let to_alice = relay.drain_channel(a_route);

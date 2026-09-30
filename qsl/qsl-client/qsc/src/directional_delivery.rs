@@ -15,10 +15,13 @@ const RECEIPT_LEN: usize = RECEIPT_PREFIX + 48;
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct ReceiptContext {
+    #[serde(with = "crate::strict_json::b64")]
     sid: [u8; 16],
     direction: u8,
     epoch: u64,
+    #[serde(with = "crate::strict_json::b64")]
     dh: Key,
+    #[serde(with = "crate::strict_json::b64")]
     key: Key,
 }
 impl Drop for ReceiptContext {
@@ -202,6 +205,15 @@ where
 {
     crate::strict_json::unique_map_at_most(deserializer, 64 + 1)
 }
+/// `at_most_64` for a map of byte fields (F04/S5: Transaction.completed), the same count.
+fn at_most_64_bytes<'de, D, K, V>(deserializer: D) -> Result<BTreeMap<K, V>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    K: Deserialize<'de> + Ord,
+    V: crate::strict_json::b64::Bytes,
+{
+    crate::strict_json::b64::unique_map_at_most(deserializer, 64)
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -237,8 +249,7 @@ impl EpochReceipts {
         Ok(())
     }
 }
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone)]
 struct Flight {
     body_hash: Key,
     intent_hash: Key,
@@ -251,33 +262,84 @@ struct Flight {
     // Exact bytes included at seal; relay acceptance does not confirm this proof.
     closure_proof: String,
 }
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+/// Flight's version-1 fields (NA-0788 F04/S5 E2): the strict definition behind the schema reader.
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "Flight", deny_unknown_fields)]
+struct FlightV1 {
+    #[serde(with = "crate::strict_json::b64")]
+    body_hash: Key,
+    #[serde(with = "crate::strict_json::b64")]
+    intent_hash: Key,
+    epoch: u64,
+    slot: u32,
+    id: String,
+    #[serde(with = "crate::strict_json::b64")]
+    wire: Vec<u8>,
+    accepted: bool,
+    closure_proof: String,
+}
+crate::strict_json::versioned_record!(Flight, FlightV1, deserialize_nested);
+#[derive(Clone)]
 struct Disposition {
     hash: Key,
     receipt: Vec<u8>,
     response_pending: bool,
 }
+/// Disposition's version-1 fields (NA-0788 F04/S5 E2).
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "Disposition", deny_unknown_fields)]
+struct DispositionV1 {
+    #[serde(with = "crate::strict_json::b64")]
+    hash: Key,
+    #[serde(with = "crate::strict_json::b64")]
+    receipt: Vec<u8>,
+    response_pending: bool,
+}
+crate::strict_json::versioned_record!(Disposition, DispositionV1, deserialize_nested);
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Application {
     id: String,
+    #[serde(with = "crate::strict_json::b64")]
     body: Vec<u8>,
 }
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone)]
 pub(crate) struct Transaction {
     version: String,
     // Transient view hydrated from the fresh authoritative owner by paired update.
     // It is never a third persistent key or a fallback for missing owner state.
+    reserve: Option<crate::protocol_state::SessionControlReserve>,
+    received_reference: Option<(String, u64, u32, Key)>,
+    useful_send_closure: bool,
+    pub(crate) generation: u64,
+    pub(crate) core: Core,
+    send: BTreeMap<u64, EpochReceipts>,
+    recv: BTreeMap<u64, EpochReceipts>,
+    flights: BTreeMap<String, Flight>,
+    dispositions: BTreeMap<String, Disposition>,
+    events: BTreeMap<String, Application>,
+    completed: BTreeMap<String, Key>,
+    request_sent: bool,
+    recv_floor: Option<u64>,
+    send_floor: Option<u64>,
+    demand: bool,
+    since_boundary: u32,
+    last_boundary: u64,
+}
+/// The Transaction's version-1 fields (NA-0788 F04/S5 E2): the strict definition behind the schema reader;
+/// the profile field `version` and its TRANSACTION_PROFILE check are not the schema and stay as they are.
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "Transaction", deny_unknown_fields)]
+struct TransactionV1 {
+    version: String,
     #[serde(skip)]
     reserve: Option<crate::protocol_state::SessionControlReserve>,
     #[serde(skip)]
     received_reference: Option<(String,u64,u32,Key)>,
     #[serde(skip)]
     useful_send_closure: bool,
-    pub(crate) generation: u64,
-    pub(crate) core: Core,
+    generation: u64,
+    core: Core,
     #[serde(deserialize_with = "at_most_3")]
     send: BTreeMap<u64, EpochReceipts>,
     #[serde(deserialize_with = "at_most_3")]
@@ -288,7 +350,10 @@ pub(crate) struct Transaction {
     dispositions: BTreeMap<String, Disposition>,
     #[serde(deserialize_with = "at_most_64")]
     events: BTreeMap<String, Application>,
-    #[serde(deserialize_with = "at_most_64")]
+    #[serde(
+        serialize_with = "crate::strict_json::b64::serialize_map",
+        deserialize_with = "at_most_64_bytes"
+    )]
     completed: BTreeMap<String, Key>,
     request_sent: bool,
     #[serde(deserialize_with = "crate::strict_json::required")]
@@ -299,6 +364,7 @@ pub(crate) struct Transaction {
     since_boundary: u32,
     last_boundary: u64,
 }
+crate::strict_json::versioned_record!(Transaction, TransactionV1, deserialize_top);
 #[derive(Clone)]
 struct Closure {
     epoch: u64,
@@ -347,6 +413,7 @@ pub(crate) struct QueuedIntent {
     profile: String,
     kind: u8,
     id: String,
+    #[serde(with = "crate::strict_json::b64")]
     body_hash: Key,
     pub(crate) padding: Padding,
 }
@@ -525,10 +592,18 @@ impl Transaction {
         if raw.len() > MAX_RECORD {
             return Err("TRANSACTION_CAPACITY");
         }
+        // F04/S5 E2: the schema version is read from the whole text before any field is decoded.
+        match crate::strict_json::schema_of(raw) {
+            Ok(crate::strict_json::SCHEMA_VERSION) => {}
+            Ok(_) => return Err(crate::strict_json::RECORD_VERSION_UNSUPPORTED),
+            Err(_) => return Err("TRANSACTION_TAMPERED"),
+        }
         // F04/S3b N3: a map over its count stops the decode with the capacity code.
         let value: Self = serde_json::from_str(raw).map_err(|e| {
             if crate::strict_json::is_over_limit(&e) {
                 "TRANSACTION_CAPACITY"
+            } else if crate::strict_json::is_version_unsupported(&e) {
+                crate::strict_json::RECORD_VERSION_UNSUPPORTED
             } else {
                 "TRANSACTION_TAMPERED"
             }
@@ -2833,5 +2908,697 @@ mod f04_s4b_semantic_tests {
         assert_eq!(over.encode().err(), CAPACITY);
         assert_eq!(refused(&over), CAPACITY);
         timed("t_n5_mv2_record_bytes_maximum", started);
+    }
+}
+
+// NA-0788 F04/S5: every byte field at rest is canonical base64 (E1) and the four records carry a schema
+// version read before field strictness (E2). Each case goes through the real decoder with its code.
+#[cfg(test)]
+mod f04_s5_encoding_tests {
+    use super::*;
+    use crate::directional_core::{Epoch, LocalTarget};
+    use crate::protocol_state::{
+        CapacityOwner, Charge, OwnerEntry, PeerReserve, SessionControlReserve,
+    };
+    use crate::strict_json::{RECORD_VERSION_UNSUPPORTED, SCHEMA_VERSION};
+    use base64::Engine as _;
+    use rand_core::{OsRng, RngCore};
+    use serde_json::Value;
+
+    const TAMPERED: Option<&str> = Some("TRANSACTION_TAMPERED");
+    const OWNER_TAMPERED: Option<&str> = Some("directional_owner_tampered");
+    const VERSION: Option<&str> = Some(RECORD_VERSION_UNSUPPORTED);
+    const INTENT_INVALID: Option<&str> = Some("INTEGRATION_QUEUE_INVALID");
+
+    fn fresh<const N: usize>() -> [u8; N] {
+        std::array::from_fn(|_| OsRng.next_u32() as u8)
+    }
+    fn epoch(id: u64) -> Epoch {
+        Epoch {
+            id,
+            dir: 0,
+            dh: fresh(),
+            ec: fresh(),
+            pq: fresh(),
+            hk: fresh(),
+            adv: fresh(),
+            next: 2,
+            terminal: Some(1),
+            skipped: BTreeMap::from([(1, fresh())]),
+        }
+    }
+    fn receipts(sid: [u8; 16], epoch: u64) -> EpochReceipts {
+        let context = ReceiptContext {
+            sid,
+            direction: 0,
+            epoch,
+            dh: fresh(),
+            key: fresh(),
+        };
+        EpochReceipts {
+            context,
+            next: 1,
+            prefix: 1,
+            confirmed: 0,
+            terminal: Some(1),
+            holes: BTreeSet::from([3]),
+        }
+    }
+    fn flight(epoch: u64, slot: u32, id: &str) -> Flight {
+        Flight {
+            body_hash: fresh(),
+            intent_hash: fresh(),
+            epoch,
+            slot,
+            id: id.into(),
+            wire: vec![5],
+            accepted: false,
+            closure_proof: String::new(),
+        }
+    }
+    fn event(id: &str) -> Application {
+        Application {
+            id: id.into(),
+            body: vec![7],
+        }
+    }
+    /// A valid record with one entry per map, every key formed the way the writers form it.
+    fn sample() -> Transaction {
+        let sid = fresh();
+        let core = Core {
+            sid,
+            role: 0,
+            root: fresh(),
+            seq: 1,
+            digest: fresh(),
+            owner: 0,
+            own_priv: fresh(),
+            own_pub: fresh(),
+            peer_pub: fresh(),
+            send: Some(epoch(1)),
+            recv: BTreeMap::from([(0, epoch(0))]),
+            active_recv: Some(0),
+            local: BTreeMap::from([(
+                0,
+                LocalTarget {
+                    pk: vec![1],
+                    sk: vec![2],
+                },
+            )]),
+            local_next: 1,
+            local_consumed_prefix: 0,
+            peer: BTreeMap::from([(0, vec![3])]),
+            peer_max: 1,
+            peer_selected_prefix: 0,
+            last_in: Some(fresh()),
+            last_out: vec![4],
+        };
+        let disposition = Disposition {
+            hash: fresh(),
+            receipt: vec![6],
+            response_pending: false,
+        };
+        Transaction {
+            version: String::from_utf8(INTEGRATION_PROFILE.to_vec()).unwrap(),
+            reserve: None,
+            received_reference: None,
+            useful_send_closure: false,
+            generation: 1,
+            core,
+            send: BTreeMap::from([(1, receipts(sid, 1))]),
+            recv: BTreeMap::from([(0, receipts(sid, 0))]),
+            flights: BTreeMap::from([(slot_key(1, 0), flight(1, 0, "m"))]),
+            dispositions: BTreeMap::from([(slot_key(0, 0), disposition)]),
+            events: BTreeMap::from([("e".into(), event("e"))]),
+            completed: BTreeMap::from([("c".into(), fresh())]),
+            request_sent: false,
+            recv_floor: Some(0),
+            send_floor: Some(0),
+            demand: false,
+            since_boundary: 0,
+            last_boundary: 0,
+        }
+    }
+    fn owner() -> CapacityOwner {
+        let sid = fresh();
+        let mut control = SessionControlReserve::fresh(sid);
+        control.generation = 1;
+        control.grant_peer_epoch = Some(0);
+        let peer = PeerReserve {
+            peer: "bob".into(),
+            sid,
+            generation: 1,
+            control_bound: 0,
+            peer_future: 0,
+            vault_future: 0,
+            control,
+        };
+        let entry = OwnerEntry {
+            ticket: "t".into(),
+            peer: "bob".into(),
+            sid,
+            direction: 0,
+            operation: "o".into(),
+            state: 0,
+            epoch: 0,
+            slot: 0,
+            reference_state: 0,
+            content: fresh(),
+            generation: 1,
+            projection: 0,
+            wire_hash: fresh(),
+            charge: Charge { vault_bytes: 0 },
+        };
+        CapacityOwner {
+            generation: 1,
+            peers: BTreeMap::from([("bob".into(), peer)]),
+            entries: BTreeMap::from([("t".into(), entry)]),
+        }
+    }
+    fn value<T: Serialize>(v: &T) -> Value {
+        serde_json::to_value(v).unwrap()
+    }
+    fn decode(v: &Value) -> Option<&'static str> {
+        Transaction::decode(&v.to_string()).err()
+    }
+    fn own(v: &Value) -> Option<&'static str> {
+        CapacityOwner::decode(&v.to_string()).err()
+    }
+    fn control() -> Value {
+        let v = value(&sample());
+        assert_eq!(decode(&v), None, "control arm");
+        v
+    }
+    fn owner_control() -> Value {
+        let v = value(&owner());
+        assert_eq!(own(&v), None, "control arm");
+        v
+    }
+    fn set(mut v: Value, pointer: &str, to: Value) -> Value {
+        *v.pointer_mut(pointer).unwrap() = to;
+        v
+    }
+    fn canonical(text: &str) -> Option<Vec<u8>> {
+        let engine = base64::engine::general_purpose::STANDARD;
+        let bytes = engine.decode(text).ok()?;
+        (engine.encode(&bytes) == text).then_some(bytes)
+    }
+    fn as_array(bytes: &[u8]) -> Value {
+        Value::Array(bytes.iter().map(|b| Value::from(*b)).collect())
+    }
+
+    /// The byte-field census of the Transaction tree, by JSON pointer, with the fixed length
+    /// (None = variable); every writer-produced value must be a canonical base64 string here.
+    const TX_BYTE_FIELDS: &[(&str, Option<usize>)] = &[
+        ("/core/sid", Some(16)),
+        ("/core/root", Some(32)),
+        ("/core/digest", Some(32)),
+        ("/core/own_priv", Some(32)),
+        ("/core/own_pub", Some(32)),
+        ("/core/peer_pub", Some(32)),
+        ("/core/last_in", Some(32)),
+        ("/core/last_out", None),
+        ("/core/send/dh", Some(32)),
+        ("/core/send/ec", Some(32)),
+        ("/core/send/pq", Some(32)),
+        ("/core/send/hk", Some(32)),
+        ("/core/send/adv", Some(32)),
+        ("/core/send/skipped/1", Some(32)),
+        ("/core/recv/0/dh", Some(32)),
+        ("/core/recv/0/ec", Some(32)),
+        ("/core/recv/0/pq", Some(32)),
+        ("/core/recv/0/hk", Some(32)),
+        ("/core/recv/0/adv", Some(32)),
+        ("/core/recv/0/skipped/1", Some(32)),
+        ("/core/local/0/pk", None),
+        ("/core/local/0/sk", None),
+        ("/core/peer/0", None),
+        ("/send/1/context/sid", Some(16)),
+        ("/send/1/context/dh", Some(32)),
+        ("/send/1/context/key", Some(32)),
+        ("/recv/0/context/sid", Some(16)),
+        ("/recv/0/context/dh", Some(32)),
+        ("/recv/0/context/key", Some(32)),
+        ("/flights/1:0/body_hash", Some(32)),
+        ("/flights/1:0/intent_hash", Some(32)),
+        ("/flights/1:0/wire", None),
+        ("/dispositions/0:0/hash", Some(32)),
+        ("/dispositions/0:0/receipt", None),
+        ("/events/e/body", None),
+        ("/completed/c", Some(32)),
+    ];
+    const OWNER_BYTE_FIELDS: &[(&str, Option<usize>)] = &[
+        ("/peers/bob/sid", Some(16)),
+        ("/entries/t/sid", Some(16)),
+        ("/entries/t/content", Some(32)),
+        ("/entries/t/wire_hash", Some(32)),
+    ];
+
+    fn assert_fields(
+        v: &Value,
+        fields: &[(&str, Option<usize>)],
+        refuse: impl Fn(&Value) -> Option<&'static str>,
+        code: Option<&'static str>,
+    ) {
+        for (pointer, fixed) in fields {
+            let text = v
+                .pointer(pointer)
+                .and_then(Value::as_str)
+                .unwrap_or_else(|| panic!("{pointer}: not a string"));
+            let bytes = canonical(text).unwrap_or_else(|| panic!("{pointer}: not canonical"));
+            if let Some(n) = fixed {
+                assert_eq!(bytes.len(), *n, "{pointer}");
+            }
+            assert_eq!(
+                refuse(&set(v.clone(), pointer, as_array(&bytes))),
+                code,
+                "{pointer} as a number array"
+            );
+        }
+    }
+
+    // E1: every census field is a canonical base64 string; the same bytes as a number array are refused.
+    #[test]
+    fn t_e1_transaction_byte_fields_canonical_and_number_arrays_refused() {
+        assert_fields(&control(), TX_BYTE_FIELDS, decode, TAMPERED);
+    }
+    #[test]
+    fn t_e1_owner_byte_fields_canonical_and_number_arrays_refused() {
+        assert_fields(&owner_control(), OWNER_BYTE_FIELDS, own, OWNER_TAMPERED);
+    }
+    #[test]
+    fn t_e1_queued_intent_body_hash_canonical_and_number_array_refused() {
+        let padding = Padding::resolve(2, 4, 3, None, None).unwrap();
+        let raw = QueuedIntent::message("id", b"body", padding)
+            .unwrap()
+            .encode()
+            .unwrap();
+        let v: Value = serde_json::from_slice(&raw).unwrap();
+        let bytes = canonical(v["body_hash"].as_str().unwrap()).unwrap();
+        assert_eq!(bytes.len(), 32);
+        assert!(QueuedIntent::decode(&raw, "id", b"body").is_ok());
+        let arr = set(v, "/body_hash", as_array(&bytes)).to_string();
+        assert_eq!(
+            QueuedIntent::decode(arr.as_bytes(), "id", b"body").err(),
+            INTENT_INVALID
+        );
+        assert!(raw.len() <= 1024);
+    }
+
+    // E1: the non-canonical forms, on a fixed field (16 bytes, 24 characters), a variable field and the option.
+    #[test]
+    fn t_e1_non_canonical_forms_refused() {
+        let v = control();
+        let sid = v["core"]["sid"].as_str().unwrap().to_owned();
+        assert_eq!(sid.len(), 24);
+        let fixed_forms = [
+            ("no padding", sid[..22].to_owned()),
+            ("one pad short", sid[..23].to_owned()),
+            ("extra pad", format!("{sid}=")),
+            ("pad inside", format!("{}={}", &sid[..10], &sid[11..])),
+            ("trailing garbage", format!("{sid}A")),
+            (
+                "wrong length: 32-byte text on a 16-byte field",
+                v["core"]["root"].as_str().unwrap().to_owned(),
+            ),
+            ("non-alphabet", format!("{}-{}", &sid[..10], &sid[11..])),
+            ("space inside", format!("{} {}", &sid[..10], &sid[11..])),
+            ("non-zero trailing bits", format!("{}B==", &sid[..21])),
+            ("empty", String::new()),
+            ("escaped null", "null".to_owned()),
+        ];
+        for (name, form) in fixed_forms {
+            let bad = if name == "escaped null" {
+                Value::Null
+            } else {
+                Value::from(form)
+            };
+            assert_eq!(
+                decode(&set(v.clone(), "/core/sid", bad)),
+                TAMPERED,
+                "{name}"
+            );
+        }
+        let wire = v["flights"]["1:0"]["wire"].as_str().unwrap().to_owned();
+        assert_eq!(wire, "BQ==");
+        for (name, form) in [
+            ("no padding", "BQ"),
+            ("one pad", "BQ="),
+            ("three pads", "BQ==="),
+            ("trailing", "BQ==A"),
+            ("trailing bits", "BR=="),
+            ("space", "B Q=="),
+            ("url-safe", "B_=="),
+            ("number", "5"),
+        ] {
+            let bad = if name == "number" {
+                Value::from(5)
+            } else {
+                Value::from(form)
+            };
+            assert_eq!(
+                decode(&set(v.clone(), "/flights/1:0/wire", bad)),
+                TAMPERED,
+                "{name}"
+            );
+        }
+        // the option: null is None; a number array and a bad string are refused; absent is refused (S1's rule)
+        let t =
+            Transaction::decode(&set(v.clone(), "/core/last_in", Value::Null).to_string()).unwrap();
+        assert!(t.core.last_in.is_none());
+        assert_eq!(
+            decode(&set(v.clone(), "/core/last_in", as_array(&[1; 32]))),
+            TAMPERED
+        );
+        assert_eq!(
+            decode(&set(v.clone(), "/core/last_in", Value::from("AQ=="))),
+            TAMPERED
+        );
+        let mut absent = v.clone();
+        absent["core"].as_object_mut().unwrap().remove("last_in");
+        assert_eq!(decode(&absent), TAMPERED);
+    }
+
+    // E4: lengths 0, 1 and 2 are legitimate variable-field values and round-trip.
+    #[test]
+    fn t_e4_variable_field_lengths_zero_one_two_round_trip() {
+        for (bytes, text) in [(vec![], ""), (vec![9], "CQ=="), (vec![9, 8], "CQg=")] {
+            let mut t = sample();
+            t.core.last_out = bytes.clone();
+            t.flights.get_mut("1:0").unwrap().wire = bytes.clone();
+            t.events.get_mut("e").unwrap().body = bytes.clone();
+            let raw = t.encode().unwrap();
+            let v: Value = serde_json::from_str(&raw).unwrap();
+            assert_eq!(v["core"]["last_out"], text);
+            assert_eq!(v["flights"]["1:0"]["wire"], text);
+            assert_eq!(v["events"]["e"]["body"], text);
+            let back = Transaction::decode(&raw).unwrap();
+            assert_eq!(back.core.last_out, bytes);
+            assert_eq!(back.encode().unwrap(), raw);
+        }
+    }
+
+    // E2: schema 0 and 2 refuse with the new code on each of the four records.
+    fn versions(v: &Value, pointer: &str, refuse: impl Fn(&Value) -> Option<&'static str>) {
+        assert_eq!(
+            v.pointer(pointer).unwrap(),
+            &Value::from(SCHEMA_VERSION),
+            "{pointer} is written as 1"
+        );
+        for bad in [0u64, 2, u64::MAX] {
+            assert_eq!(
+                refuse(&set(v.clone(), pointer, Value::from(bad))),
+                VERSION,
+                "{pointer} = {bad}"
+            );
+        }
+    }
+    #[test]
+    fn t_e2_transaction_schema_0_and_2_refused() {
+        versions(&control(), "/schema", decode);
+    }
+    #[test]
+    fn t_e2_owner_schema_0_and_2_refused() {
+        versions(&owner_control(), "/schema", own);
+    }
+    #[test]
+    fn t_e2_flight_schema_0_and_2_refused() {
+        versions(&control(), "/flights/1:0/schema", decode);
+    }
+    #[test]
+    fn t_e2_disposition_schema_0_and_2_refused() {
+        versions(&control(), "/dispositions/0:0/schema", decode);
+    }
+
+    // E2 DETECTION ORDER: a version-2 record with an extra field is a version, not tampering; the same
+    // extra field at version 1 is tampering. serde_json's Value orders members alphabetically, so the
+    // extra member ("extra" < "schema") precedes the version in the text: the version must still win.
+    fn extra(v: &Value, pointer: &str) -> Value {
+        let mut v = v.clone();
+        v.pointer_mut(pointer)
+            .unwrap()
+            .as_object_mut()
+            .unwrap()
+            .insert("extra".into(), Value::from(0));
+        v
+    }
+    fn version_two_with_extra(
+        v: &Value,
+        pointer: &str,
+        refuse: impl Fn(&Value) -> Option<&'static str>,
+        tampered: Option<&'static str>,
+    ) {
+        let with_extra = extra(v, pointer);
+        assert_eq!(
+            refuse(&with_extra),
+            tampered,
+            "{pointer}: extra field at version 1"
+        );
+        let v2 = set(with_extra, &format!("{pointer}/schema"), Value::from(2));
+        let text = v2.to_string();
+        // the only `"schema":2` is this object's; its `"extra":0` precedes it in the text
+        assert!(
+            text.find("\"extra\":0").unwrap() < text.find("\"schema\":2").unwrap(),
+            "the extra member precedes the version in the text"
+        );
+        assert_eq!(
+            refuse(&v2),
+            VERSION,
+            "{pointer}: version 2 with an extra field"
+        );
+    }
+    #[test]
+    fn t_e2_transaction_version_2_with_extra_field_is_a_version() {
+        version_two_with_extra(&control(), "", decode, TAMPERED);
+    }
+    #[test]
+    fn t_e2_owner_version_2_with_extra_field_is_a_version() {
+        version_two_with_extra(&owner_control(), "", own, OWNER_TAMPERED);
+    }
+    #[test]
+    fn t_e2_flight_version_2_with_extra_field_is_a_version() {
+        version_two_with_extra(&control(), "/flights/1:0", decode, TAMPERED);
+    }
+    #[test]
+    fn t_e2_disposition_version_2_with_extra_field_is_a_version() {
+        version_two_with_extra(&control(), "/dispositions/0:0", decode, TAMPERED);
+    }
+
+    // E2: a missing, repeated, non-integer or negative schema keeps the existing code (no default).
+    fn malformed_schema(
+        v: &Value,
+        pointer: &str,
+        refuse: impl Fn(&Value) -> Option<&'static str>,
+        tampered: Option<&'static str>,
+    ) {
+        let mut absent = v.clone();
+        absent
+            .pointer_mut(pointer)
+            .unwrap()
+            .as_object_mut()
+            .unwrap()
+            .remove("schema")
+            .unwrap();
+        assert_eq!(refuse(&absent), tampered, "{pointer}: absent");
+        for (name, bad) in [
+            ("string", Value::from("1")),
+            ("float", Value::from(1.5)),
+            ("negative", Value::from(-1)),
+            ("null", Value::Null),
+            ("array", Value::from(vec![1])),
+        ] {
+            assert_eq!(
+                refuse(&set(v.clone(), &format!("{pointer}/schema"), bad)),
+                tampered,
+                "{pointer}: {name}"
+            );
+        }
+    }
+    fn duplicated_schema(v: &Value, pointer: &str) -> String {
+        // the object at `pointer` re-spelled with its schema member twice (a Value cannot hold a repeat)
+        let mut marked = v.clone();
+        *marked.pointer_mut(&format!("{pointer}/schema")).unwrap() = Value::from("F04S5_DUP");
+        marked
+            .to_string()
+            .replacen("\"schema\":\"F04S5_DUP\"", "\"schema\":1,\"schema\":1", 1)
+    }
+    #[test]
+    fn t_e2_transaction_malformed_schema_keeps_existing_code() {
+        let v = control();
+        malformed_schema(&v, "", decode, TAMPERED);
+        assert_eq!(
+            Transaction::decode(&duplicated_schema(&v, "")).err(),
+            TAMPERED,
+            "repeated"
+        );
+    }
+    #[test]
+    fn t_e2_owner_malformed_schema_keeps_existing_code() {
+        let v = owner_control();
+        malformed_schema(&v, "", own, OWNER_TAMPERED);
+        assert_eq!(
+            CapacityOwner::decode(&duplicated_schema(&v, "")).err(),
+            OWNER_TAMPERED,
+            "repeated"
+        );
+    }
+    #[test]
+    fn t_e2_flight_and_disposition_malformed_schema_keep_existing_code() {
+        let v = control();
+        malformed_schema(&v, "/flights/1:0", decode, TAMPERED);
+        malformed_schema(&v, "/dispositions/0:0", decode, TAMPERED);
+        assert_eq!(
+            Transaction::decode(&duplicated_schema(&v, "/flights/1:0")).err(),
+            TAMPERED,
+            "repeated"
+        );
+        assert_eq!(
+            Transaction::decode(&duplicated_schema(&v, "/dispositions/0:0")).err(),
+            TAMPERED,
+            "repeated"
+        );
+    }
+
+    // E2: the writers put the version first in every record and nested record.
+    #[test]
+    fn t_e2_schema_is_the_first_member_written() {
+        let raw = sample().encode().unwrap();
+        assert!(
+            raw.starts_with("{\"schema\":1,\"version\":\"NA0780-DIR-INTEGRATION-03\","),
+            "{}",
+            &raw[..64]
+        );
+        assert!(raw.contains("\"flights\":{\"1:0\":{\"schema\":1,\"body_hash\":\""));
+        assert!(raw.contains("\"dispositions\":{\"0:0\":{\"schema\":1,\"hash\":\""));
+        let owner = serde_json::to_string(&owner()).unwrap();
+        assert!(
+            owner.starts_with("{\"schema\":1,\"generation\":1,"),
+            "{}",
+            &owner[..40]
+        );
+    }
+
+    // I04: the encoding round-trips byte-exact over the MV-2 count maxima and the one-entry record.
+    fn count_maxima() -> Transaction {
+        let mut t = sample();
+        let sid = t.core.sid;
+        t.send = BTreeMap::from([(1, receipts(sid, 1)), (2, receipts(sid, 2))]);
+        t.recv = BTreeMap::from([(0, receipts(sid, 0))]);
+        t.flights = (0..64)
+            .map(|i| (slot_key(1, i), flight(1, i, &format!("m{i}"))))
+            .collect();
+        t.flights.insert(slot_key(2, 0), flight(2, 0, ""));
+        t.events = (0..64)
+            .map(|i| (format!("e{i}"), event(&format!("e{i}"))))
+            .collect();
+        t.completed = (0..64).map(|i| (format!("c{i}"), fresh())).collect();
+        t
+    }
+    #[test]
+    fn t_i04_round_trip_byte_exact_over_the_count_maxima() {
+        for t in [sample(), count_maxima()] {
+            let raw = t.encode().unwrap();
+            assert_eq!(Transaction::decode(&raw).unwrap().encode().unwrap(), raw);
+            // no census field is a number array anywhere in the tree
+            let v: Value = serde_json::from_str(&raw).unwrap();
+            fn walk(v: &Value, path: &str) {
+                match v {
+                    Value::Object(m) => m.iter().for_each(|(k, x)| walk(x, &format!("{path}/{k}"))),
+                    Value::Array(a) => {
+                        assert!(path.ends_with("/holes"), "{path}: an array outside holes");
+                        a.iter().for_each(|x| walk(x, path));
+                    }
+                    _ => {}
+                }
+            }
+            walk(&v, "");
+        }
+        let owner_raw = serde_json::to_string(&owner()).unwrap();
+        assert_eq!(
+            serde_json::to_string(&CapacityOwner::decode(&owner_raw).unwrap()).unwrap(),
+            owner_raw
+        );
+    }
+
+    // E4: the count-maxima record shrinks (base 36,403 bytes, step1/size_probe_base.txt) and the paper
+    // bound of core_context_future (288,920) holds at the maximum-width core with margin.
+    #[test]
+    fn t_e4_sizes_shrink_and_the_paper_bound_holds() {
+        let after = count_maxima().encode().unwrap().len();
+        println!("F04S5_SIZE count_maxima_record {after}");
+        assert!(after < 36_403, "{after}");
+        let mut t = sample();
+        let sid = t.core.sid;
+        let mut e = |id: u64, skipped: u32| {
+            let mut e = epoch(id);
+            e.next = u32::MAX;
+            e.terminal = Some(u32::MAX);
+            e.skipped = (0..skipped).map(|i| (u32::MAX - i, fresh())).collect();
+            e
+        };
+        t.core.seq = u64::MAX;
+        t.core.local_next = u32::MAX;
+        t.core.local_consumed_prefix = u32::MAX;
+        t.core.peer_max = u32::MAX;
+        t.core.peer_selected_prefix = u32::MAX;
+        t.core.active_recv = Some(u64::MAX);
+        t.core.send = Some(e(u64::MAX, 0));
+        t.core.recv = BTreeMap::from([
+            (u64::MAX - 1, e(u64::MAX - 1, 8)),
+            (u64::MAX, e(u64::MAX, 8)),
+        ]);
+        t.core.local = BTreeMap::from([(
+            u32::MAX,
+            LocalTarget {
+                pk: vec![255; 1184],
+                sk: vec![255; 2400],
+            },
+        )]);
+        t.core.peer = BTreeMap::from([(u32::MAX, vec![255; 1184])]);
+        t.core.last_out = vec![255; 65536];
+        let mut r = |g: u64| {
+            let mut r = receipts(sid, g);
+            r.next = u32::MAX;
+            r.prefix = u32::MAX;
+            r.confirmed = u32::MAX;
+            r.terminal = Some(u32::MAX);
+            r.holes.clear();
+            r
+        };
+        t.send = BTreeMap::from([(u64::MAX - 1, r(u64::MAX - 1)), (u64::MAX, r(u64::MAX))]);
+        t.recv = BTreeMap::from([(u64::MAX - 2, r(u64::MAX - 2))]);
+        t.flights.clear();
+        t.dispositions.clear();
+        t.events.clear();
+        t.completed.clear();
+        t.generation = u64::MAX;
+        t.recv_floor = Some(u64::MAX);
+        t.send_floor = Some(u64::MAX);
+        t.since_boundary = u32::MAX;
+        t.last_boundary = u64::MAX;
+        let actual = serde_json::to_vec(&t).unwrap().len();
+        let future = t.core_context_future().unwrap();
+        println!("F04S5_SIZE max_width_core_context_actual {actual} core_context_future {future}");
+        assert!(future > 671, "the base's margin was 671 bytes");
+    }
+
+    // E5: the ticket (a bare [u8;16] in a tuple) and the intent-hash input (Padding) serialize as before.
+    #[test]
+    fn t_e5_ticket_and_padding_serialization_unchanged() {
+        let sid: [u8; 16] = std::array::from_fn(|i| i as u8 + 1);
+        let ticket = serde_json::to_string(&("peer", sid, 0u8, "id")).unwrap();
+        assert_eq!(
+            ticket,
+            "[\"peer\",[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],0,\"id\"]"
+        );
+        let padding = Padding {
+            profile: 1,
+            maximum: 4096,
+            size: 1024,
+        };
+        assert_eq!(
+            serde_json::to_vec(&padding).unwrap(),
+            b"{\"profile\":1,\"maximum\":4096,\"size\":1024}"
+        );
     }
 }

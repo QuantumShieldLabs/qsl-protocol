@@ -486,6 +486,11 @@ fn read_record(
     if rec.msg_id != msg_id || rec.seq != seq {
         return Err(MSGQUEUE_RECORD_TAMPERED);
     }
+    // F04/S4b N3 (I-C2): the one record writer forms the directory and the AAD's contact key from
+    // the record's own peer, so a record naming another contact is not this directory's record.
+    if contact_key(&rec.peer) != ck {
+        return Err(MSGQUEUE_RECORD_TAMPERED);
+    }
     Ok(rec)
 }
 
@@ -2491,6 +2496,61 @@ mod f04_s2_strict_tests {
         assert_eq!(
             load_contact(cfg, "alice").unwrap()[0].attempts,
             next.attempts
+        );
+    }
+}
+
+// NA-0788 F04/S4b N3 (I-C2): a record whose `peer` names another contact's directory is refused on
+// read with the reader's existing code; the one writer forms both from the record's own peer.
+#[cfg(test)]
+mod f04_s4b_queue_tests {
+    use super::*;
+    use rand_core::{OsRng, RngCore};
+
+    const ID: &str = "0123456789abcdef0123456789abcdef";
+    const SEQ: u64 = 4;
+
+    fn record(peer: &str) -> QueuedMessage {
+        QueuedMessage {
+            v: RECORD_VERSION,
+            msg_id: ID.to_string(),
+            peer: peer.to_string(),
+            seq: SEQ,
+            state: MsgState::Queued,
+            paused_cause: None,
+            body: b"hi".to_vec(),
+            ack_map: BTreeMap::new(),
+            expires_at: None,
+            enqueued_at: 1,
+            attempts: 0,
+            next_attempt_at: 1,
+            last_error: None,
+            ciphertext: None,
+            next_state: None,
+            channel: None,
+            directional_wire_hash: None,
+            directional_intent: None,
+        }
+    }
+    /// A record carrying `peer`, sealed under `directory`'s AAD and read from that directory.
+    fn read_in(directory: &str, peer: &str) -> Result<QueuedMessage, &'static str> {
+        let key: [u8; STORE_KEY_LEN] = std::array::from_fn(|_| OsRng.next_u32() as u8);
+        let dir = tempfile::tempdir().unwrap();
+        let ck = contact_key(directory);
+        let path = dir.path().join(record_name(SEQ, ID));
+        let sealed = encrypt_record(&key, &record_aad(&ck, ID, SEQ), &record(peer)).unwrap();
+        fs::write(&path, &sealed).unwrap();
+        let out = read_record(&key, &ck, &path);
+        assert_eq!(fs::read(&path).unwrap(), sealed, "the reader never writes");
+        out
+    }
+
+    #[test]
+    fn t_n3_queue_peer_is_its_directory() {
+        assert_eq!(read_in("alice", "alice").unwrap().peer, "alice");
+        assert_eq!(
+            read_in("alice", "bob").err(),
+            Some(MSGQUEUE_RECORD_TAMPERED)
         );
     }
 }

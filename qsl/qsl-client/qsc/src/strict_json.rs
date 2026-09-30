@@ -79,3 +79,38 @@ where
 {
     T::deserialize(deserializer)
 }
+
+/// A set decoded from a JSON array whose elements are unique (NA-0788 F04/S4b N2, RULING_NA0788_S1
+/// R3): a repeated element is contradictory and refused, never merged into one. Order is not
+/// checked; the writers emit a set in ascending order.
+pub(crate) fn unique_set<'de, D, T>(
+    deserializer: D,
+) -> Result<std::collections::BTreeSet<T>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: Deserialize<'de> + Ord,
+{
+    struct Unique<T>(PhantomData<T>);
+    impl<'de, T> Visitor<'de> for Unique<T>
+    where
+        T: Deserialize<'de> + Ord,
+    {
+        type Value = std::collections::BTreeSet<T>;
+        fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            f.write_str("an array with unique elements")
+        }
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::SeqAccess<'de>,
+        {
+            let mut elements = std::collections::BTreeSet::new();
+            while let Some(element) = seq.next_element::<T>()? {
+                if !elements.insert(element) {
+                    return Err(A::Error::custom("duplicate set element"));
+                }
+            }
+            Ok(elements)
+        }
+    }
+    deserializer.deserialize_seq(Unique(PhantomData))
+}

@@ -3529,7 +3529,7 @@ mod f04_s5_encoding_tests {
         assert!(after < 36_403, "{after}");
         let mut t = sample();
         let sid = t.core.sid;
-        let mut e = |id: u64, skipped: u32| {
+        let e = |id: u64, skipped: u32| {
             let mut e = epoch(id);
             e.next = u32::MAX;
             e.terminal = Some(u32::MAX);
@@ -3556,7 +3556,7 @@ mod f04_s5_encoding_tests {
         )]);
         t.core.peer = BTreeMap::from([(u32::MAX, vec![255; 1184])]);
         t.core.last_out = vec![255; 65536];
-        let mut r = |g: u64| {
+        let r = |g: u64| {
             let mut r = receipts(sid, g);
             r.next = u32::MAX;
             r.prefix = u32::MAX;

@@ -86,6 +86,29 @@ pub fn parse_vault_envelope(bytes: &[u8]) -> Result<VaultEnvelopeView, &'static 
     })
 }
 
+// NA-0788 F04/S6 (SPLIT S11a; C01 row 13 / A11): the successor envelope magic and its classifier,
+// beside the live ones and UNCALLED by the product until S7's profile cut. VAULT_MAGIC,
+// classify_vault_magic and parse_vault_envelope above are unchanged (S6 P1): the live parser still
+// refuses QSCV04 as unknown, and only the S6 opener in vault/mod.rs reads the two items below.
+/// C01 row 13: the magic a QSCV04 envelope carries. NOT the live magic (that is `VAULT_MAGIC`).
+#[allow(dead_code)] // removed at S7 (F-23)
+pub const VAULT_MAGIC_V4: &[u8; 6] = b"QSCV04";
+
+/// C01 A11: QSCV04 is current; QSCV01, QSCV02 and QSCV03 are recognised-old (the live magic
+/// included: a -03 vault under the successor is refused by name, never read); anything else is
+/// unknown. Used only by the S6 opener, which returns `Unauthenticated` for every class but
+/// `Current` before any key is derived (the class is kept for S7's error mapping).
+#[allow(dead_code)] // removed at S7 (F-23)
+pub fn classify_vault_magic_v4(magic: &[u8]) -> VaultMagicClass {
+    if magic == VAULT_MAGIC_V4 {
+        VaultMagicClass::Current
+    } else if magic == b"QSCV01" || magic == b"QSCV02" || magic == b"QSCV03" {
+        VaultMagicClass::KnownOld
+    } else {
+        VaultMagicClass::Unknown
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -132,5 +155,45 @@ mod f04_s3b_envelope_tests {
                 "vault_parse_failed"
             );
         }
+    }
+}
+
+// NA-0788 F04/S6: the QSCV04 classifier, and the live classifier pinned unchanged beside it (P1).
+#[cfg(test)]
+mod f04_s6_magic_tests {
+    use super::*;
+
+    #[test]
+    fn t_s6_classify_v4_current_old_and_unknown() {
+        assert_eq!(VAULT_MAGIC_V4, b"QSCV04");
+        assert_eq!(classify_vault_magic_v4(b"QSCV04"), VaultMagicClass::Current);
+        for old in [&b"QSCV01"[..], b"QSCV02", b"QSCV03"] {
+            assert_eq!(classify_vault_magic_v4(old), VaultMagicClass::KnownOld);
+        }
+        for unknown in [
+            &b"QSCV05"[..],
+            b"QSCV00",
+            b"QSCV4",
+            b"QSCV04\0",
+            b"",
+            b"qscv04",
+            b"XXXXXX",
+        ] {
+            assert_eq!(classify_vault_magic_v4(unknown), VaultMagicClass::Unknown);
+        }
+    }
+
+    /// P1: the live magic and classifier are what they were -- QSCV03 current, QSCV04 unknown to
+    /// the live parser -- so nothing the product calls changed at S6.
+    #[test]
+    fn t_s6_live_magic_and_classifier_unchanged() {
+        assert_eq!(VAULT_MAGIC, b"QSCV03");
+        assert_eq!(classify_vault_magic(b"QSCV03"), VaultMagicClass::Current);
+        assert_eq!(classify_vault_magic(b"QSCV04"), VaultMagicClass::Unknown);
+        assert_eq!(classify_vault_magic(b"QSCV02"), VaultMagicClass::KnownOld);
+        let mut v4 = VAULT_MAGIC_V4.to_vec();
+        v4.extend_from_slice(&[1, 16, 12]);
+        v4.extend_from_slice(&[0u8; 16 + 16 + 12]);
+        assert_eq!(parse_vault_envelope(&v4).unwrap_err(), "vault_parse_failed");
     }
 }

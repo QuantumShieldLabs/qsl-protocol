@@ -373,10 +373,28 @@ pub(crate) mod b64 {
             write!(f, "canonical base64 of {N} bytes")
         }
         fn visit_str<E: Error>(self, text: &str) -> Result<[u8; N], E> {
-            let bytes = bytes(text, Some(N)).ok_or_else(|| E::custom(NOT_CANONICAL))?;
-            let mut out = Zeroizing::new([0u8; N]);
-            out.copy_from_slice(&bytes);
-            Ok(*out)
+            fixed::<N, E>(text).map(|out| *out)
+        }
+    }
+    /// The `N` bytes `text` canonically encodes, in zeroizing storage. The copy into the array is
+    /// FALLIBLE (NA-0788 F04/S6, RULING_NA0788_S5b_MERGE R2 / SR-15 F4): a length the check inside
+    /// `bytes` did not stop refuses as NOT_CANONICAL here; nothing in the copy can panic.
+    fn fixed<const N: usize, E: Error>(text: &str) -> Result<Zeroizing<[u8; N]>, E> {
+        let bytes = bytes(text, Some(N)).ok_or_else(|| E::custom(NOT_CANONICAL))?;
+        <[u8; N]>::try_from(bytes.as_slice())
+            .map(Zeroizing::new)
+            .map_err(|_| E::custom(NOT_CANONICAL))
+    }
+    /// The fixed form decoded INTO zeroizing storage (NA-0788 F04/S6): for a key member of the v5
+    /// vault payload, whose bytes must never rest in a plain array.
+    struct FixedZeroizing<const N: usize>;
+    impl<'de, const N: usize> Visitor<'de> for FixedZeroizing<N> {
+        type Value = Zeroizing<[u8; N]>;
+        fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "canonical base64 of {N} bytes")
+        }
+        fn visit_str<E: Error>(self, text: &str) -> Result<Zeroizing<[u8; N]>, E> {
+            fixed::<N, E>(text)
         }
     }
     struct Variable;
@@ -421,6 +439,17 @@ pub(crate) mod b64 {
         }
         fn decode<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
             deserializer.deserialize_str(Variable)
+        }
+    }
+    /// NA-0788 F04/S6: the ONE `Bytes` impl for a fixed field held in zeroizing storage (the v5
+    /// payload's checkpoint_mac_key and nv_auth): its text is canonical base64 like any fixed field,
+    /// and its bytes are decoded straight into a `Zeroizing` array.
+    impl<const N: usize> Bytes for Zeroizing<[u8; N]> {
+        fn encode<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            serializer.serialize_str(&text(self.as_slice()))
+        }
+        fn decode<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            deserializer.deserialize_str(FixedZeroizing::<N>)
         }
     }
     impl<T: Bytes> Bytes for Option<T> {
@@ -589,5 +618,228 @@ mod f04_s5_codec_tests {
             assert!(decode::<Vec<u8>>(form).is_err(), "{name}");
         }
         assert_eq!(decode::<[u8; 16]>(&canonical).unwrap(), [7u8; 16]);
+    }
+}
+
+// NA-0788 F04/S6, the S5b rider (RULING_NA0788_S5b_MERGE R2; SR-15 F4, F5, F7): the witnesses the
+// S5b read found missing, on the codec and the two readers directly.
+#[cfg(test)]
+mod f04_s6_rider_tests {
+    use super::b64::Bytes;
+    use super::{deserialize_nested, deserialize_top, is_version_unsupported, Versioned};
+    use base64::Engine as _;
+    use zeroize::Zeroizing;
+
+    fn decode<T: Bytes>(text: &str) -> Result<T, serde_json::Error> {
+        T::decode(&mut serde_json::Deserializer::from_str(
+            &serde_json::to_string(text).unwrap(),
+        ))
+    }
+    fn encode<T: Bytes>(value: &T) -> String {
+        let mut out = Vec::new();
+        value
+            .encode(&mut serde_json::Serializer::new(&mut out))
+            .unwrap();
+        String::from_utf8(out).unwrap()
+    }
+
+    /// F4: a text of the RIGHT length for a fixed field that decodes to the WRONG number of bytes --
+    /// 24 characters with no pad (18 bytes) or one pad (17) for 16 bytes, 44 with no pad (33) or two
+    /// pads (31) for 32 -- refuses as not canonical and never panics in the copy into the array.
+    #[test]
+    fn t_e1_fixed_field_length_forms_refused_without_panic() {
+        let engine = base64::engine::general_purpose::STANDARD;
+        let sixteen = engine.encode([7u8; 16]);
+        let thirty_two = engine.encode([9u8; 32]);
+        assert_eq!((sixteen.len(), thirty_two.len()), (24, 44));
+        assert!(sixteen.ends_with("==") && thirty_two.ends_with('='));
+        let forms16 = [
+            (
+                "no pad, 24 chars (18 bytes)",
+                format!("{}AA", &sixteen[..22]),
+            ),
+            (
+                "one pad, 24 chars (17 bytes)",
+                format!("{}A=", &sixteen[..22]),
+            ),
+        ];
+        let forms32 = [
+            (
+                "no pad, 44 chars (33 bytes)",
+                format!("{}A", &thirty_two[..43]),
+            ),
+            (
+                "two pads, 44 chars (31 bytes)",
+                format!("{}==", &thirty_two[..42]),
+            ),
+        ];
+        for (name, form) in &forms16 {
+            assert_eq!(form.len(), 24, "{name}");
+            let bytes = engine.decode(form).map(|b| b.len());
+            println!("S6PROBE f4 form={name} engine={bytes:?}");
+            assert!(decode::<[u8; 16]>(form).is_err(), "{name}");
+            assert!(
+                decode::<Zeroizing<[u8; 16]>>(form).is_err(),
+                "{name} (zeroizing)"
+            );
+        }
+        for (name, form) in &forms32 {
+            assert_eq!(form.len(), 44, "{name}");
+            let bytes = engine.decode(form).map(|b| b.len());
+            println!("S6PROBE f4 form={name} engine={bytes:?}");
+            assert!(decode::<[u8; 32]>(form).is_err(), "{name}");
+            assert!(
+                decode::<Zeroizing<[u8; 32]>>(form).is_err(),
+                "{name} (zeroizing)"
+            );
+        }
+        let err = decode::<[u8; 16]>(&forms16[0].1).unwrap_err();
+        assert!(
+            err.to_string()
+                .starts_with("byte field is not canonical base64"),
+            "{err}"
+        );
+        assert_eq!(decode::<[u8; 16]>(&sixteen).unwrap(), [7u8; 16]);
+        assert_eq!(decode::<[u8; 32]>(&thirty_two).unwrap(), [9u8; 32]);
+    }
+
+    /// S6: the fixed form decoded into zeroizing storage round-trips, demands its length, and its
+    /// text is the same canonical text as the plain fixed form's.
+    #[test]
+    fn t_s6_zeroizing_fixed_field_round_trips() {
+        let key = Zeroizing::new([0x5au8; 32]);
+        let text = encode(&key);
+        assert_eq!(text, encode(&[0x5au8; 32]));
+        assert_eq!(text.len(), 46);
+        let back: Zeroizing<[u8; 32]> = decode(&text[1..45]).unwrap();
+        assert_eq!(*back, [0x5au8; 32]);
+        assert!(
+            decode::<Zeroizing<[u8; 16]>>(&text[1..45]).is_err(),
+            "wrong length"
+        );
+        assert!(decode::<Zeroizing<[u8; 32]>>("").is_err());
+        let source = include_str!("strict_json.rs");
+        let start = source.find("pub(crate) mod b64 {").unwrap();
+        let module = &source[start..start + source[start..].find("\n}\n").unwrap()];
+        let code: Vec<&str> = module
+            .lines()
+            .filter(|l| !l.trim_start().starts_with("//"))
+            .collect();
+        assert_eq!(
+            code.iter()
+                .filter(|l| l.contains("copy_from_slice"))
+                .count(),
+            0,
+            "the copy is fallible (F4)"
+        );
+        assert_eq!(module.matches("<[u8; N]>::try_from(").count(), 1);
+        assert_eq!(
+            module
+                .matches("impl<const N: usize> Bytes for Zeroizing<[u8; N]>")
+                .count(),
+            1
+        );
+    }
+
+    /// A probe record over the same readers the four stored records use.
+    #[derive(Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct ProbeV1 {
+        #[serde(with = "super::b64")]
+        wire: Vec<u8>,
+        slot: u32,
+    }
+    impl Versioned for ProbeV1 {
+        fn fields<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            <Self as serde::Deserialize>::deserialize(deserializer)
+        }
+        fn serialize_fields<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+            serde::Serialize::serialize(self, serializer)
+        }
+    }
+    fn top(text: &str) -> Result<ProbeV1, serde_json::Error> {
+        deserialize_top(&mut serde_json::Deserializer::from_str(text))
+    }
+    fn nested(text: &str) -> Result<ProbeV1, serde_json::Error> {
+        deserialize_nested(&mut serde_json::Deserializer::from_str(text))
+    }
+
+    /// F5: the top-level reader's backstop, reached DIRECTLY (no peek): schema 2 with no extra member
+    /// is the version code wherever `schema` sits; the same on the real CapacityOwner through
+    /// serde_json::from_str, which is the reader without CapacityOwner::decode's peek.
+    #[test]
+    fn t_e2_backstop_refuses_schema_2_without_extra_member() {
+        assert_eq!(
+            top(r#"{"schema":1,"wire":"BQ==","slot":1}"#).unwrap(),
+            ProbeV1 {
+                wire: vec![5],
+                slot: 1
+            }
+        );
+        for text in [
+            r#"{"schema":2,"wire":"BQ==","slot":1}"#,
+            r#"{"wire":"BQ==","slot":1,"schema":2}"#,
+            r#"{"wire":"BQ==","schema":2,"slot":1}"#,
+            r#"{"schema":0,"wire":"BQ==","slot":1}"#,
+        ] {
+            let err = top(text).unwrap_err();
+            assert!(is_version_unsupported(&err), "{text}: {err}");
+        }
+        let err = top(r#"{"wire":"BQ==","slot":1}"#).unwrap_err();
+        assert!(
+            !is_version_unsupported(&err),
+            "absent schema keeps the existing code: {err}"
+        );
+        let owner = serde_json::to_string(&crate::protocol_state::CapacityOwner {
+            generation: 3,
+            peers: Default::default(),
+            entries: Default::default(),
+        })
+        .unwrap();
+        assert!(owner.starts_with("{\"schema\":1,"), "{owner}");
+        let two = owner.replacen("{\"schema\":1,", "{\"schema\":2,", 1);
+        let err = serde_json::from_str::<crate::protocol_state::CapacityOwner>(&two)
+            .err()
+            .unwrap();
+        assert!(is_version_unsupported(&err), "{err}");
+        let inner = owner
+            .strip_prefix("{\"schema\":1,")
+            .unwrap()
+            .strip_suffix('}')
+            .unwrap();
+        let last = format!("{{{inner},\"schema\":2}}");
+        let err = serde_json::from_str::<crate::protocol_state::CapacityOwner>(&last)
+            .err()
+            .unwrap();
+        assert!(is_version_unsupported(&err), "{last}: {err}");
+        assert!(serde_json::from_str::<crate::protocol_state::CapacityOwner>(&owner).is_ok());
+    }
+
+    /// F7: the nested reader refuses a repeated NON-schema member (last-wins would read it), with
+    /// the duplicate-key message every nested error maps to the record's tampered code by.
+    #[test]
+    fn t_e2_repeated_non_schema_nested_member_refused() {
+        assert_eq!(
+            nested(r#"{"schema":1,"wire":"BQ==","slot":1}"#).unwrap(),
+            ProbeV1 {
+                wire: vec![5],
+                slot: 1
+            }
+        );
+        for text in [
+            r#"{"schema":1,"wire":"BQ==","slot":1,"wire":"BQ=="}"#,
+            r#"{"schema":1,"wire":"BQ==","wire":"BQ==","slot":1}"#,
+            r#"{"schema":1,"wire":"BQ==","slot":1,"slot":1}"#,
+            r#"{"slot":1,"schema":1,"slot":2,"wire":"BQ=="}"#,
+        ] {
+            let err = nested(text).unwrap_err();
+            assert!(
+                err.to_string().starts_with("duplicate map key"),
+                "{text}: {err}"
+            );
+            assert!(!is_version_unsupported(&err));
+        }
+        let err = nested(r#"{"schema":1,"wire":"BQ==","slot":1,"schema":1}"#).unwrap_err();
+        assert!(err.to_string().starts_with("duplicate map key"), "{err}");
     }
 }

@@ -174,6 +174,35 @@ const MAX_RECORD: usize = 16 * 1024 * 1024;
 const MAX_BYTES: usize = 4 * 1024 * 1024;
 const WINDOW: u32 = 16;
 
+// NA-0788 F04/S3b N3 (RULING_NA0788_S3_stop R5): the entry counts Transaction::bounds() states,
+// enforced WHILE decoding -- the entry after the limit refuses before its value is built.
+// bounds() keeps every check (the combined send + recv 3 and the named 64 / maintenance 1
+// split of the flights stay there); dispositions have no stated count and are not counted.
+fn at_most_3<'de, D, K, V>(deserializer: D) -> Result<BTreeMap<K, V>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    K: Deserialize<'de> + Ord,
+    V: Deserialize<'de>,
+{
+    crate::strict_json::unique_map_at_most(deserializer, 3)
+}
+fn at_most_64<'de, D, K, V>(deserializer: D) -> Result<BTreeMap<K, V>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    K: Deserialize<'de> + Ord,
+    V: Deserialize<'de>,
+{
+    crate::strict_json::unique_map_at_most(deserializer, 64)
+}
+fn at_most_65<'de, D, K, V>(deserializer: D) -> Result<BTreeMap<K, V>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    K: Deserialize<'de> + Ord,
+    V: Deserialize<'de>,
+{
+    crate::strict_json::unique_map_at_most(deserializer, 64 + 1)
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct EpochReceipts {
@@ -248,17 +277,17 @@ pub(crate) struct Transaction {
     useful_send_closure: bool,
     pub(crate) generation: u64,
     pub(crate) core: Core,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    #[serde(deserialize_with = "at_most_3")]
     send: BTreeMap<u64, EpochReceipts>,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    #[serde(deserialize_with = "at_most_3")]
     recv: BTreeMap<u64, EpochReceipts>,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    #[serde(deserialize_with = "at_most_65")]
     flights: BTreeMap<String, Flight>,
     #[serde(deserialize_with = "crate::strict_json::unique_map")]
     dispositions: BTreeMap<String, Disposition>,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    #[serde(deserialize_with = "at_most_64")]
     events: BTreeMap<String, Application>,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    #[serde(deserialize_with = "at_most_64")]
     completed: BTreeMap<String, Key>,
     request_sent: bool,
     #[serde(deserialize_with = "crate::strict_json::required")]
@@ -495,7 +524,14 @@ impl Transaction {
         if raw.len() > MAX_RECORD {
             return Err("TRANSACTION_CAPACITY");
         }
-        let value: Self = serde_json::from_str(raw).map_err(|_| "TRANSACTION_TAMPERED")?;
+        // F04/S3b N3: a map over its count stops the decode with the capacity code.
+        let value: Self = serde_json::from_str(raw).map_err(|e| {
+            if crate::strict_json::is_over_limit(&e) {
+                "TRANSACTION_CAPACITY"
+            } else {
+                "TRANSACTION_TAMPERED"
+            }
+        })?;
         if value.version.as_bytes() != INTEGRATION_PROFILE {
             return Err("TRANSACTION_PROFILE");
         }
@@ -1997,5 +2033,255 @@ mod f04_s1_strict_tests {
             let after = std::fs::metadata(&path).unwrap().modified().unwrap();
             assert_eq!(after, mtime, "{name}: file mtime");
         }
+    }
+}
+
+// NA-0788 F04/S3b N3: Transaction's entry counts are enforced WHILE decoding. The probe: an unknown
+// field placed after every map. At the limit the decode reaches it (TRANSACTION_TAMPERED); one
+// over, the decode stops at the map with TRANSACTION_CAPACITY before the probe is reached -- a
+// check made only after the decode (bounds()) could not fire first.
+#[cfg(test)]
+mod f04_s3b_count_tests {
+    use super::*;
+    use crate::directional_core::{Epoch, LocalTarget};
+    use rand_core::{OsRng, RngCore};
+    use serde_json::Value;
+    use std::cell::Cell;
+
+    fn fresh<const N: usize>() -> [u8; N] {
+        std::array::from_fn(|_| OsRng.next_u32() as u8)
+    }
+    fn epoch(id: u64) -> Epoch {
+        Epoch {
+            id,
+            dir: 0,
+            dh: fresh(),
+            ec: fresh(),
+            pq: fresh(),
+            hk: fresh(),
+            adv: fresh(),
+            next: 2,
+            terminal: Some(1),
+            skipped: BTreeMap::from([(1, fresh())]),
+        }
+    }
+    fn receipts(sid: [u8; 16], epoch: u64) -> EpochReceipts {
+        let context = ReceiptContext {
+            sid,
+            direction: 0,
+            epoch,
+            dh: fresh(),
+            key: fresh(),
+        };
+        EpochReceipts {
+            context,
+            next: 1,
+            prefix: 1,
+            confirmed: 0,
+            terminal: Some(1),
+            holes: BTreeSet::from([3]),
+        }
+    }
+    /// A valid record with one entry in every map.
+    fn sample() -> Value {
+        let sid = fresh();
+        let core = Core {
+            sid,
+            role: 0,
+            root: fresh(),
+            seq: 1,
+            digest: fresh(),
+            owner: 0,
+            own_priv: fresh(),
+            own_pub: fresh(),
+            peer_pub: fresh(),
+            send: Some(epoch(1)),
+            recv: BTreeMap::from([(0, epoch(0))]),
+            active_recv: Some(0),
+            local: BTreeMap::from([(
+                0,
+                LocalTarget {
+                    pk: vec![1],
+                    sk: vec![2],
+                },
+            )]),
+            local_next: 1,
+            local_consumed_prefix: 0,
+            peer: BTreeMap::from([(0, vec![3])]),
+            peer_max: 1,
+            peer_selected_prefix: 0,
+            last_in: Some(fresh()),
+            last_out: vec![4],
+        };
+        let flight = Flight {
+            body_hash: fresh(),
+            intent_hash: fresh(),
+            epoch: 1,
+            slot: 0,
+            id: "m".into(),
+            wire: vec![5],
+            accepted: false,
+            closure_proof: String::new(),
+        };
+        let disposition = Disposition {
+            hash: fresh(),
+            receipt: vec![6],
+            response_pending: false,
+        };
+        let event = Application {
+            id: "e".into(),
+            body: vec![7],
+        };
+        let t = Transaction {
+            version: String::from_utf8(INTEGRATION_PROFILE.to_vec()).unwrap(),
+            reserve: None,
+            received_reference: None,
+            useful_send_closure: false,
+            generation: 1,
+            core,
+            send: BTreeMap::from([(1, receipts(sid, 1))]),
+            recv: BTreeMap::from([(0, receipts(sid, 0))]),
+            flights: BTreeMap::from([(slot_key(1, 0), flight)]),
+            dispositions: BTreeMap::from([(slot_key(0, 0), disposition)]),
+            events: BTreeMap::from([("e".into(), event)]),
+            completed: BTreeMap::from([("c".into(), fresh())]),
+            request_sent: false,
+            recv_floor: Some(0),
+            send_floor: Some(0),
+            demand: false,
+            since_boundary: 0,
+            last_boundary: 0,
+        };
+        let v = serde_json::to_value(&t).unwrap();
+        assert!(Transaction::decode(&v.to_string()).is_ok(), "control arm");
+        v
+    }
+    /// `map` holding `n` copies of its one entry, the i-th under `key(i)`.
+    fn resized(mut v: Value, map: &str, n: usize, key: impl Fn(usize) -> String) -> Value {
+        let entries = v[map].as_object_mut().unwrap();
+        let entry = entries.values().next().unwrap().clone();
+        entries.clear();
+        for i in 0..n {
+            entries.insert(key(i), entry.clone());
+        }
+        v
+    }
+    fn decode(v: &Value) -> Option<&'static str> {
+        Transaction::decode(&v.to_string()).err()
+    }
+    fn probed(mut v: Value) -> Value {
+        let fields = v.as_object_mut().unwrap();
+        assert!(fields
+            .insert("zz_after_maps".into(), Value::from(0))
+            .is_none());
+        v
+    }
+    fn assert_limit(at: Value, over: Value) {
+        assert_eq!(decode(&at), None, "at the limit");
+        assert_eq!(
+            decode(&probed(at)),
+            Some("TRANSACTION_TAMPERED"),
+            "probe reached"
+        );
+        assert_eq!(
+            decode(&probed(over)),
+            Some("TRANSACTION_CAPACITY"),
+            "stopped at the map"
+        );
+    }
+    fn named(i: usize) -> String {
+        format!("n{i}")
+    }
+
+    #[test]
+    fn t_n3_events_limit() {
+        let v = sample();
+        assert_limit(
+            resized(v.clone(), "events", 64, named),
+            resized(v, "events", 65, named),
+        );
+    }
+
+    #[test]
+    fn t_n3_completed_limit() {
+        let v = sample();
+        let over = resized(v.clone(), "completed", 65, named);
+        assert_limit(resized(v, "completed", 64, named), over);
+    }
+
+    #[test]
+    fn t_n3_flights_total_limit() {
+        let v = sample();
+        let with_maintenance = |n: usize| {
+            let mut flights = resized(v.clone(), "flights", n, |i| slot_key(1, i as u32));
+            flights["flights"]["1:0"]["id"] = Value::from("");
+            flights
+        };
+        assert_limit(with_maintenance(64 + 1), with_maintenance(64 + 2));
+    }
+
+    #[test]
+    fn t_n3_send_limit() {
+        let mut v = sample();
+        v["recv"] = Value::Object(Default::default());
+        let epochs = |i: usize| (i + 1).to_string();
+        assert_limit(
+            resized(v.clone(), "send", 3, epochs),
+            resized(v, "send", 4, epochs),
+        );
+    }
+
+    #[test]
+    fn t_n3_recv_limit() {
+        let mut v = sample();
+        v["send"] = Value::Object(Default::default());
+        let epochs = |i: usize| i.to_string();
+        assert_limit(
+            resized(v.clone(), "recv", 3, epochs),
+            resized(v, "recv", 4, epochs),
+        );
+    }
+
+    thread_local! {
+        static BUILT: Cell<usize> = const { Cell::new(0) };
+    }
+    /// A value that counts how many of it were built.
+    struct Counted;
+    impl<'de> Deserialize<'de> for Counted {
+        fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            u8::deserialize(deserializer)?;
+            BUILT.with(|b| b.set(b.get() + 1));
+            Ok(Counted)
+        }
+    }
+    fn counted(raw: &str, limit: usize) -> (Result<usize, serde_json::Error>, usize) {
+        BUILT.with(|b| b.set(0));
+        let mut de = serde_json::Deserializer::from_str(raw);
+        let map = crate::strict_json::unique_map_at_most::<_, String, Counted>(&mut de, limit);
+        (map.map(|m| m.len()), BUILT.with(|b| b.get()))
+    }
+    fn object(n: usize) -> String {
+        let entries: Vec<String> = (0..n).map(|i| format!("\"k{i}\":0")).collect();
+        format!("{{{}}}", entries.join(","))
+    }
+
+    #[test]
+    fn t_n3_counted_map_builds_at_most_limit_values() {
+        let (over, built) = counted(&object(65), 64);
+        assert!(crate::strict_json::is_over_limit(&over.unwrap_err()));
+        assert_eq!(built, 64);
+        let (at, built) = counted(&object(64), 64);
+        assert_eq!((at.unwrap(), built), (64, 64));
+        let (duplicate, _) = counted(r#"{"k":0,"k":0}"#, 64);
+        let duplicate = duplicate.unwrap_err();
+        assert!(!crate::strict_json::is_over_limit(&duplicate));
+        assert!(duplicate.to_string().starts_with("duplicate map key"));
+    }
+
+    // R5: dispositions have no stated count (a byte sum only), so none is enforced.
+    #[test]
+    fn t_n3_uncounted_maps_unchanged() {
+        let v = resized(sample(), "dispositions", 200, |i| slot_key(0, i as u32));
+        assert_eq!(decode(&v), None);
     }
 }

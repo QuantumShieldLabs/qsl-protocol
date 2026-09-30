@@ -408,6 +408,24 @@ pub(crate) struct LineageFields {
 }
 
 impl LineageFields {
+    /// NA-0788 F04/S6 (DF-7, E-4): the ONE constructor, for the opener outside this module. The MAC
+    /// key arrives in zeroizing storage and is MOVED in -- never a plain array, never a copy.
+    pub(crate) fn new(
+        vault_id: [u8; 32],
+        generation: u64,
+        predecessor_anchor: [u8; 32],
+        checkpoint_mac_key: Zeroizing<[u8; 32]>,
+        protection_mode: ProtectionMode,
+    ) -> Self {
+        Self {
+            vault_id,
+            generation,
+            predecessor_anchor,
+            checkpoint_mac_key,
+            protection_mode,
+        }
+    }
+
     /// The QSLFRESH MAC key, borrowed for one operation; the type never hands out a copy.
     pub(crate) fn checkpoint_mac_key(&self) -> &[u8; 32] {
         &self.checkpoint_mac_key
@@ -1387,6 +1405,42 @@ mod tests {
         assert!(
             !text.contains(&format!("{key:?}")),
             "the key's bytes were formatted"
+        );
+    }
+
+    /// NA-0788 F04/S6 (DF-7, E-4): the constructor takes the key in zeroizing storage and moves it
+    /// in; the fields read back exactly, the key is only ever borrowed, and Debug still omits it.
+    #[test]
+    fn t_s6_constructor_moves_the_zeroizing_key_and_debug_omits_it() {
+        let key = Zeroizing::new(syn_mac_key());
+        let fields = LineageFields::new(
+            syn_vault_id(),
+            SYN_GENERATION,
+            syn_prev(),
+            key,
+            ProtectionMode::Tpm,
+        );
+        assert_eq!(fields.vault_id, syn_vault_id());
+        assert_eq!(fields.generation, SYN_GENERATION);
+        assert_eq!(fields.predecessor_anchor, syn_prev());
+        assert_eq!(fields.protection_mode, ProtectionMode::Tpm);
+        let borrowed: &[u8; 32] = fields.checkpoint_mac_key();
+        assert_eq!(borrowed, &syn_mac_key());
+        assert!(std::ptr::eq(borrowed, &*fields.checkpoint_mac_key));
+        let text = format!("{fields:?}");
+        assert!(!text.contains("checkpoint_mac_key"), "{text}");
+        assert!(!text.contains(&crate::hex_encode(&syn_mac_key())), "{text}");
+        assert!(!text.contains(&format!("{:?}", syn_mac_key())), "{text}");
+        // The constructor's parameter type is the zeroizing container itself: a plain array does
+        // not compile here, so no caller can hand the key over unprotected.
+        let src = include_str!("mod.rs");
+        let start = src
+            .find("    pub(crate) fn new(\n")
+            .expect("the constructor");
+        let sig = &src[start..start + src[start..].find(") -> Self {").unwrap()];
+        assert!(
+            sig.contains("checkpoint_mac_key: Zeroizing<[u8; 32]>,"),
+            "{sig}"
         );
     }
 

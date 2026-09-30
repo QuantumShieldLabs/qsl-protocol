@@ -212,6 +212,7 @@ struct EpochReceipts {
     confirmed: u32,
     #[serde(deserialize_with = "crate::strict_json::required")]
     terminal: Option<u32>,
+    #[serde(deserialize_with = "crate::strict_json::unique_set")]
     holes: BTreeSet<u32>,
 }
 impl EpochReceipts {
@@ -535,8 +536,32 @@ impl Transaction {
         if value.version.as_bytes() != INTEGRATION_PROFILE {
             return Err("TRANSACTION_PROFILE");
         }
+        value.check_bindings()?;
         value.bounds(0)?;
         Ok(value)
+    }
+    /// F04/S4b N1 (RULING_NA0788_S4_stop R3): an entry filed under a key that is not its own is
+    /// refused. Bound only where every writer forms the key from the value it files: flights
+    /// (slot_key of the flight's epoch and slot), events (the application id), send and recv (the
+    /// receipt context's epoch) and core.recv (the epoch's id). Not bound: dispositions (the key
+    /// is recoverable only from the receipt bytes), completed, core.local, core.peer and
+    /// Epoch.skipped (the value does not carry the key).
+    fn check_bindings(&self) -> R<()> {
+        let bound = self
+            .flights
+            .iter()
+            .all(|(k, f)| *k == slot_key(f.epoch, f.slot))
+            && self.events.iter().all(|(k, e)| *k == e.id)
+            && self
+                .send
+                .iter()
+                .chain(&self.recv)
+                .all(|(k, e)| *k == e.context.epoch)
+            && self.core.recv.iter().all(|(k, e)| *k == e.id);
+        if !bound {
+            return Err("TRANSACTION_TAMPERED");
+        }
+        Ok(())
     }
     pub(crate) fn encode(&self) -> R<String> {
         crate::protocol_state::approved_directional_layout()?;
@@ -2156,13 +2181,26 @@ mod f04_s3b_count_tests {
         assert!(Transaction::decode(&v.to_string()).is_ok(), "control arm");
         v
     }
-    /// `map` holding `n` copies of its one entry, the i-th under `key(i)`.
+    /// `map` holding `n` copies of its one entry, the i-th under `key(i)` and consistent with it
+    /// the way every writer files it (F04/S4b A2): an event's id, a flight's epoch and slot, a
+    /// receipt context's epoch. Completed and disposition copies carry no key and are unchanged.
     fn resized(mut v: Value, map: &str, n: usize, key: impl Fn(usize) -> String) -> Value {
         let entries = v[map].as_object_mut().unwrap();
         let entry = entries.values().next().unwrap().clone();
         entries.clear();
         for i in 0..n {
-            entries.insert(key(i), entry.clone());
+            let (k, mut e) = (key(i), entry.clone());
+            match map {
+                "events" => e["id"] = Value::from(k.clone()),
+                "flights" => {
+                    let (epoch, slot) = k.split_once(':').unwrap();
+                    e["epoch"] = Value::from(epoch.parse::<u64>().unwrap());
+                    e["slot"] = Value::from(slot.parse::<u32>().unwrap());
+                }
+                "send" | "recv" => e["context"]["epoch"] = Value::from(k.parse::<u64>().unwrap()),
+                _ => {}
+            }
+            entries.insert(k, e);
         }
         v
     }
@@ -2283,5 +2321,517 @@ mod f04_s3b_count_tests {
     fn t_n3_uncounted_maps_unchanged() {
         let v = resized(sample(), "dispositions", 200, |i| slot_key(0, i as u32));
         assert_eq!(decode(&v), None);
+    }
+}
+
+// NA-0788 F04/S4b: semantic validation of the Transaction tree. N1 (RULING_NA0788_S4_stop R3): an entry
+// filed under a key that is not its own is refused; the maps whose value does not carry the key stay
+// unbound, named. N2: a repeated holes element is refused, not merged. N4: the aggregate check's
+// refusals no test pinned, through a real vault open. N5 MV-2 (R5): every count maximum bounds()
+// states in one record and one record per byte maximum decode; one more of each refuses.
+#[cfg(test)]
+mod f04_s4b_semantic_tests {
+    use super::*;
+    use crate::directional_core::{Epoch, LocalTarget};
+    use crate::protocol_state::{
+        CapacityOwner, Charge, OwnerEntry, PeerReserve, SessionControlReserve,
+    };
+    use rand_core::{OsRng, RngCore};
+    use serde_json::Value;
+    use std::time::Instant;
+
+    const TAMPERED: Option<&str> = Some("TRANSACTION_TAMPERED");
+    const CAPACITY: Option<&str> = Some("TRANSACTION_CAPACITY");
+
+    fn fresh<const N: usize>() -> [u8; N] {
+        std::array::from_fn(|_| OsRng.next_u32() as u8)
+    }
+    fn epoch(id: u64) -> Epoch {
+        Epoch {
+            id,
+            dir: 0,
+            dh: fresh(),
+            ec: fresh(),
+            pq: fresh(),
+            hk: fresh(),
+            adv: fresh(),
+            next: 2,
+            terminal: Some(1),
+            skipped: BTreeMap::from([(1, fresh())]),
+        }
+    }
+    fn receipts(sid: [u8; 16], epoch: u64) -> EpochReceipts {
+        let context = ReceiptContext {
+            sid,
+            direction: 0,
+            epoch,
+            dh: fresh(),
+            key: fresh(),
+        };
+        EpochReceipts {
+            context,
+            next: 1,
+            prefix: 1,
+            confirmed: 0,
+            terminal: Some(1),
+            holes: BTreeSet::from([3]),
+        }
+    }
+    fn flight(epoch: u64, slot: u32, id: &str) -> Flight {
+        Flight {
+            body_hash: fresh(),
+            intent_hash: fresh(),
+            epoch,
+            slot,
+            id: id.into(),
+            wire: vec![5],
+            accepted: false,
+            closure_proof: String::new(),
+        }
+    }
+    fn event(id: &str) -> Application {
+        Application {
+            id: id.into(),
+            body: vec![7],
+        }
+    }
+    /// A valid record with one entry per map, every key formed the way the writers form it.
+    fn sample() -> Transaction {
+        let sid = fresh();
+        let core = Core {
+            sid,
+            role: 0,
+            root: fresh(),
+            seq: 1,
+            digest: fresh(),
+            owner: 0,
+            own_priv: fresh(),
+            own_pub: fresh(),
+            peer_pub: fresh(),
+            send: Some(epoch(1)),
+            recv: BTreeMap::from([(0, epoch(0))]),
+            active_recv: Some(0),
+            local: BTreeMap::from([(
+                0,
+                LocalTarget {
+                    pk: vec![1],
+                    sk: vec![2],
+                },
+            )]),
+            local_next: 1,
+            local_consumed_prefix: 0,
+            peer: BTreeMap::from([(0, vec![3])]),
+            peer_max: 1,
+            peer_selected_prefix: 0,
+            last_in: Some(fresh()),
+            last_out: vec![4],
+        };
+        let disposition = Disposition {
+            hash: fresh(),
+            receipt: vec![6],
+            response_pending: false,
+        };
+        Transaction {
+            version: String::from_utf8(INTEGRATION_PROFILE.to_vec()).unwrap(),
+            reserve: None,
+            received_reference: None,
+            useful_send_closure: false,
+            generation: 1,
+            core,
+            send: BTreeMap::from([(1, receipts(sid, 1))]),
+            recv: BTreeMap::from([(0, receipts(sid, 0))]),
+            flights: BTreeMap::from([(slot_key(1, 0), flight(1, 0, "m"))]),
+            dispositions: BTreeMap::from([(slot_key(0, 0), disposition)]),
+            events: BTreeMap::from([("e".into(), event("e"))]),
+            completed: BTreeMap::from([("c".into(), fresh())]),
+            request_sent: false,
+            recv_floor: Some(0),
+            send_floor: Some(0),
+            demand: false,
+            since_boundary: 0,
+            last_boundary: 0,
+        }
+    }
+    fn value<T: Serialize>(v: &T) -> Value {
+        serde_json::to_value(v).unwrap()
+    }
+    fn decode(v: &Value) -> Option<&'static str> {
+        Transaction::decode(&v.to_string()).err()
+    }
+    fn control() -> Value {
+        let v = value(&sample());
+        assert_eq!(decode(&v), None, "control arm");
+        v
+    }
+    /// The entry of the map at `pointer` moved from key `from` to key `to`, its value unchanged.
+    fn rekeyed(mut v: Value, pointer: &str, from: &str, to: &str) -> Value {
+        let map = v.pointer_mut(pointer).unwrap().as_object_mut().unwrap();
+        let entry = map.remove(from).unwrap();
+        assert!(map.insert(to.into(), entry).is_none());
+        v
+    }
+    /// Re-keyed AND its value changed to name the new key: the key is its own again.
+    fn refiled(v: Value, pointer: &str, from: &str, to: &str, field: &str, own: Value) -> Value {
+        let mut v = rekeyed(v, pointer, from, to);
+        *v.pointer_mut(&format!("{pointer}/{to}{field}")).unwrap() = own;
+        v
+    }
+
+    // N1: each bound map -- a foreign key refused, the entry's own key accepted.
+    #[test]
+    fn t_n1_flights_key_bound() {
+        let v = control();
+        assert_eq!(
+            decode(&rekeyed(v.clone(), "/flights", "1:0", "1:5")),
+            TAMPERED
+        );
+        assert_eq!(
+            decode(&rekeyed(v.clone(), "/flights", "1:0", "9:0")),
+            TAMPERED
+        );
+        let own = refiled(v, "/flights", "1:0", "1:5", "/slot", Value::from(5));
+        assert_eq!(decode(&own), None);
+    }
+    #[test]
+    fn t_n1_events_key_bound() {
+        let v = control();
+        assert_eq!(decode(&rekeyed(v.clone(), "/events", "e", "x")), TAMPERED);
+        assert_eq!(
+            decode(&refiled(v, "/events", "e", "x", "/id", "x".into())),
+            None
+        );
+    }
+    #[test]
+    fn t_n1_send_key_bound() {
+        let v = control();
+        assert_eq!(decode(&rekeyed(v.clone(), "/send", "1", "2")), TAMPERED);
+        let own = refiled(v, "/send", "1", "2", "/context/epoch", Value::from(2));
+        assert_eq!(decode(&own), None);
+    }
+    #[test]
+    fn t_n1_recv_key_bound() {
+        let v = control();
+        assert_eq!(decode(&rekeyed(v.clone(), "/recv", "0", "2")), TAMPERED);
+        let own = refiled(v, "/recv", "0", "2", "/context/epoch", Value::from(2));
+        assert_eq!(decode(&own), None);
+    }
+    #[test]
+    fn t_n1_core_recv_key_bound() {
+        let v = control();
+        assert_eq!(
+            decode(&rekeyed(v.clone(), "/core/recv", "0", "5")),
+            TAMPERED
+        );
+        let own = refiled(v, "/core/recv", "0", "5", "/id", Value::from(5));
+        assert_eq!(decode(&own), None);
+    }
+    // R3: no binding where the value does not carry its key (named, not an oversight).
+    #[test]
+    fn t_n1_unbound_maps_named() {
+        let v = control();
+        for (pointer, from, to) in [
+            ("/dispositions", "0:0", "7:9"),
+            ("/completed", "c", "d"),
+            ("/core/local", "0", "4"),
+            ("/core/peer", "0", "4"),
+            ("/core/send/skipped", "1", "9"),
+        ] {
+            assert_eq!(
+                decode(&rekeyed(v.clone(), pointer, from, to)),
+                None,
+                "{pointer}"
+            );
+        }
+    }
+
+    // N2 (RULING_NA0788_S1 R3): a repeated element refused, distinct elements accepted.
+    #[test]
+    fn t_n2_holes_repeat_refused() {
+        for pointer in ["/send/1/holes", "/recv/0/holes"] {
+            let mut repeated = control();
+            *repeated.pointer_mut(pointer).unwrap() = serde_json::json!([3, 3]);
+            assert_eq!(decode(&repeated), TAMPERED, "{pointer}");
+            let mut distinct = control();
+            *distinct.pointer_mut(pointer).unwrap() = serde_json::json!([2, 3]);
+            let t = Transaction::decode(&distinct.to_string()).unwrap();
+            let holes = if pointer.starts_with("/send") {
+                &t.send[&1]
+            } else {
+                &t.recv[&0]
+            };
+            assert_eq!(holes.holes, BTreeSet::from([2, 3]), "{pointer}");
+        }
+        let mut de = serde_json::Deserializer::from_str("[1,1]");
+        let err = crate::strict_json::unique_set::<_, u32>(&mut de).unwrap_err();
+        assert!(err.to_string().starts_with("duplicate set element"));
+    }
+
+    fn peer_reserve(peer: &str, sid: [u8; 16], generation: u64) -> PeerReserve {
+        let mut control = SessionControlReserve::fresh(sid);
+        control.generation = generation;
+        control.grant_peer_epoch = Some(0);
+        PeerReserve {
+            peer: peer.into(),
+            sid,
+            generation,
+            control_bound: 0,
+            peer_future: 0,
+            vault_future: 0,
+            control,
+        }
+    }
+    fn owner_entry(peer: &str, sid: [u8; 16], generation: u64) -> OwnerEntry {
+        OwnerEntry {
+            ticket: "t".into(),
+            peer: peer.into(),
+            sid,
+            direction: 0,
+            operation: "o".into(),
+            state: 0,
+            epoch: 0,
+            slot: 0,
+            reference_state: 0,
+            content: fresh(),
+            generation,
+            projection: 0,
+            wire_hash: fresh(),
+            charge: Charge { vault_bytes: 0 },
+        }
+    }
+    fn owner(peers: Vec<PeerReserve>, entries: Vec<OwnerEntry>) -> String {
+        serde_json::to_string(&CapacityOwner {
+            generation: 1,
+            peers: peers.into_iter().map(|p| (p.peer.clone(), p)).collect(),
+            entries: entries.into_iter().map(|e| (e.ticket.clone(), e)).collect(),
+        })
+        .unwrap()
+    }
+
+    // N4 and T-P8 through a REAL vault open: each refusal of check_directional_aggregate that no test
+    // pinned keeps its code and writes nothing. Isolated in a child process (the S1 T-C3 pattern).
+    const CHILD: &str = "F04S4B_VAULT_CHILD";
+    #[test]
+    fn t_n4_aggregate_pins_through_real_open() {
+        if std::env::var_os(CHILD).is_none() {
+            let name = "directional_delivery::f04_s4b_semantic_tests::\
+                        t_n4_aggregate_pins_through_real_open";
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", name, "--nocapture"])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(status.success(), "isolated vault fixture failed");
+            return;
+        }
+        use argon2::{Algorithm, Argon2, Params, Version};
+        use chacha20poly1305::aead::{Aead as _, KeyInit, Payload};
+        use chacha20poly1305::{ChaCha20Poly1305, Nonce};
+        let dir = tempfile::tempdir().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = std::fs::Permissions::from_mode(0o700);
+            std::fs::set_permissions(dir.path(), mode).unwrap();
+        }
+        std::env::set_var("QSC_CONFIG_DIR", dir.path());
+        let pass: String = fresh::<16>().iter().map(|b| format!("{b:02x}")).collect();
+        crate::vault::vault_init_directional_with_passphrase(&pass).unwrap();
+        let path = dir.path().join("vault.qsv");
+        let original = std::fs::read(&path).unwrap();
+        assert!(crate::vault::open_session_with_passphrase(&pass).is_ok());
+        let u32_at = |i: usize| u32::from_le_bytes(original[i..i + 4].try_into().unwrap());
+        let params = Params::new(u32_at(9), u32_at(13), u32_at(17), Some(32)).unwrap();
+        let mut key: Key = fresh();
+        Argon2::new(Algorithm::Argon2id, Version::V0x13, params)
+            .hash_password_into(pass.as_bytes(), &original[25..41], &mut key)
+            .unwrap();
+        let cipher = ChaCha20Poly1305::new(chacha20poly1305::Key::from_slice(&key));
+        let sealed = Payload {
+            msg: &original[53..],
+            aad: &original[..53],
+        };
+        let plain = cipher
+            .decrypt(Nonce::from_slice(&original[41..53]), sealed)
+            .unwrap();
+        let payload: Value = serde_json::from_slice(&plain).unwrap();
+        let layout = crate::protocol_state::approved_directional_layout().unwrap();
+        let t = sample();
+        let sid = t.core.sid;
+        let good = value(&t).to_string();
+        let foreign = rekeyed(value(&t), "/flights", "1:0", "1:5").to_string();
+        let bob = || peer_reserve("bob", sid, 1);
+        let entry = || owner_entry("bob", sid, 1);
+        let cases = [
+            (
+                "P1 peer name not a single channel",
+                owner(vec![peer_reserve("b#c", sid, 1)], vec![]),
+                None,
+                "directional_single_channel_required",
+            ),
+            (
+                "P2 peer name not a channel label",
+                owner(vec![peer_reserve("b c", sid, 1)], vec![]),
+                None,
+                "directional_peer_invalid",
+            ),
+            (
+                "P3 owned peer without its transaction",
+                owner(vec![bob()], vec![]),
+                None,
+                "directional_reserve_missing",
+            ),
+            (
+                "P4 owner's peer sid is not the transaction's",
+                owner(vec![peer_reserve("bob", fresh(), 1)], vec![]),
+                Some(good.clone()),
+                "directional_owner_binding",
+            ),
+            (
+                "P5 owner entry for a peer the owner does not hold",
+                owner(vec![], vec![entry()]),
+                None,
+                "directional_reserve_missing",
+            ),
+            (
+                "P6 a flight filed under a foreign key (S4b N1)",
+                owner(vec![bob()], vec![entry()]),
+                Some(foreign),
+                "TRANSACTION_TAMPERED",
+            ),
+            (
+                "P6c control: the same owner with the transaction's own keys",
+                owner(vec![bob()], vec![entry()]),
+                Some(good),
+                "directional_owner_invariant",
+            ),
+        ];
+        for (name, owner_raw, tx_raw, expected) in cases {
+            let mut p = payload.clone();
+            p["secrets"][layout.owner_key] = Value::String(owner_raw);
+            if let Some(tx_raw) = tx_raw {
+                p["secrets"][format!("{}bob", layout.peer_prefix)] = Value::String(tx_raw);
+            }
+            let bytes = serde_json::to_vec(&p).unwrap();
+            let mut header = original[..53].to_vec();
+            let ct_len = u32::try_from(bytes.len() + 16).unwrap();
+            header[21..25].copy_from_slice(&ct_len.to_le_bytes());
+            header[41..53].copy_from_slice(&fresh::<12>());
+            let plain = Payload {
+                msg: &bytes,
+                aad: &header,
+            };
+            let sealed = cipher
+                .encrypt(Nonce::from_slice(&header[41..53]), plain)
+                .unwrap();
+            let mut raw = header;
+            raw.extend(sealed);
+            std::fs::write(&path, &raw).unwrap();
+            let mtime = std::fs::metadata(&path).unwrap().modified().unwrap();
+            let got = crate::vault::open_session_with_passphrase(&pass).err();
+            assert_eq!(got, Some(expected), "{name}");
+            assert_eq!(std::fs::read(&path).unwrap(), raw, "{name}: file bytes");
+            let after = std::fs::metadata(&path).unwrap().modified().unwrap();
+            assert_eq!(after, mtime, "{name}: file mtime");
+        }
+    }
+
+    // N5 MV-2 (R5): the limits are not a trap -- a record AT each maximum decodes and re-encodes to
+    // itself; one more refuses with the capacity code. Build times are printed for the record.
+    fn assert_round_trip(t: &Transaction) {
+        let raw = t.encode().unwrap();
+        assert_eq!(Transaction::decode(&raw).unwrap().encode().unwrap(), raw);
+    }
+    fn refused(t: &Transaction) -> Option<&'static str> {
+        Transaction::decode(&serde_json::to_string(t).unwrap()).err()
+    }
+    fn timed(name: &str, started: Instant) {
+        println!("F04S4B_FIXTURE {name} ms={}", started.elapsed().as_millis());
+    }
+    /// Every count bounds() states, at its maximum in ONE record: send + recv 3, flights 64 named +
+    /// 1 maintenance, events 64, completed 64.
+    fn count_maxima() -> Transaction {
+        let mut t = sample();
+        let sid = t.core.sid;
+        t.send = BTreeMap::from([(1, receipts(sid, 1)), (2, receipts(sid, 2))]);
+        t.recv = BTreeMap::from([(0, receipts(sid, 0))]);
+        t.flights = (0..64)
+            .map(|i| (slot_key(1, i), flight(1, i, &format!("m{i}"))))
+            .collect();
+        t.flights.insert(slot_key(2, 0), flight(2, 0, ""));
+        t.events = (0..64)
+            .map(|i| (format!("e{i}"), event(&format!("e{i}"))))
+            .collect();
+        t.completed = (0..64).map(|i| (format!("c{i}"), fresh())).collect();
+        t
+    }
+    #[test]
+    fn t_n5_mv2_count_maxima() {
+        let started = Instant::now();
+        let at = count_maxima();
+        assert_round_trip(&at);
+        let sid = at.core.sid;
+        let mut send_recv = at.clone();
+        send_recv.recv.insert(3, receipts(sid, 3));
+        let mut named = at.clone();
+        named.flights.get_mut("2:0").unwrap().id = "m64".into();
+        let mut maintenance = at.clone();
+        maintenance.flights.get_mut("1:0").unwrap().id = String::new();
+        let mut flights = at.clone();
+        flights
+            .flights
+            .insert(slot_key(1, 64), flight(1, 64, "m64"));
+        let mut events = at.clone();
+        events.events.insert("e64".into(), event("e64"));
+        let mut completed = at.clone();
+        completed.completed.insert("c64".into(), fresh());
+        for (name, over) in [
+            ("send + recv 4", send_recv),
+            ("named flights 65", named),
+            ("maintenance flights 2", maintenance),
+            ("flights 66", flights),
+            ("events 65", events),
+            ("completed 65", completed),
+        ] {
+            assert_eq!(refused(&over), CAPACITY, "{name}");
+        }
+        timed("t_n5_mv2_count_maxima", started);
+    }
+    #[test]
+    fn t_n5_mv2_wire_bytes_maximum() {
+        let started = Instant::now();
+        let mut at = sample();
+        at.flights.get_mut("1:0").unwrap().wire = vec![0; MAX_BYTES];
+        assert_round_trip(&at);
+        let mut over = at.clone();
+        over.flights.get_mut("1:0").unwrap().wire.push(0);
+        assert_eq!(refused(&over), CAPACITY);
+        timed("t_n5_mv2_wire_bytes_maximum", started);
+    }
+    #[test]
+    fn t_n5_mv2_receipt_event_bytes_maximum() {
+        let started = Instant::now();
+        let mut at = sample();
+        let body = at.events["e"].body.len();
+        at.dispositions.get_mut("0:0").unwrap().receipt = vec![0; MAX_BYTES - body];
+        assert_round_trip(&at);
+        let mut over = at.clone();
+        over.events.get_mut("e").unwrap().body.push(0);
+        assert_eq!(refused(&over), CAPACITY);
+        timed("t_n5_mv2_receipt_event_bytes_maximum", started);
+    }
+    #[test]
+    fn t_n5_mv2_record_bytes_maximum() {
+        let started = Instant::now();
+        let mut at = sample();
+        let base = at.encode().unwrap().len();
+        at.flights.get_mut("1:0").unwrap().closure_proof = "p".repeat(MAX_RECORD - base);
+        let raw = at.encode().unwrap();
+        assert_eq!(raw.len(), MAX_RECORD);
+        assert_eq!(Transaction::decode(&raw).unwrap().encode().unwrap(), raw);
+        let mut over = at.clone();
+        over.flights.get_mut("1:0").unwrap().closure_proof.push('p');
+        assert_eq!(over.encode().err(), CAPACITY);
+        assert_eq!(refused(&over), CAPACITY);
+        timed("t_n5_mv2_record_bytes_maximum", started);
     }
 }

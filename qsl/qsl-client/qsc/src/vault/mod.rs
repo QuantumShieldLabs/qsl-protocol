@@ -2748,3 +2748,82 @@ mod f04_s3b_bounds_tests {
         }
     }
 }
+
+// NA-0788 F04/S4b N5 MV-1 (RULING_NA0788_S4_stop R4): the largest directional vault the writer admits
+// -- actual + promises + H_W == B_V exactly -- is written by the real writer and reopens byte-equal
+// through the one bounded reader; one byte more is refused BY THE WRITER with its measured code
+// (directional_aggregate_waiting, S3b-pinned) and never reaches disk. Isolated in a child process: it
+// owns QSC_CONFIG_DIR and the process passphrase. The build time is printed for the record.
+#[cfg(test)]
+mod f04_s4b_mv1_tests {
+    use super::*;
+    use sha2::{Digest, Sha256};
+    use std::time::Instant;
+
+    const CHILD: &str = "QSC_F04_S4B_CHILD";
+    const FILLER: &str = "f04_s4b_filler";
+
+    #[test]
+    fn t_n5_mv1_directional_vault_at_the_bound_reopens() {
+        if std::env::var_os(CHILD).is_none() {
+            let name = "vault::f04_s4b_mv1_tests::t_n5_mv1_directional_vault_at_the_bound_reopens";
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", name, "--nocapture", "--test-threads=1"])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(status.success(), "isolated MV-1 fixture failed");
+            return;
+        }
+        let started = Instant::now();
+        let dir = tempfile::tempdir().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o700)).unwrap();
+        }
+        std::env::set_var("QSC_CONFIG_DIR", dir.path());
+        let mut raw = [0u8; 16];
+        OsRng.fill_bytes(&mut raw);
+        let pass: String = raw.iter().map(|b| format!("{b:02x}")).collect();
+        set_process_passphrase(Some(&pass));
+        let path = dir.path().join("vault.qsv");
+        let digest = || Sha256::digest(fs::read(&path).unwrap());
+        vault_init_directional_with_passphrase(&pass).unwrap();
+        let mut session = open_session_with_passphrase(&pass).unwrap();
+        let owner = directional_owner(&session.payload).unwrap();
+        let promised = owner.remaining_vault_bytes().unwrap();
+        let mut probe = session.payload.clone();
+        probe.secrets.insert(FILLER.into(), String::new());
+        let base = serde_json::to_vec(&probe).unwrap().len();
+        let b_v = crate::protocol_state::REVIEW_AGGREGATE_CANDIDATE;
+        let h_w = crate::protocol_state::REVIEW_WRITE_HEADROOM;
+        let fill = b_v - h_w - promised - base;
+        assert_eq!(session_set(&mut session, FILLER, &"f".repeat(fill)), Ok(()));
+        let written = serde_json::to_vec(&session.payload).unwrap();
+        assert_eq!(written.len() + promised + h_w, b_v, "exactly at the bound");
+        let at_bound = digest();
+        let reopened = open_session_with_passphrase(&pass).unwrap();
+        assert_eq!(
+            serde_json::to_vec(&reopened.payload).unwrap(),
+            written,
+            "reopened"
+        );
+        assert_eq!(digest(), at_bound);
+        assert_eq!(
+            session_set(&mut session, FILLER, &"f".repeat(fill + 1)),
+            Err("directional_aggregate_waiting")
+        );
+        assert_eq!(digest(), at_bound, "the refused write never reached disk");
+        let again = open_session_with_passphrase(&pass).unwrap();
+        assert_eq!(
+            serde_json::to_vec(&again.payload).unwrap(),
+            written,
+            "after"
+        );
+        println!(
+            "F04S4B_FIXTURE t_n5_mv1_directional_vault_at_the_bound_reopens ms={}",
+            started.elapsed().as_millis()
+        );
+    }
+}

@@ -555,7 +555,7 @@ fn directional_late_commit() {
     }
     // The original sender is now suspended outside the store lock.
     let waiting=integration_state(&a,"bob");
-    let original:Vec<u8>=serde_json::from_value(waiting["flights"].as_object().unwrap().values().find(|f|f["id"].as_str().is_some_and(|id|!id.is_empty()) && !f["accepted"].as_bool().unwrap()).unwrap()["wire"].clone()).unwrap();
+    let original:Vec<u8>=common::stored_bytes(&waiting["flights"].as_object().unwrap().values().find(|f|f["id"].as_str().is_some_and(|id|!id.is_empty()) && !f["accepted"].as_bool().unwrap()).unwrap()["wire"]);
     poll_candidate(&b,&relay,ROUTE_TOKEN_BOB,"alice",&bo);
     poll_candidate(&a,&relay,ROUTE_TOKEN_ALICE,"bob",&ao);
     let other=base.join("other.body");fs::write(&other,b"newer outstanding operation").unwrap();
@@ -575,7 +575,7 @@ fn directional_late_commit() {
         assert!(qsc::na0780_test_commit_probe("bob",b"late commit operation",original.clone()).is_ok());
         let mut bad=original;*bad.last_mut().unwrap()^=1;
         assert_eq!(qsc::na0780_test_commit_probe("bob",b"late commit operation",bad),Err("directional_queue_conflict"));
-        let other:Vec<u8>=serde_json::from_value(before["flights"].as_object().unwrap().values().find(|f|!f["id"].as_str().unwrap().is_empty()).unwrap()["wire"].clone()).unwrap();
+        let other:Vec<u8>=common::stored_bytes(&before["flights"].as_object().unwrap().values().find(|f|!f["id"].as_str().unwrap().is_empty()).unwrap()["wire"]);
         assert_eq!(qsc::na0780_test_commit_probe("bob",b"late commit operation",other),Err("directional_queue_conflict"));
         assert!(integration_state(&a,"bob")==before,"commit probes changed newer transaction");
         println!("NA0780_ACCEPT group=late_commit_idempotent_exact_conflict_guards result=pass");
@@ -766,7 +766,7 @@ fn directional_r5_copied_diagnosis() {
     assert!(waiting_b["send"].get("1").is_none(),"normal closure preparation must retire Bob send1");
     assert_eq!(waiting_b["flights"].as_object().unwrap().len(),1);
     for flight in waiting_b["flights"].as_object().unwrap().values() {
-        let wire:Vec<u8>=serde_json::from_value(flight["wire"].clone()).unwrap();
+        let wire:Vec<u8>=common::stored_bytes(&flight["wire"]);
         assert!(traffic.contains(&wire),"relay must hold exact durably retained Bob closure flight");
         assert_eq!(wire[4],0,"closure must be ordinary, not a forced refresh");
         assert_eq!(flight["epoch"],3);assert_eq!(flight["slot"],1);assert_eq!(flight["id"],"");
@@ -811,16 +811,16 @@ fn directional_receipt_loss(){
     let af=base.join("loss.body");let body=fs::read(&af).expect("saved receipt-loss operation missing");
     assert!(queue_operation_present(&a,"bob",&af),"saved intended queue operation missing");
     freeze_fixture_clock(&a,&b);
-    let hash=Sha512::digest(&body);let expected_hash=serde_json::json!(hash[..32].to_vec());
+    let hash=Sha512::digest(&body);let expected_hash=hash[..32].to_vec();
     let mut intended=None;
     for round in 0..8 {
         // Retry packs the SAME encrypted queue row when normal closure frees room.
         retry_queue(&a,&relay);
         let sa=integration_state(&a,"bob");
-        let matches:Vec<_>=sa["flights"].as_object().unwrap().values().filter(|f|f["id"]!="" && f["body_hash"]==expected_hash).cloned().collect();
+        let matches:Vec<_>=sa["flights"].as_object().unwrap().values().filter(|f|f["id"]!="" && common::stored_bytes(&f["body_hash"])==expected_hash).cloned().collect();
         assert!(matches.len()<=1,"duplicate intended ciphertext obligations");
         if let Some(app)=matches.into_iter().next() {
-            let wire:Vec<u8>=app["wire"].as_array().unwrap().iter().map(|v|v.as_u64().unwrap() as u8).collect();
+            let wire:Vec<u8>=common::stored_bytes(&app["wire"]);
             let channel=server.drain_channel(ROUTE_TOKEN_BOB);
             let sent=channel.iter().any(|raw|raw==&wire);server.replace_channel(ROUTE_TOKEN_BOB,channel);
             assert!(sent,"fixture intended ciphertext was not actually pushed");
@@ -1114,7 +1114,7 @@ fn retirement_history(s:&serde_json::Value)->serde_json::Value {
         let (g,n)=key.split_once(':').unwrap();let n=n.parse::<u64>().unwrap();let e=recvs.get(g).expect("receipt sealer missing");
         assert!(n>=e["confirmed"].as_u64().unwrap(),"confirmed receipt witness retained");
         assert!(n<e["prefix"].as_u64().unwrap()||e["holes"].as_array().unwrap().iter().any(|v|v.as_u64()==Some(n)),"receipt lacks admitted slot");
-        assert_eq!(d["receipt"].as_array().unwrap().len(),113,"receipt length");
+        assert_eq!(common::stored_bytes(&d["receipt"]).len(),113,"receipt length");
     }
     for (g,e) in recvs {
         for n in e["confirmed"].as_u64().unwrap()..e["prefix"].as_u64().unwrap() {
@@ -1125,10 +1125,10 @@ fn retirement_history(s:&serde_json::Value)->serde_json::Value {
     let skips:usize=epochs.values().map(|e|e["skipped"].as_object().unwrap().len()).sum();assert!(skips<=16,"skip bound");
     for (g,e) in epochs {
         assert!(s["recv_floor"].as_u64().is_none_or(|f|g.parse::<u64>().unwrap()>f),"closed core epoch retained");
-        if e["terminal"].is_number(){for name in ["ec","pq"]{assert!(e[name].as_array().unwrap().iter().all(|v|v.as_u64()==Some(0)),"ended epoch chain retained");}}
+        if e["terminal"].is_number(){for name in ["ec","pq"]{assert!(common::stored_bytes(&e[name]).iter().all(|&v|v==0),"ended epoch chain retained");}}
     }
-    let outgoing:usize=flights.values().map(|f|f["wire"].as_array().unwrap().len()).sum();
-    let incoming:usize=dispositions.values().map(|d|d["receipt"].as_array().unwrap().len()).sum::<usize>()+s["events"].as_object().unwrap().values().map(|e|e["body"].as_array().unwrap().len()).sum::<usize>();
+    let outgoing:usize=flights.values().map(|f|common::stored_bytes(&f["wire"]).len()).sum();
+    let incoming:usize=dispositions.values().map(|d|common::stored_bytes(&d["receipt"]).len()).sum::<usize>()+s["events"].as_object().unwrap().values().map(|e|common::stored_bytes(&e["body"]).len()).sum::<usize>();
     let bytes=serde_json::to_vec(s).unwrap().len();
     assert!(outgoing<=4*1024*1024 && incoming<=4*1024*1024 && bytes<=16*1024*1024,"retained byte bounds");
     assert!(s["events"].as_object().unwrap().len()<=64 && s["completed"].as_object().unwrap().len()<=64,"projection count bounds");
@@ -1214,7 +1214,7 @@ fn directional_full_window_receipt_progress() {
     assert!(output_text(&no_receipt).contains("directional_maintenance_waiting"),"maintenance deferral was not exercised");
     assert!(integration_state(&a,"bob")==before,"no-receipt deferral changed authoritative obligations");
     let sent=server.drain_channel(ROUTE_TOKEN_BOB);
-    for f in original.as_object().unwrap().values(){let raw:Vec<u8>=f["wire"].as_array().unwrap().iter().map(|v|v.as_u64().unwrap() as u8).collect();assert!(sent.contains(&raw),"deferral lost a saved ciphertext");}
+    for f in original.as_object().unwrap().values(){let raw:Vec<u8>=common::stored_bytes(&f["wire"]);assert!(sent.contains(&raw),"deferral lost a saved ciphertext");}
     server.replace_channel(ROUTE_TOKEN_BOB,sent);
     println!("NA0780_ACCEPT group=full_window_no_receipt_bounded_exact_retention result=pass");
     let receive_all=qsc_cfg_cmd(&b).args(["receive","--transport","relay","--relay",&relay,"--mailbox",ROUTE_TOKEN_BOB,"--from","alice","--max","64","--out",bo.to_str().unwrap()]).output().unwrap();
@@ -1232,7 +1232,7 @@ fn directional_full_window_receipt_progress() {
     let maintenance:Vec<_>=released["flights"].as_object().unwrap().iter().filter(|(_,f)|f["id"]=="").map(|(key,f)|(key.clone(),f.clone())).collect();
     assert_eq!(maintenance.len(),1,"deferred maintenance was not retried after receipts");
     let (maintenance_key,maintenance_flight)=&maintenance[0];
-    let exact:Vec<u8>=maintenance_flight["wire"].as_array().unwrap().iter().map(|v|v.as_u64().unwrap() as u8).collect();
+    let exact:Vec<u8>=common::stored_bytes(&maintenance_flight["wire"]);
     let outgoing=server.drain_channel(ROUTE_TOKEN_BOB);assert!(outgoing.contains(&exact),"deferred maintenance ciphertext not sent");server.replace_channel(ROUTE_TOKEN_BOB,outgoing);
     println!("NA0780_ACCEPT group=full_window_receipts_release_deferred_maintenance_sent result=pass");
     for round in 0..8 {
@@ -1291,7 +1291,7 @@ fn directional_receive_save_failure_recovery() {
     send_msg(&a,&relay,"bob",&file);
     let sender=integration_state(&a,"bob");let flights:Vec<_>=sender["flights"].as_object().unwrap().values().filter(|f|f["id"]!="").cloned().collect();assert_eq!(flights.len(),1);
     let app=&flights[0];let slot=format!("{}:{}",app["epoch"].as_u64().unwrap(),app["slot"].as_u64().unwrap());
-    let wire:Vec<u8>=app["wire"].as_array().unwrap().iter().map(|v|v.as_u64().unwrap() as u8).collect();
+    let wire:Vec<u8>=common::stored_bytes(&app["wire"]);
     let queued=server.drain_channel(ROUTE_TOKEN_BOB);assert!(queued.contains(&wire));server.replace_channel(ROUTE_TOKEN_BOB,queued);
     let failed=qsc_cfg_cmd(&b).env("QSC_NA0780_RECEIVE_SAVE_FAULT","1").args(["receive","--transport","relay","--relay",&relay,"--mailbox",ROUTE_TOKEN_BOB,"--from","alice","--max","64","--out",bo.to_str().unwrap()]).output().unwrap();
     let text=output_text(&failed);
@@ -1334,7 +1334,7 @@ fn directional_receipt_capacity_saved_recovery() {
     assert_eq!(before["send"].as_object().unwrap().len()+before["recv"].as_object().unwrap().len(),3);
     let app=before["flights"].as_object().unwrap().values().find(|f|f["id"]!="").unwrap().clone();
     let slot=format!("{}:{}",app["epoch"].as_u64().unwrap(),app["slot"].as_u64().unwrap());
-    let wire:Vec<u8>=serde_json::from_value(app["wire"].clone()).unwrap();
+    let wire:Vec<u8>=common::stored_bytes(&app["wire"]);
     let call_a=||qsc_cfg_cmd(&a).args(["receive","--transport","relay","--relay",&relay,"--mailbox",ROUTE_TOKEN_ALICE,"--from","bob","--max","8","--out",ao.to_str().unwrap()]).output().unwrap();
     let empty=call_a();
     if env::var_os("NA0780_EXPECT_CAPACITY_BLOCK").is_some() {
@@ -1379,7 +1379,7 @@ fn wire_slot(raw:&[u8])->String {
 }
 fn saved_accept(cfg:&Path,peer:&str,raw:&[u8])->Vec<u8>{
     integration_state(cfg,peer);qsc::na0780_test_receive_probe(peer,raw).expect("actual persisted receive");
-    serde_json::from_value(integration_state(cfg,peer)["dispositions"][wire_slot(raw)]["receipt"].clone()).unwrap()
+    common::stored_bytes(&integration_state(cfg,peer)["dispositions"][wire_slot(raw)]["receipt"])
 }
 fn saved_ack(cfg:&Path,peer:&str,ack:&[u8]){
     integration_state(cfg,peer);qsc::na0780_test_receive_probe(peer,ack).expect("actual persisted protocol receipt");
@@ -1394,7 +1394,7 @@ fn saved_reject(cfg:&Path,peer:&str,raw:&[u8],error:&'static str){
 }
 fn assert_flight(cfg:&Path,peer:&str,raw:&[u8]){
     let state=integration_state(cfg,peer);
-    let saved:Vec<u8>=serde_json::from_value(state["flights"][wire_slot(raw)]["wire"].clone()).unwrap();
+    let saved:Vec<u8>=common::stored_bytes(&state["flights"][wire_slot(raw)]["wire"]);
     assert_eq!(saved,raw,"exact retry flight changed");
 }
 // Complete the saved, owed refreshes through the same locked preparation,
@@ -1567,7 +1567,7 @@ fn directional_same_process_save_retry() {
     } else {
         let receipt=retry.expect("same-process receipt retry must recover").unwrap();
         let stored=integration_state(&r,rp);
-        let exact:Vec<u8>=serde_json::from_value(stored["dispositions"][wire_slot(&raw)]["receipt"].clone()).unwrap();
+        let exact:Vec<u8>=common::stored_bytes(&stored["dispositions"][wire_slot(&raw)]["receipt"]);
         assert_eq!(receipt,exact);
         assert_eq!(qsc::na0780_test_receive_response(rp,&raw).unwrap(),Some(receipt.clone()));
         assert_eq!(qsc::na0780_test_seal_observer(false),[2,1,0,0,0],"exact committed receipt replay must not seal");
@@ -1720,7 +1720,7 @@ fn selective_suppression(boundary:bool) {
             let state=suppression_timed(&started,round,"restoration_receipt_reload",||integration_state(&r,rp));
             let retired_witness=state["dispositions"].get(&key).is_none();
             let saved:Vec<u8>=if let Some(disposition)=state["dispositions"].get(&key) {
-                serde_json::from_value(disposition["receipt"].clone()).unwrap()
+                common::stored_bytes(&disposition["receipt"])
             } else {
                 // An exact response already queued by this receive batch may
                 // outlive its saved witness after authenticated no-retry closure.
@@ -1745,7 +1745,7 @@ fn selective_suppression(boundary:bool) {
             // This selected test ID has no queue projection that could consume
             // its completion. The normal receive path inserts this exact body
             // commitment only after authenticating the receipt for flight.wire.
-            let completion:Vec<u8>=serde_json::from_value(a["completed"]["selected-suppression"].clone()).expect("authenticated durable completion required, not flight absence alone");
+            let completion:Vec<u8>=common::stored_bytes(a["completed"].get("selected-suppression").expect("authenticated durable completion required, not flight absence alone"));
             assert_eq!(completion,expected_completion,"selected completion must bind the exact prepared body");
             assert!(exact_receipt_seen && committed_receipt_witness.is_some(),"completion requires observed exact committed receipt");
             println!("NA0780_RECEIPT_EVIDENCE {}",serde_json::json!({"round":round,"stage":"authenticated_sender_completion","body_commitment_matches":true,"selected_flight_absent":true,"epoch":epoch}));
@@ -1780,7 +1780,7 @@ fn directional_suppression_saved_receipt_inspect() {
     let id="selected-suppression";
     assert_ne!(sa["completed"].get(id).is_some(),sb["completed"].get(id).is_some());
     let(sender,receiver,out)=if sa["completed"].get(id).is_some(){(&sa,&sb,&bo)}else{(&sb,&sa,&ao)};
-    let completion:Vec<u8>=serde_json::from_value(sender["completed"][id].clone()).expect("durable selected completion required");
+    let completion:Vec<u8>=common::stored_bytes(sender["completed"].get(id).expect("durable selected completion required"));
     assert_eq!(completion,Sha512::digest(b"held exact ordinary")[..32]);
     assert!(sender["flights"].as_object().unwrap().values().all(|f|f["id"]!=id));
     assert_eq!(sender["send_floor"],27,"must match saved restoration round1 trace");
@@ -2054,7 +2054,7 @@ fn review_r01_batch(fixed: bool) {
     assert_eq!(receipts.len(), expected, "no rejected NDR1");
     for receipt in receipts {
         assert!(receipt.status == 200 && receipt.response_written);
-        assert!(dispositions.values().any(|d| serde_json::from_value::<Vec<u8>>(d["receipt"].clone()).unwrap() == receipt.body));
+        assert!(dispositions.values().any(|d| common::stored_bytes(&d["receipt"]) == receipt.body));
     }
     if fixed {
         // A fresh honest operation reaches the existing actual writer fault seam.
@@ -2337,7 +2337,7 @@ fn directional_r02_funded_release_at_saturation() {
     let sx=common::directional_state(&a,"bob");
     let xflight=sx["flights"].as_object().unwrap().values().find(|f|f["id"]!="" && f["id"]!=eflight["id"]).unwrap();
     assert_eq!(xflight["id"].as_str().unwrap().len(),32);
-    let xwire:Vec<u8>=serde_json::from_value(xflight["wire"].clone()).unwrap();
+    let xwire:Vec<u8>=common::stored_bytes(&xflight["wire"]);
     let held_x=server.drain_channel(ROUTE_TOKEN_BOB);assert!(held_x.contains(&xwire));
     // Reach saturation solely through ordinary authorized writes. Every refused
     // write leaves the ciphertext and independently funded event/credit intact.
@@ -2391,9 +2391,9 @@ fn r02_verify_actual_receipt_domains(state:&serde_json::Value,flight:&serde_json
     fn lp(bytes:&[u8])->Vec<u8> {let mut out=(bytes.len() as u32).to_be_bytes().to_vec();out.extend(bytes);out}
     assert_eq!(flight["epoch"].as_u64().unwrap(),0,"fresh epoch-zero consumer required");
     assert_eq!(receipt.len(),113);assert_eq!(&receipt[..4],b"NDR1");
-    let sid:Vec<u8>=serde_json::from_value(state["core"]["sid"].clone()).unwrap();
-    let mut root:Vec<u8>=serde_json::from_value(state["core"]["root"].clone()).unwrap();
-    let wire:Vec<u8>=serde_json::from_value(flight["wire"].clone()).unwrap();
+    let sid:Vec<u8>=common::stored_bytes(&state["core"]["sid"]);
+    let mut root:Vec<u8>=common::stored_bytes(&state["core"]["root"]);
+    let wire:Vec<u8>=common::stored_bytes(&flight["wire"]);
     let slot=flight["slot"].as_u64().unwrap() as u32;
     assert!(receipt[4..20]==sid);assert_eq!(receipt[20],state["core"]["role"].as_u64().unwrap() as u8);
     let derive=|profile:&[u8]| {
@@ -2403,7 +2403,7 @@ fn r02_verify_actual_receipt_domains(state:&serde_json::Value,flight:&serde_json
     };
     let mut successor:[u8;32]=derive(b"NA0780-DIR-INTEGRATION-03").try_into().unwrap();
     let mut predecessor:[u8;32]=derive(b"NA0780-DIR-INTEGRATION-02").try_into().unwrap();
-    let mut actual:Vec<u8>=serde_json::from_value(state["send"]["0"]["context"]["key"].clone()).unwrap();
+    let mut actual:Vec<u8>=common::stored_bytes(&state["send"]["0"]["context"]["key"]);
     assert!(actual.as_slice()==successor.as_slice() && successor!=predecessor,"actual epoch uses exact successor key domain");
     let ad=|profile:&[u8]| {let mut out=lp(profile);out.extend(lp(b"NA0780-DIR-EPOCH-CORE-01"));out.extend(&receipt[..65]);out};
     let mut nonce=[0u8;12];nonce[8..].copy_from_slice(&slot.to_be_bytes());
@@ -2446,7 +2446,7 @@ fn r02_pair_fixture(name:&str)->(PathBuf,PathBuf,PathBuf,PathBuf,PathBuf) {
 fn r02_pending_receipts(state:&serde_json::Value)->Vec<Vec<u8>> {
     state["dispositions"].as_object().unwrap().values()
         .filter(|d|d["response_pending"]==true)
-        .map(|d|serde_json::from_value(d["receipt"].clone()).unwrap()).collect()
+        .map(|d|common::stored_bytes(&d["receipt"])).collect()
 }
 fn r02_one_attempt(journal:&[common::DirectionalPushAttempt]) {
     for (i,attempt) in journal.iter().enumerate() {
@@ -2587,7 +2587,7 @@ fn directional_r02_completion_cuts() {
     assert_eq!(r02_observed_charge(&a),after,"same recovery has no double debit, including reserved generation widths");
     assert_eq!(r02_owner(&a)["entries"],entries);
     let attempts=server.directional_pushes();assert_eq!(attempts.len(),1);
-    assert_eq!(attempts[0].body,serde_json::from_value::<Vec<u8>>(other_flight["wire"].clone()).unwrap());
+    assert_eq!(attempts[0].body,common::stored_bytes(&other_flight["wire"]));
     r02_assert_pair(&a,"bob");payload_once(&bo,b"durable completion");
 }
 
@@ -2754,7 +2754,7 @@ fn directional_r02_serializer_maintenance() {
     poll_candidate(&b,server.base_url(),ROUTE_TOKEN_BOB,"alice",&bo); // owner's genuine grant
     let before_send=common::directional_state(&b,"alice");
     let (key,maintenance)=before_send["flights"].as_object().unwrap().iter().find(|(_,f)|f["id"]=="").unwrap();
-    let wire:Vec<u8>=serde_json::from_value(maintenance["wire"].clone()).unwrap();
+    let wire:Vec<u8>=common::stored_bytes(&maintenance["wire"]);
     assert_eq!(&wire[..4],b"NDE1");assert_eq!(wire[4],1,"typed owner grant, not an advertisement receipt");
     let unrelated=base.join("retry");fs::write(&unrelated,b"unrelated immutable retry").unwrap();send_msg(&b,server.base_url(),"alice",&unrelated);
     // Only the real grant goes to Alice. Holding synthetic relay traffic is not

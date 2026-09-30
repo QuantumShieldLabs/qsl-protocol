@@ -1337,6 +1337,22 @@ pub fn directional_state(cfg: &Path, peer: &str) -> serde_json::Value {
     state
 }
 
+/// NA-0788 F04/S5: a byte field of a stored directional record (a Transaction's or owner's
+/// `wire`, `receipt`, `sid`, `hash`, `body`, `key` ... member, read from the vault as a
+/// `serde_json::Value`) is one canonical padded STANDARD base64 string. Decoded STRICTLY: the
+/// engine refuses every non-canonical form and the text must re-encode to itself; any other
+/// shape -- a JSON number array included -- panics with a fixed message that never echoes the
+/// value, so a writer that regressed to another encoding turns every reader of it red.
+pub fn stored_bytes(value: &serde_json::Value) -> Vec<u8> {
+    use base64::Engine as _;
+    const MESSAGE: &str = "stored byte field is not a canonical base64 string";
+    let text = value.as_str().expect(MESSAGE);
+    let engine = base64::engine::general_purpose::STANDARD;
+    let bytes = engine.decode(text).unwrap_or_else(|_| panic!("{MESSAGE}"));
+    assert!(engine.encode(&bytes) == text, "{MESSAGE}");
+    bytes
+}
+
 pub fn directional_pair_assert(a: &serde_json::Value, b: &serde_json::Value) {
     assert!(a["version"] == b["version"] && a["core"]["sid"] == b["core"]["sid"], "same authenticated profile/session");
     assert!(a["core"]["root"] == b["core"]["root"], "authenticated roots agree");
@@ -1413,13 +1429,19 @@ impl DirectionalTrace {
                 let flights: Vec<_> = after["flights"].as_object().unwrap().values()
                     .filter(|f| f["epoch"].as_u64() == Some(new) && f["slot"] == 0).collect();
                 assert_eq!(flights.len(), 1, "boundary durably retained");
-                let wire: Vec<u8> = serde_json::from_value(flights[0]["wire"].clone()).unwrap();
+                let wire: Vec<u8> = stored_bytes(&flights[0]["wire"]);
                 assert!(wire.len() >= 74 && &wire[..4] == b"NDE1" && wire[4] == 1, "actual boundary wire");
                 assert_eq!(wire[21] as u64, role);
                 assert_eq!(u64::from_be_bytes(wire[22..30].try_into().unwrap()), new);
                 assert_eq!(u64::from_be_bytes(wire[66..74].try_into().unwrap()), old);
-                assert!(serde_json::to_value(&wire[5..21]).unwrap() == a["sid"], "wire session binding");
-                assert!(serde_json::to_value(&wire[34..66]).unwrap() == a["own_pub"], "wire sender DH binding");
+                assert!(
+                    stored_bytes(&a["sid"])[..] == wire[5..21],
+                    "wire session binding"
+                );
+                assert!(
+                    stored_bytes(&a["own_pub"])[..] == wire[34..66],
+                    "wire sender DH binding"
+                );
                 assert!(self.emitted.insert(new, after.clone()).is_none(), "one emission per sequence");
             } else {
                 let sender = self.emitted.get(&new).expect("observed originating boundary before intake");

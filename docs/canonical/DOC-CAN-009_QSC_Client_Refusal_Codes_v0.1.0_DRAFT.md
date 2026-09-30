@@ -2,7 +2,7 @@ Goals: G4
 
 Status: Authoritative (normative registry; append-only)
 Owner: QSL governance
-Last-Updated: 2026-09-28
+Last-Updated: 2026-09-30
 
 # DOC-CAN-009 -- QSC client refusal codes (normative registry) v0.1.0 DRAFT
 
@@ -54,6 +54,7 @@ main (RULING_NA0787_S6a Q-8), a named deviation from C01 AM-6.16 (a)'s "allocate
 | QRC-0019 | freshness_successor_invalid | the vault the client built for a commit or for init does not authenticate, or does not extend the committed lineage (vault identity, protection mode, generation, predecessor anchor); a client defect, never a passphrase failure; refused before any write | C07 AM-1 provider kinds CommitError::SuccessorOpenFailed, ChainBreak::VaultId, ChainBreak::Mode, ChainBreak::Generation, ChainBreak::PredecessorAnchor, ChainBreak::CheckpointKey, GenesisError::B0OpenFailed, GenesisBreak::Generation, GenesisBreak::PredecessorAnchor (MAPPING rows 40-45, 56-58; row 45 as changed by the S7b addendum); NEW | ALLOCATED |
 | QRC-0020 | vault_file_oversized | a vault file on disk is longer than the client's bound; refused unread, never shown to the vault opener | C07 AM-1 provider kind RecoverError::BlobTooLarge (MAPPING rows 8, 22, 64); C01 AM-6.17 O14; NEW | ALLOCATED |
 | QRC-0021 | vault_capacity_exceeded | the vault the client built exceeds the vault size bound; remove content; refused before any write | C07 AM-1 provider kinds CommitError::SuccessorTooLarge, GenesisError::B0TooLarge (MAPPING rows 39, 55); NEW | ALLOCATED |
+| QRC-0022 | directional_record_version_unsupported | a stored directional record (the capacity owner, a Transaction, a Flight or a Disposition) carries a schema version this client does not know; refused before any of its fields is read, never reported as tampering; a missing schema member and a malformed byte field keep the record's existing code | RBANK_F04_encoding_schema_version E4 (C4-O7); RBANK_S5_schema_version_code (the operator's spelling); NA-0788 F04/S5; NEW | ALLOCATED |
 
 "MAPPING" is the ruled map of NA-0787 sub-step S6 (MAPPING.md TABLE 1, ruled by RULING_NA0787_S6a R1). No row carries a
 path, a key or an identifier.

@@ -1597,7 +1597,7 @@ fn dh_ratchet_e2e_roundtrip_over_real_handshake() {
         .filter(|f| f["id"] == rows[0].msg_id)
         .collect();
     assert_eq!(app.len(), 1, "one durable application slot");
-    let wire: Vec<u8> = serde_json::from_value(app[0]["wire"].clone()).unwrap();
+    let wire: Vec<u8> = common::stored_bytes(&app[0]["wire"]);
     assert!(
         wire[4] == 0 && app[0]["epoch"] == 0,
         "first application is ordinary epoch zero"

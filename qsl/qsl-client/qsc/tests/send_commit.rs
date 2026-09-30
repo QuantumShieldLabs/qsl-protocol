@@ -175,7 +175,7 @@ fn send_failure_no_commit() {
         .filter(|(_, f)| f["id"] == saved.msg_id).collect();
     assert_eq!(flights.len(), 1);
     let (slot, flight) = (flights[0].0.clone(), flights[0].1.clone());
-    assert!(flight["wire"] == serde_json::to_value(&wire).unwrap() && flight["accepted"] == false);
+    assert!(common::stored_bytes(&flight["wire"]) == wire && flight["accepted"] == false);
     assert!(state["completed"].get(&saved.msg_id).is_none());
     let attempts = relay.directional_pushes();
     assert_eq!(attempts.len(), 1, "fault must hit intended application, not maintenance");
@@ -211,8 +211,11 @@ fn send_failure_no_commit() {
     assert!(delivered_outputs.len() == 1 && delivered_outputs.values().next().unwrap() == b"hello");
     let received = common::directional_state(&peer_cfg, "alice");
     let disposition = &received["dispositions"][&slot];
-    assert!(disposition["hash"] == serde_json::to_value(hash(&wire)).unwrap(), "authenticated exact wire disposition");
-    let receipt: Vec<u8> = serde_json::from_value(disposition["receipt"].clone()).unwrap();
+    assert!(
+        common::stored_bytes(&disposition["hash"]) == hash(&wire),
+        "authenticated exact wire disposition"
+    );
+    let receipt: Vec<u8> = common::stored_bytes(&disposition["receipt"]);
     assert!(!receipt.is_empty());
     assert!(relay.directional_pushes().iter().any(|a| a.status == 200 && a.response_written && a.body == receipt), "actual exact committed receipt sent");
 

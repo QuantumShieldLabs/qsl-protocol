@@ -123,15 +123,23 @@ pub(crate) fn open_typed(p: &[u8]) -> R<(u8, Vec<u8>)> {
 pub(crate) struct Epoch {
     pub(crate) id: u64,
     pub(crate) dir: u8,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) dh: Key,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) ec: Key,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) pq: Key,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) hk: Key,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) adv: Key,
     pub(crate) next: u32,
     #[serde(deserialize_with = "crate::strict_json::required")]
     pub(crate) terminal: Option<u32>,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    #[serde(
+        serialize_with = "crate::strict_json::b64::serialize_map",
+        deserialize_with = "crate::strict_json::b64::unique_map"
+    )]
     pub(crate) skipped: BTreeMap<u32, Key>,
 }
 impl Epoch {
@@ -169,7 +177,9 @@ impl Epoch {
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct LocalTarget {
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) pk: Vec<u8>,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) sk: Vec<u8>,
 }
 impl Drop for LocalTarget {
@@ -181,14 +191,20 @@ impl Drop for LocalTarget {
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Core {
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) sid: [u8; 16],
     pub(crate) role: u8,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) root: Key,
     pub(crate) seq: u64,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) digest: Key,
     pub(crate) owner: u8,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) own_priv: Key,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) own_pub: Key,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) peer_pub: Key,
     #[serde(deserialize_with = "crate::strict_json::required")]
     pub(crate) send: Option<Epoch>,
@@ -200,12 +216,16 @@ pub(crate) struct Core {
     pub(crate) local: BTreeMap<u32, LocalTarget>,
     pub(crate) local_next: u32,
     pub(crate) local_consumed_prefix: u32,
-    #[serde(deserialize_with = "crate::strict_json::unique_map")]
+    #[serde(
+        serialize_with = "crate::strict_json::b64::serialize_map",
+        deserialize_with = "crate::strict_json::b64::unique_map"
+    )]
     pub(crate) peer: BTreeMap<u32, Vec<u8>>,
     pub(crate) peer_max: u32,
     pub(crate) peer_selected_prefix: u32,
-    #[serde(deserialize_with = "crate::strict_json::required")]
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) last_in: Option<Key>,
+    #[serde(with = "crate::strict_json::b64")]
     pub(crate) last_out: Vec<u8>,
 }
 

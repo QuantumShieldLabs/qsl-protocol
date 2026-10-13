@@ -1,3 +1,5 @@
+Read PROJECT_WORKFLOW.md. These commands are an operator reference for an explicitly authorized release after all applicable hardening triggers and release checks are closed. A verified tag/checksum proves identity and integrity, not security or release qualification. No tagging, publishing or deployment follows from reading this runbook.
+
 # Signed Releases Runbook
 
 This runbook provides user instructions for creating and verifying signed tags and release checksums.

@@ -68,3 +68,7 @@ Suite-2 is considered release-ready only when all are true:
 - G3 negotiation is transcript-bound and fail-closed with negative tests
 - G4 includes at least one machine-checkable model with CI execution
 - G5 profiles are specified with explicit privacy tradeoffs
+
+## Build stages
+
+PROJECT_WORKFLOW.md schedules implementation and qualification. G1-G5 remain required final goals; immediate safety-critical correctness is retained. Broader proof may be staged in HARDENING.md with blocking triggers. Existing CI guards remain active. No working-slice claim is a release or security-certification claim.

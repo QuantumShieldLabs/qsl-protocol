@@ -1,30 +1,12 @@
-# Worktree Hygiene Policy
+# worktree_hygiene: current use
 
-This repository uses multiple worktrees for implementation and verification. To avoid branch collisions and stale registry entries:
+Goals: G1, G2, G3, G4, G5
 
-- Verification/forensics worktrees must be detached (`git worktree add <path> origin/main`).
-- Do not run verification from `/tmp` worktrees.
-- Do not pin `main` in a secondary worktree.
+Revision: 2026-10-13. This current procedure replaces the older process text under the operator-approved project method.
 
-## Why This Matters
+Read [the project workflow](../../PROJECT_WORKFLOW.md).
 
-- Pinning `main` outside the canonical repo path causes merge/checkout failures (`main is already used by worktree ...`).
-- `/tmp` worktrees often leave stale/prunable entries after directory cleanup.
-- Scripts that assume `git checkout main` are unsafe in multi-worktree repos.
+Use isolated branches for implementation and exact detached refs where appropriate for review. Preserve dirty/untracked work; never pin main in a second checkout or silently reset an existing one. Durable source/evidence belongs in lane/state roots; generated output in caches. Remove/prune only proven unneeded worktrees under explicit cleanup authority, preserving load-bearing object alternates and evidence.
 
-## Standard Cleanup
 
-1. Review registered worktrees:
-   - `git worktree list --porcelain`
-2. Remove stale temporary worktrees explicitly:
-   - `git worktree remove <path>`
-3. Prune stale registrations:
-   - `git worktree prune`
-
-## Scripted Sentinel
-
-- Run `scripts/ci/hygiene_sentinel.sh` in repo root.
-- Optional strict flags:
-  - `--require-clean`
-  - `--fail-on-tmp`
-  - `--fail-on-main-pin`
+The [complete prior document](https://github.com/QuantumShieldLabs/qsl-protocol/blob/65059fad067119c54528e5c9b56b65e1f00720d3/docs/dev/worktree_hygiene.md) is an immutable historical snapshot; its old procedural instructions do not govern new work. Its accepted product requirements remain subject to the current roadmap and later accepted amendments.

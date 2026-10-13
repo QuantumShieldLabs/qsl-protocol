@@ -20,9 +20,7 @@ This project is governed by GOALS.md (G1–G5). All work must advance at least o
 These tenets govern how every lane builds. They add discipline; they never relax the
 fail-closed rules above.
 
-- **Right the first time, with plumbing for the future.** The first release must combine
-  excellent architecture with **deliberate, versioned extension plumbing** that future
-  builds can use or adjust. No expedient patching just to make something work now.
+- **Connected safe slices, with explicit future boundaries.** Preserve deliberate versioned extension plumbing and strict accepted interfaces. Make the safety core correct before dependent use; schedule broader rigor in HARDENING.md against mandatory triggers. Final accepted requirements remain unchanged.
 - **Extensibility is versioned and explicit, never permissive.** Keep strict validation
   (e.g. `deny_unknown_fields`, exact-length checks, canonical-order enforcement). Add
   forward compatibility through a documented version field and upgrade path plus
@@ -63,4 +61,8 @@ A change is “successful” only if:
 ## Operating rules
 - Any change that affects protocol state machines or key schedules requires a DECISIONS.md entry.
 - No feature ships without negative tests for downgrade and rollback.
-- Documentation updates must precede or accompany code changes; never “later.”
+- Changed security/interoperability contracts are documented before or with dependent code. Broader qualification documentation may follow at its explicit HARDENING.md trigger; it cannot be claimed completed early.
+
+## Execution method
+
+PROJECT_WORKFLOW.md owns project process. Implement connected working slices, maintain the safety core and necessary sensitive review, and defer broader qualification only with explicit blocking triggers in HARDENING.md. A working development slice is not full milestone or release acceptance.

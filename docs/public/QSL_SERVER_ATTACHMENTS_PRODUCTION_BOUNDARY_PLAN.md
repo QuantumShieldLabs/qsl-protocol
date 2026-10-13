@@ -1,3 +1,5 @@
+> Technical/evidence reference. [Project workflow](../../PROJECT_WORKFLOW.md) governs process and scheduling. Dated lane/status/next-action text below describes its recorded revision; it is not a current queue, launch instruction or qualification certificate. Final required security/claim gates remain; actual deferrals are scheduled only in HARDENING.md.
+
 Goals: G1, G3, G4, G5
 
 Status: Supporting

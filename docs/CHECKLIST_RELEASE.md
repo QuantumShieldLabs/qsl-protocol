@@ -1,3 +1,5 @@
+> Current project process: [PROJECT_WORKFLOW.md](../PROJECT_WORKFLOW.md). Working slices, qualified milestones and release have separate gates; relevant hardening triggers block their boundary. Dated results/recipes below retain their exact scope and are not current task or deployment authority.
+
 # Release Checklist (Public)
 
 This repository publishes **draft protocol documentation** and **conformance vectors**.

@@ -28,7 +28,7 @@ Put confirmed changes in the relevant source repository and push the reviewed br
 
 ## Mandatory final assignment review
 
-Before marking any new or revised assignment READY or giving its manual launch command, the Director must reread the complete final saved directive from beginning to end, together with its actual saved scope/input list and launch command. Review the version Codex will receive after all edits, not an earlier draft, recalled wording or a checklist alone. Apply this to implementation, review, design and supporting tasks.
+Before marking any new or revised assignment READY, giving its manual launch command or automatically launching it, the Director must reread the complete final saved directive from beginning to end, together with its actual saved scope/input list and launch command. Review the version Codex will receive after all edits, not an earlier draft, recalled wording or a checklist alone. Apply this to implementation, review, design and supporting tasks.
 
 Check the assignment from Codex's point of view:
 

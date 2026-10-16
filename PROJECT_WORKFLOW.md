@@ -2,7 +2,7 @@
 
 Goals: G1, G2, G3, G4, G5
 
-Revision: 2026-10-14. Operator-adopted project workflow; mandatory final assignment review integrated and bounded AUTO explicitly authorized.
+Revision: 2026-10-16. Operator-adopted project workflow; bounded AUTO and mandatory final review retained. Operator-authorized preparation improvements apply prospectively at a verified quiet boundary.
 
 ## Authority and scope
 
@@ -19,6 +19,14 @@ Director: GPT 6.1 Sol / High. Codex: GPT 6.1 Sol / Medium. Normal speed; no /fas
 ## Lane 1: connected working slices
 
 Keep the accepted roadmap. Choose the smallest coherent change that advances an actual product behavior or removes a demonstrated blocker. A slice includes its real caller, necessary error/refusal behavior and affected fixtures. Avoid frameworks, general tooling, speculative future cases and repeated broad reviews unless a concrete requirement or failure justifies them.
+
+Prepare tasks around complete behavior, not the number of files, warnings or commands. Keep a connected change, its actual caller, necessary fixtures, success/refusal paths and immediate checks in one realistic assignment. Independent sensitive review remains separate from the author. Split work when contracts, dependencies or the measured budget require it; do not split a settled correction into one task per compiler warning.
+
+When required build checks repeatedly stop at the next target's warning, collect the reachable diagnostics across the required configurations in one prospectively scoped, bounded inventory before preparing another repair. Use a documented keep-going option where appropriate, retain incomplete/dependent-target coverage honestly, and settle the actual causes and equivalence before authorizing a bounded related batch. This grants no native command, arbitrary lint cleanup, waiver, target reduction or retry. Original required quality commands must still pass after the corrections.
+
+Keep the worker-facing packet concise: lead with the outcome, exact allowed change, first actual-caller check, required final evidence and stopping conditions. State each current numerical requirement once in its authoritative contract or plan. Link exact preserved evidence and the current rules instead of copying historical counts, old commands or whole reports into the directive, TASK and contract. The complete final scope/input list, hashes, permissions and budget remain available and must agree; concise instructions do not omit safety or weaken the mandatory final review.
+
+Reuse the last verified finite test driver and result interpretation for the same output format and fault model. Review only the necessary adapter differences. Before the first product command, exercise an adapted interpreter on preserved representative raw outputs: a pass, its intended failure, no tests or an unexpected result, and the actual event/child shape when used. The check must distinguish those outcomes without rerunning a product subject or broadening a causal predicate. Preserve exact tool versions, fixtures and results in the existing preparation/task evidence. A later interpretation defect may be corrected by a preserved read-only interpretation of the original result; it never justifies rerunning a consumed subject. Do not build a new general runner or another review framework for this precheck.
 
 Before issue, the Director names the roadmap card, user-visible purpose, exact source base and allowed paths, settled contracts, immediate checks, necessary independent review, deferred checks with ledger IDs, time limit, closeout reserve and exit condition. Read the full relevant current instructions, contracts and source; retrieve exact cited evidence before making a finding. Do not require the whole historical archive at every startup. Resolve structural identity, format, authentication, ownership and capacity interfaces before dependent code relies on them; a mock cannot quietly choose an unresolved production contract.
 

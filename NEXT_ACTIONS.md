@@ -2,7 +2,7 @@
 
 Goals: G4 (primary), drives G1–G3 delivery
 
-> Read PROJECT_WORKFLOW.md. The managed current lane TASK is the sole task authority; this repository block is a compatibility projection for existing CI parsers. NA-0788 identifies the product card, not permission to launch any named worker. No AUTO, parallel task or automatic retry is authorized. Historical ON DECK/SR instructions below are nonoperative. HARDENING.md is the single deferred-rigor ledger.
+> Read PROJECT_WORKFLOW.md. The managed current lane TASK is the sole task authority; this repository block is a compatibility projection for existing CI parsers. NA-0788 identifies the product card, not permission to launch any named worker. Serial AUTO follows the current TASK/master; this projection grants no launch authority. Parallel tasks and automatic retries remain prohibited. Historical ON DECK/SR instructions below are nonoperative. HARDENING.md is the single deferred-rigor ledger.
 
 <!-- ============================ LIVE QUEUE (read this first) ============================ -->
 

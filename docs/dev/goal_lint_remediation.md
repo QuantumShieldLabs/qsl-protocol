@@ -1,23 +1,12 @@
-# Goal-Lint Remediation: Stale PR Body Event
+# goal_lint_remediation: current use
 
-## Symptom
+Goals: G1, G2, G3, G4, G5
 
-`goal-lint` fails after editing the PR body to add or fix the `Goals:` line.
+Revision: 2026-10-13. This current procedure replaces the older process text under the operator-approved project method.
 
-## Why This Happens
+Read [the project workflow](../../PROJECT_WORKFLOW.md).
 
-The workflow rerun can read an older `pull_request` event payload where the body does not yet include the latest edit.
+First confirm the current PR body and exact event/head causing failure. Correct authorized metadata normally. No automatic rerun, empty commit, close/reopen or altered protection just to manufacture green. Any event-trigger remediation needs explicit manual human action and preserved prior failure; required CI still gates merge.
 
-## Deterministic Remediation
 
-1. Confirm the PR body has a top-level line like `Goals: G2, G5`.
-2. Close the PR.
-3. Reopen the PR.
-4. Wait for a new `pull_request` event run (new run id / timestamp).
-5. Re-check `goal-lint` and merge only after required checks are green.
-
-## Notes
-
-- Do not push new commits for this remediation.
-- Do not bypass protections.
-- Keep merge strategy consistent with repository policy.
+The [complete prior document](https://github.com/QuantumShieldLabs/qsl-protocol/blob/65059fad067119c54528e5c9b56b65e1f00720d3/docs/dev/goal_lint_remediation.md) is an immutable historical snapshot; its old procedural instructions do not govern new work. Its accepted product requirements remain subject to the current roadmap and later accepted amendments.

@@ -1,16 +1,7 @@
-# DEPRECATED — STATUS.md
+# Current status location
 
-This file is deprecated and retained only as a compatibility stub.
+Goals: G1, G2, G3, G4, G5
 
-It previously tracked a per-close-out queue snapshot, but that duplicated the live
-governance spine and drifted (its last real update was 2026-03-02 / NA-0176, while
-the queue has since advanced past NA-0628). Live queue and decision truth are:
+Revision: 2026-10-13. Read [the project workflow](PROJECT_WORKFLOW.md).
 
-- `NEXT_ACTIONS.md` — the live queue (the sole `^Status: READY` lane, ON DECK, and the `STATE:` header)
-- `DECISIONS.md` — the canonical decision log
-- `TRACEABILITY.md` — goal → spec → implementation → test/vector traceability
-- `docs/ops/IMPROVEMENT_LEDGER.md` — the prioritized backlog
-
-Historical note:
-- This file previously summarized NA-lane status through NA-0176.
-- That content is historical and non-operative; do not treat it as current state.
+The current managed lane TASK is the sole live checkpoint. NEXT_ACTIONS.md is a CI compatibility view/history; DECISIONS.md and TRACEABILITY.md retain accepted technical/evidence records. HARDENING.md has one managed ledger; no improvement/prediction/owed file owns another active queue.

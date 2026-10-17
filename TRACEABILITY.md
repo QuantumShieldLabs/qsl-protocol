@@ -1,3 +1,5 @@
+> Current process: [PROJECT_WORKFLOW.md](PROJECT_WORKFLOW.md), adopted 2026-10-13. This is decision/evidence history, not a task queue or a source of superseded procedural requirements. Accepted product meanings remain subject to later amendments.
+
 # Goal Traceability Matrix (Living)
 
 This document maps program goals to spec sections, implementation modules, and tests/vectors.

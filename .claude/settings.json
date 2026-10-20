@@ -1,5 +1,5 @@
 {
-  "_comment": "Place at <repo>/.claude/settings.json (commit it) or ~/.claude/settings.json for machine-wide effect. Verify key names against the current Claude Code settings docs after install. Permissions deny rules are the second enforcement layer; the PreToolUse hook is the first.",
+  "_comment": "Legacy Claude guardrail configuration, retained for its technical restrictions. Current project process and assistant entry are PROJECT_WORKFLOW.md and AGENTS.md; manual fresh Codex is the current route. This reference does not authorize legacy installation/start, scope expansion or permission bypass. Existing deny/hook values are unchanged and must be requalified before any separately authorized legacy use.",
   "permissions": {
     "deny": [
       "Bash(sudo:*)",

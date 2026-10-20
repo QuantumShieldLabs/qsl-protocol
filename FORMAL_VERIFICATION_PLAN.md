@@ -3,9 +3,9 @@
 Goals: G4
 Last-Updated: 2026-07-10
 
-This plan satisfies GOALS.md (G4) and defines the verification roadmap.
+This reference records G4 model obligations and historical evidence. PROJECT_WORKFLOW.md and the current roadmap schedule work; model expansion is triggered in HARDENING.md. Existing fail-closed CI model guards remain active.
 
-## Near-term (immediately)
+## Retained model obligations
 Maintain a machine-readable list of security properties to prove:
 - message-key secrecy under active attacker
 - authentication of peers and transcript binding

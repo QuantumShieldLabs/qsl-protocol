@@ -8,22 +8,9 @@ Last-Updated: 2026-03-29
 
 Use this directory as the qbuild-first, AWS-free operator front door for `qsc`.
 
-## Validated baseline
+## Development and verification entry
 
-- Build from a fresh local checkout (qbuild-scoped when applicable):
-  `cargo build -p qsc --release --locked`
-- Use [LOCAL_TWO_CLIENT_RUNBOOK.md](./LOCAL_TWO_CLIENT_RUNBOOK.md) for the current truthful
-  end-to-end baseline.
-- That baseline is the one aligned to current TUI/operator behavior, route-token header carriage,
-  and the validated post-`w0` migration posture.
-
-## Compatibility surfaces
-
-- [REMOTE_TWO_CLIENT_AWS_RUNBOOK.md](./REMOTE_TWO_CLIENT_AWS_RUNBOOK.md) is compatibility-only
-  evidence for a non-baseline remote lane.
-- [REMOTE_SOAK_PLAYBOOK.md](./REMOTE_SOAK_PLAYBOOK.md) is compatibility-only operational evidence.
-- `docs/qsc/DOC-QSC-003_*` and `docs/qsc/DOC-QSC-004_*` remain supporting packaging/demo context,
-  but they are not the operator front door.
+Read ../../../PROJECT_WORKFLOW.md from this qsc directory (repository root authority) and the exact current task. qsc is the in-process client core and laboratory/operator CLI surface; the desktop is the end-user application. The former TUI/old local baseline and remote playbooks are historical recipes, not current acceptance or task authority. Build/test only the task's selected source, toolchain, features, cache/evidence roots and actual callers. Targeted slice evidence does not establish the required full successor/platform/release gates; deferred rigor has explicit HARDENING.md triggers.
 
 ## Product-surface guardrails
 

@@ -1,15 +1,15 @@
-Goals: G2, G5
+Goals: G1, G2, G3, G4, G5
 
-## Summary
+## Change and product behavior
 
-## Checklist
-- [ ] Scope is limited and justified
-- [ ] No secrets or internal endpoints included
-- [ ] Updated docs/vectors/governance references as needed
-- [ ] Followed `SECURITY.md` for any security-sensitive issues
+## Verification and stage
 
----
+State exact source, meaningful checks/results and relevant independent review. Distinguish development slice, CORE_READY, QUALIFIED and release.
 
-### Checklists (recommended)
-- Docs PR checklist: `docs/CHECKLIST_DOCS_PR.md`
-- Release checklist: `docs/CHECKLIST_RELEASE.md`
+## Deferred rigor
+
+List applicable single-ledger HARDENING.md IDs, risks and mandatory triggers, or state none. Triggered requirements block their boundary; the safety core and required CI are retained.
+
+## Scope and publication
+
+Confirm intended paths and no secrets/private infrastructure. Follow PROJECT_WORKFLOW.md; human operator alone merges or deploys.

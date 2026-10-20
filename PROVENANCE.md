@@ -6,7 +6,7 @@ This document explains how to verify that a checkout and related proof evidence 
 
 - Source of truth is the `main` branch in:
   - https://github.com/QuantumShieldLabs/qsl-protocol
-- Governance state and work evidence are tracked in:
+- Current process is PROJECT_WORKFLOW.md; the managed TASK owns live work. Historical decisions and evidence are tracked in:
   - `NEXT_ACTIONS.md`
   - `TRACEABILITY.md`
   - `DECISIONS.md`
@@ -46,3 +46,5 @@ Use `TRACEABILITY.md` for pinned run links associated with completed NAs.
 
 - Logs and markers are expected to avoid secrets.
 - Do not include tokens, private keys, bearer values, or credentials in shared artifacts.
+
+Current development branches may contain reviewed work awaiting human merge; distinguish their exact source/evidence from merged main and deployment provenance.

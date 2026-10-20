@@ -1,12 +1,14 @@
-# NEXT_ACTIONS — Authoritative Execution Queue
+# NEXT_ACTIONS — compatibility queue view and history
 
 Goals: G4 (primary), drives G1–G3 delivery
+
+> Read PROJECT_WORKFLOW.md. The managed current lane TASK is the sole task authority; this repository block is a compatibility projection for existing CI parsers. NA-0788 identifies the product card, not permission to launch any named worker. Serial AUTO follows the current TASK/master; this projection grants no launch authority. Parallel tasks and automatic retries remain prohibited. Historical ON DECK/SR instructions below are nonoperative. HARDENING.md is the single deferred-rigor ledger.
 
 <!-- ============================ LIVE QUEUE (read this first) ============================ -->
 
 ## LIVE QUEUE
 
-`STATE: READY=NA-0788 | HIGHEST_NA=0788 | HIGHEST_D=1448 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md`
+`STATE: READY=NA-0788 | HIGHEST_NA=0788 | HIGHEST_D=1448 | BACKLOG_SOURCE=HARDENING.md`
 <!-- prior: STATE: READY=NA-0788 | HIGHEST_NA=0788 | HIGHEST_D=1447 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (HIGHEST_D only, for **D-1448** -- **records rider: SR-16 Director rows 577-589 filed (R52-R64)**; DIRECTIVE_TMP_records_1001_2026-10-01 (46cdc426...). READY stays NA-0788 (PLAN F04; its block is unchanged). Ids derived at this edit on DECLARING forms with positive controls D-1447 / row 576 (1 / 1 on main) and negative controls D-1999 / row 999 (0 on every arm); D-1448 / rows 577-589 0 on main, the three open protocol PR heads, the operator tree and the lanes tree; the other five repositories, queried by their remote names, have 0 open PRs.) -->
 <!-- prior: STATE: READY=NA-0787 | HIGHEST_NA=0787 | HIGHEST_D=1445 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0788 READY for **D-1447** -- **PLAN F04: persisted-state decoding and reads strict, with the S11 schema landing (A6 I-5)**; NA-0787 DONE, D-1446) -->
 <!-- prior: STATE: READY=NA-0786 | HIGHEST_NA=0786 | HIGHEST_D=1444 | BACKLOG_SOURCE=docs/ops/IMPROVEMENT_LEDGER.md (NA-0787 READY for **D-1445** -- **PLAN A6 I-5: F04-C07P, the C07 local-checkpoint provider (before S11)**; RULING_F04C07P_formalization_2026-09-28 (8396b313...) R13, the lane ordered by RULING_NA0786_CLOSE_2026-09-28 R4; NA-0786 DONE: PLAN A6 I-4 C01 and C07 amendments CLOSED (A6_I4_C01_C07_AMENDED_TWO_READS; #1867 b36ff0d5, #1868 04bdcfe9; records pushed, qsl-record 48d12fd7); ledger row 562 (SR-16 R37); the ENG-0365 update line (no new ENG). Ids derived at this edit on DECLARING forms with positive controls NA-0786 / D-1444 / ENG-0383 / row 561 (5 / 1 / 1 / 1 on main) and negative controls NA-0999 / D-1999 / ENG-0999 / row 999 (0 on every arm); NA-0787 / D-1445 / row 562 0 on main, the three open protocol PR heads, the operator tree and the lanes tree; the other five repositories, queried by their remote names, have 0 open PRs.) -->

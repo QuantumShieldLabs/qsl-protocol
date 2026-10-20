@@ -11,8 +11,7 @@ can break the classical key exchange that protected it. This is called **harvest
 later**, and it is why messages that must stay private for a decade need post-quantum
 protection today.
 
-This repository is where that protocol is designed in the open — written down first, then
-implemented against vectors, with the gaps recorded alongside the proofs.
+This repository develops the protocol through connected working slices, settled security contracts and meaningful vectors, with deferred qualification recorded against blocking triggers.
 
 > [!WARNING]
 > **Research-stage. Not independently audited. Not production-ready.**
@@ -184,3 +183,7 @@ with **no exploit details**, stating that you can share specifics privately.
 `AGPL-3.0-only` — see [`LICENSE`](LICENSE). Any future commercial services or support
 offerings are separate from this repository and do not replace the AGPL terms on the source
 published here.
+
+## Development workflow
+
+Read [PROJECT_WORKFLOW.md](PROJECT_WORKFLOW.md) for the project-wide two-lane build method. The live TASK records the current assignment and authorized operating mode; HARDENING.md records deferred rigor against blocking triggers. A working slice, qualified milestone and release have different acceptance gates. Required CI and honest public claims remain enforced.

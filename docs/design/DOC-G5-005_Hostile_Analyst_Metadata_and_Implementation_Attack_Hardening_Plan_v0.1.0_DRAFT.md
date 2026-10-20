@@ -1,3 +1,5 @@
+> Technical/evidence reference. [Project workflow](../../PROJECT_WORKFLOW.md) governs process and scheduling. Dated lane/status/next-action text below describes its recorded revision; it is not a current queue, launch instruction or qualification certificate. Final required security/claim gates remain; actual deferrals are scheduled only in HARDENING.md.
+
 Goals: G5 (primary), supports G1, G2, G3, G4
 
 Status: Supporting
@@ -124,7 +126,7 @@ and the claim boundaries in DECISIONS remain honest (no security-complete/
 metadata-free claims). This plan does not itself constitute or schedule external
 review; it defines the preconditions.
 
-## 9. Prioritized hardening backlog (each returns as its own lane)
+## 9. Prioritized hardening backlog (selected through the single task record)
 
 > **SUPERSEDED (2026-07-07, D-1231).** This ranked table is retained for history only; its
 > ranks 1–6 are all complete (NA-0610…NA-0617). It is **no longer the live roadmap.** The

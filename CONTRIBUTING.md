@@ -1,27 +1,28 @@
 # Contributing
 
-## Scope
-This repository is under active development and is governed by a directive workflow: work lands
-through authorized lanes, not through unsolicited implementation PRs. The contributions that are
-most useful from outside, and that need no prior authorization to propose, are:
-- Negative tests and reproduction notes
-- Vector/test artifacts
-- Claim-boundary review — anywhere the documentation says more than the code earns
-- Documentation and governance corrections
+Thank you for helping improve QSL. This repository covers specifications, cryptographic composition, conformance vectors, the reference implementation and client core.
 
-Protocol or implementation changes are directed through the lane workflow; open an issue first
-rather than a PR, and expect the change to be scheduled as a lane.
+## Choose the right route
 
-## Workflow
-1) Open an issue or discussion describing the change.
-2) Follow canonical public/release posture docs: `docs/public/INDEX.md`.
-3) Keep changes minimal and scoped; avoid unrelated refactors.
-4) Use docs hygiene guardrails for docs moves/renames and evidence capture.
+| Contribution | Start with |
+|---|---|
+| Security-sensitive finding | [SECURITY.md](SECURITY.md); keep details private |
+| Reproducible bug or specification ambiguity | An issue with the revision, expected behavior and minimal synthetic reproduction |
+| Documentation or evidence correction | Identify the statement, source and proposed replacement |
+| Substantive code, protocol or interface change | Discuss the problem and scope with maintainers before implementation |
 
-## Local checks
-Run the smallest relevant checks for your change. Examples:
-- `python3 tools/goal_lint.py` (requires a prepared PR event payload)
-- `./scripts/ci/metadata_conformance_smoke.sh`
+External review, negative tests, conformance gaps and independent implementations are valuable. Maintainers coordinate accepted implementation work and required reviews; an issue is not permission to change an unsettled security contract.
 
-## Code of conduct
-Behavior expectations are defined in `CODE_OF_CONDUCT.md`.
+## Prepare a focused change
+
+Keep one coherent outcome per PR. Explain the problem, resulting behavior, validation and remaining limits. Preserve accepted technical requirements and historical evidence. Protocol or persisted-format changes need their affected vectors, traceability and independent review.
+
+Use synthetic data. Remove credentials, private endpoints and sensitive material from logs, fixtures and screenshots. Do not reduce tests, bypass a scanner or change a baseline to make a check pass.
+
+## Validate against the repository
+
+Use the [workflow directory](.github/workflows/) for exact validation recipes. Choose the relevant vector, model, core or documentation checks with maintainers. The CI workflows carry their exact commands and configurations; some require fixtures or event inputs and are not generic quickstart commands.
+
+All required repository checks remain binding. State exactly what you ran and what remains unverified; a skipped check is not a pass. Maintainers verify the current protection rules and review requirements at publication. Reviewed changes use merge commits; no merge or release is implied by opening a PR.
+
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations. Security review and support availability remain subject to the project's research-stage status.

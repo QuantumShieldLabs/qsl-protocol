@@ -2,11 +2,32 @@ Goals: G1, G2, G3, G4, G5
 
 Status: Supporting
 Owner: QSL governance
-Last-Updated: 2026-07-15
+Last-Updated: 2026-10-22
 Replaces: n/a
 Superseded-By: n/a
 
 # Website Claim Matrix
+
+## Redesign review — 2026-10-22
+
+The rows below review the proposed replacement website on `codex/website-redesign-20261022` in the website repository. They supersede the older source audit only for that replacement. They do not assert that the redesign has been deployed. The previous audit and its outstanding findings remain below as historical evidence; removing old demo instructions does not repair the underlying demo script.
+
+The coordinated candidate uses `src/App.jsx`, `src/Site.jsx`, `src/site-content.js`, `src/project-status.json` and the retained Privacy/Terms pages. Its PR and deployment record identify the exact final source; a changing branch name alone is not a release pin.
+
+| Surface | Reviewed wording or behavior | Evidence and limit |
+|---|---|---|
+| All pages | Research stage, no completed independent audit or production-readiness claim. | [Claim boundary](SUITE2_TRIPLE_RATCHET_CLAIM_BOUNDARY.md) and [release-readiness map](RELEASE_READINESS_EVIDENCE_MAP.md). A test, model or primitive standard is not whole-system assurance. |
+| Home, research, organization profile | Contact Capsule, Key Continuity, Commit Path and Quiet Transit introduce design concepts. | [Vocabulary guide](QSL_VOCABULARY.md). Presentation names do not change algorithms, formats, accepted contracts or maturity. Research attribution remains in technical references. |
+| Research, security, FAQ | Quiet Transit is proposed metadata/timing research; relay activity, sizes and timing remain observable. | [Metadata threat model](../privacy/DOC-G5-001_Metadata_Threat_Model_v1.0.0_DRAFT.md) and [transport profile](../privacy/DOC-G5-003_Envelope_Transport_Profile_v0.1.0_DRAFT.md). No established global traffic-analysis resistance. |
+| Home, status, FAQ | Desktop supports local lifecycle and contact setup; message sending/receiving are not available in the app. | [Desktop README](https://github.com/QuantumShieldLabs/qsl-desktop/blob/main/README.md). Core/CLI experiments do not establish desktop capability. |
+| Status | Curated dated focus, public source pins and dependency roadmap. | Public commit links identify reviewed component snapshots. Broad reported engineering focus is not a live runtime feed, completed milestone or qualification result. Recheck immediately before publication. |
+| Resources, self-hosting | Repository entry points replace the old working-demo instructions. | This removes the unsupported site instruction identified by WCM-110; the underlying historical demo failure remains unclosed by documentation work. Local development does not establish safe public service exposure. |
+| Standards | Algorithm standards, module validation, protocol conformance and application audit are distinguished. | No FIPS 140-3 validation or CNSA 2.0 conformance is claimed. |
+| Privacy, terms | Existing legal-page copy and dates retained. | Website operational statements need owner review; this protocol review does not verify host logging, mailbox delivery or legal sufficiency. |
+
+Publication acceptance still requires exact final-source checks and rendered review, followed by observation of the actual hosting build and deployed routes/headers. Local build success is not deployment evidence.
+
+## Earlier source audit — retained history
 
 Directive: QSL-DIR-2026-05-03-025 / NA-0245 (original audit); audit half refreshed under QSL-DIR-2026-07-15-583 / NA-0647 (D-1270). The NA-0539/NA-0541 wording-policy sections below are preserved unchanged from the original.
 

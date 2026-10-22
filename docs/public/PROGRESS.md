@@ -1,54 +1,17 @@
-Goals: G1, G2, G3, G4, G5
+# Published progress archive
 
-Status: Supporting
-Owner: QSL governance
-Last-Updated: 2026-07-15
-Replaces: n/a
-Superseded-By: n/a
+These dated entries record published development evidence and the limitations known at the time. They are historical snapshots, not a live task board or release certificate.
 
-# QSL Public Progress
+## Entries
 
-This page is the canonical index for public Progress entries. Entries summarize
-merged evidence, accepted decisions, truthful handoffs, public-document
-corrections, and known limits. They are evidence summaries, not release
-certificates.
+- [2026-07-15](progress/2026-07-15.md)
+- [2026-07-10](progress/2026-07-10.md)
+- [2026-06-25](progress/2026-06-25.md)
 
-## Latest entries
+For orientation, start with the [repository overview](../../README.md) and [evidence guide](INDEX.md). Consult the relevant source revision and subsequent commits before treating an old result as current.
 
-- [QSL Progress - 2026-07-15](progress/2026-07-15.md)
-- [QSL Progress - 2026-07-10](progress/2026-07-10.md)
-- [QSL Progress - 2026-06-25](progress/2026-06-25.md)
+## Recording new evidence
 
-## Cadence
+A progress entry should identify published source, the change, supporting checks, remaining limits and the next useful engineering outcome. In-flight work stays labeled as in-flight. Preserve old entries; material corrections name the original entry and explain what changed.
 
-QSL publishes one Progress entry per active QSL workday when there is a stable
-handoff worth summarizing. The target publication time is approximately 21:30
-America/Chicago, but publication remains subordinate to evidence quality and
-truthful handoff state.
-
-## Stable-handoff policy
-
-Progress entries may cite merged PRs, accepted decisions, in-tree evidence and
-testplans, verified CI/protection state, and truthful terminal stops. They do
-not treat in-flight work as complete.
-
-## Correction policy
-
-Current-day factual and claim-safety corrections may be made in the same
-Progress update when the evidence is definitive and the path is authorized.
-Historical entries are not silently rewritten; a dated correction section must
-explain material later corrections.
-
-## Inactive-day policy
-
-Inactive days do not require an entry. A no-public-evidence-change entry may be
-published only when the operator explicitly wants a short public note and the
-claim boundaries remain unchanged.
-
-## Claim boundary
-
-Progress entries do not claim public readiness, production readiness, public
-internet readiness, external review completion, crypto completeness, identity
-completeness, trust completeness, replay-proof status, downgrade-proof status,
-secret-material completeness, side-channel freedom, vulnerability freedom, bug
-freedom, or perfect crypto.
+Publication follows a meaningful reviewed handoff. This index does not create an automatic publication schedule or promise a release date.

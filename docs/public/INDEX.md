@@ -4,6 +4,8 @@ QSL publishes specifications, tests, analysis and known limits for review. The p
 
 ## Read the evidence in context
 
+For QSL's public design names and their technical boundaries, see the [QSL vocabulary guide](QSL_VOCABULARY.md).
+
 | Question | Evidence route | Limit |
 |---|---|---|
 | What does the protocol specify? | [Canonical documents](../canonical/) | Draft normative text is not implementation evidence. |

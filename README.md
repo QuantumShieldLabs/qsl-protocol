@@ -20,6 +20,8 @@ QSL explores hybrid message-key derivation, sparse post-quantum key agreement an
 
 ## Design at a glance
 
+QSL uses four presentation labels: **Contact Capsule** for invitation data, **Key Continuity** for key evolution, **Commit Path** for durable delivery requirements, and **Quiet Transit** for proposed metadata and timing research. The [vocabulary guide](docs/public/QSL_VOCABULARY.md) defines their scope and maturity. These labels do not rename algorithms or establish new security guarantees.
+
 Suite-2 specifies classical and post-quantum message-key chains combined for application encryption. Periodic key-agreement events refresh the post-quantum state while message-key chains advance between exchanges. The specifications define the key schedule, authentication, ordering and rejection rules.
 
 | Design area | Review question |

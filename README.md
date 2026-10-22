@@ -20,17 +20,19 @@ QSL explores hybrid message-key derivation, sparse post-quantum key agreement an
 
 ## Design at a glance
 
-Suite-2 specifies classical and post-quantum message-key chains combined for application encryption. Sparse Continuous Key Agreement supplies new post-quantum material without requiring a KEM exchange for every message. The specifications define the key schedule, authentication, ordering and rejection rules.
+Suite-2 specifies classical and post-quantum message-key chains combined for application encryption. Periodic key-agreement events refresh the post-quantum state while message-key chains advance between exchanges. The specifications define the key schedule, authentication, ordering and rejection rules.
 
 | Design area | Review question |
 |---|---|
 | Hybrid key derivation | Which secrets contribute to each message key, and under which compromise assumptions? |
-| Ratchet and SCKA transitions | What authenticates an epoch change, and what happens after loss or reordering? |
+| Key-refresh transitions | What authenticates an epoch change, and what happens after loss or reordering? |
 | Durable state | Which commit authorizes external output, and which bytes must a retry preserve? |
 | Untrusted input | What bounds parsing, skipped keys, work and retained state? |
 | Metadata | Which identifiers, lengths, timings and access patterns remain visible? |
 
 Start with DOC-CAN-003 and DOC-CAN-004 in the canonical directory. Architecture terminology describes a construction; it does not establish a complete security proof or release readiness.
+
+Research lineage: the drafts use *Sparse Continuous Key Agreement (SCKA)*, a term introduced by [Auerbach et al. (USENIX Security 2025)](https://www.usenix.org/conference/usenixsecurity25/presentation/auerbach). QSL's specific construction must be assessed against its own specifications, implementation and evidence.
 
 ## Evidence and maturity
 

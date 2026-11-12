@@ -4,6 +4,7 @@ QSL remains research-stage, not independently audited and not production-ready.
 
 This page is a navigation summary. It does not duplicate the implementation queue or grant release approval.
 
+- [November 2026 development update](docs/public/PROJECT_STATUS_2026-11.md): vault progress, planned Katzenpost transport and remaining work.
 - [Repository overview](README.md): purpose, components and reading paths.
 - [Public evidence guide](docs/public/INDEX.md): claims, supporting evidence and limits.
 - [Release-readiness evidence map](docs/public/RELEASE_READINESS_EVIDENCE_MAP.md): dated evidence and outstanding gates.

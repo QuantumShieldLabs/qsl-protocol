@@ -7,6 +7,14 @@ QSL explores hybrid message-key derivation, sparse post-quantum key agreement an
 > [!WARNING]
 > Research stage. Not independently audited or production-ready. Do not use QSL for safety-critical communications.
 
+## November 2026: the vault, then real QSL/KP
+
+We’re building toward **QuantumShield Chat**: QSL end-to-end encryption with a locally controlled vault and planned **Katzenpost (KP)** transport. KP is the lead integration candidate, not a completed integration or a partnership announcement.
+
+Focused development checks have covered encrypted private storage, send-and-reopen behavior, tamper refusal, sensitive-output redaction and a guarded unreadable-vault deletion path. The complete vault still needs composition, broader validation and required review. After the vault and necessary application prerequisites, the next integration proof is encrypted exchange between two QSL instances through real KP, including confirmation, restart, retry and failure behavior.
+
+These are maintainer-reported development results, separate from the source on the public default branches. See the [dated project status](docs/public/PROJECT_STATUS_2026-11.md) for the boundaries and [the app preview](https://quantumshieldlabs.org/preview) for the intended experience. The preview is synthetic; ordinary desktop messaging remains unfinished.
+
 ## Choose a starting point
 
 | You want to… | Read |
@@ -22,7 +30,7 @@ QSL explores hybrid message-key derivation, sparse post-quantum key agreement an
 
 QSL uses four presentation labels: **Contact Capsule** for invitation data, **Key Continuity** for key evolution, **Commit Path** for durable delivery requirements, and **Quiet Transit** for proposed metadata and timing research. The [vocabulary guide](docs/public/QSL_VOCABULARY.md) defines their scope and maturity. These labels do not rename algorithms or establish new security guarantees.
 
-Suite-2 specifies classical and post-quantum message-key chains combined for application encryption. Periodic key-agreement events refresh the post-quantum state while message-key chains advance between exchanges. The specifications define the key schedule, authentication, ordering and rejection rules.
+**Suite-2 is a research-stage Triple-Ratchet-style hybrid messaging design.** It specifies classical and post-quantum message-key chains combined for application encryption. Periodic key-agreement events refresh the post-quantum state while message-key chains advance between exchanges. The specifications define the key schedule, authentication, ordering and rejection rules.
 
 | Design area | Review question |
 |---|---|

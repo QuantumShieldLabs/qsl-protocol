@@ -2,6 +2,8 @@
 
 QSL publishes specifications, tests, analysis and known limits for review. The project remains research-stage, not independently audited and not production-ready.
 
+For the current direction and clearly separated development results, read the [November 2026 project update](PROJECT_STATUS_2026-11.md).
+
 ## Read the evidence in context
 
 For QSL's public design names and their technical boundaries, see the [QSL vocabulary guide](QSL_VOCABULARY.md).
